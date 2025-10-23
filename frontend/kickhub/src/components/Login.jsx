@@ -23,7 +23,7 @@ function Login({ modal = false, onClose }) {
 
           <div className="flex flex-col items-center justify-center w-full h-full md:flex-row ">
             <div className="bg-green-600 h-[18rem] flex items-center justify-center md:w[40rem] md:h-[40rem] md:rounded-s-lg">
-              <img src={KHlogo} alt="Login Image" className="size-full" />
+              <img src={KHlogo} alt="Login Image" className="object-cover" />
             </div>
             <div className="flex flex-col items-center justify-center bg-gray-100 rounded-t-[2rem] md:w-[40rem] md:h-[40rem] md:rounded-none w-full h-full">
               <h1 className="flex justify-center text-[4rem] font-black text-blue-600 mt-10 hidden md:block">
