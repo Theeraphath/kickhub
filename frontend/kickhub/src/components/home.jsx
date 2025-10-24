@@ -1,4 +1,3 @@
-import "bootstrap-icons/font/bootstrap-icons.css";
 import "./home.css";
 import Human from "../../public/human.png"
 function Home() {
