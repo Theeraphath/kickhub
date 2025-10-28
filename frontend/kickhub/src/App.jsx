@@ -6,7 +6,7 @@ import Home from "./components/home";
 import Party from "./components/party";
 import Reserve from "./components/reserve";
 import Promptpay from "./components/prompypay";
-
+import Field from "./components/field";
 function App() {
   return (
     <Router>
@@ -15,6 +15,7 @@ function App() {
         <Route path="/reserve" element={<Reserve />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/prompypay" element={<Promptpay />} />
+        <Route path="/field" element={<Field />} />
       </Routes>
       <BottomNav />
     </Router>
