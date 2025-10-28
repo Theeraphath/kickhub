@@ -6,15 +6,17 @@ import Home from "./components/home";
 import Party from "./components/party";
 import Reserve from "./components/reserve";
 import Promptpay from "./components/prompypay";
+import CreateParty from "./components/CreateParty";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Test1 />} />
+        {/* <Route path="/" element={<Test1 />} />
         <Route path="/reserve" element={<Reserve />} />
         <Route path="/Login" element={<Login />} />
-        <Route path="/prompypay" element={<Promptpay />} />
+        <Route path="/prompypay" element={<Promptpay />} /> */}
+        <Route path="/" element={< CreateParty/>} />
       </Routes>
       <BottomNav />
     </Router>
