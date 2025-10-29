@@ -1,0 +1,41 @@
+
+
+.Hone{
+  padding: 2px 0px 2px 30px;
+}
+
+
+.info{
+    background-color: #ededed;
+    height: 100vh;   
+    
+    position: absolute;
+    border-radius: 20px;
+    padding-top: 20px;
+    margin: -7px;
+}
+
+.dater-timer{
+  flex: 1;                
+  min-width: 100px;       
+  display: flex;          
+  flex-direction: row;    
+  align-items: center;    
+  gap: 20px;              
+  flex-wrap: wrap;  
+   min-width: 50px; 
+  margin: 20px;
+  
+}
+/* มือถือ: width < 768px */
+@media (max-width: 480px) {
+  .info {
+    flex-direction: column; /* แสดงแนวตั้ง */
+    gap: 10px;              /* ลดระยะห่าง */
+  }
+
+  .dater, .timer {
+    min-width: 100%;        /* ให้เต็มความกว้าง container */
+  }
+}
+
