@@ -16,7 +16,8 @@ function App() {
         <Route path="/reserve" element={<Reserve />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/prompypay" element={<Promptpay />} /> */}
-        <Route path="/" element={< CreateParty/>} />
+        <Route path="/" element={<Home />} />
+        <Route path="/team" element={< CreateParty/>} />
       </Routes>
       <BottomNav />
     </Router>
