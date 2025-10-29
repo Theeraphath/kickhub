@@ -13,7 +13,7 @@ const BottomNav = () => {
     { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/search" },
     { name: "หาไปรตี", icon: <FaFutbol />, path: "/team" },
     { name: "การแจ้งเตือน", icon: <FaBell />, path: "/notifications" },
-    { name: "โปรไฟล์", icon: <FaUser />, path: "/profile" },
+    { name: "โปรไฟล์", icon: <FaUser />, path: "/Login" },
   ];
 
   return (
