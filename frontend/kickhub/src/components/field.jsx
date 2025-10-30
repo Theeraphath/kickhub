@@ -2,14 +2,34 @@ import React, { useState } from "react";
 import { FaChevronLeft } from "react-icons/fa";
 import "./field.css";
 import KH from "../../public/KH.png";
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import Cardfiled from "./cardfield.jsx";
-
+import Image from "../../public/field.jpg";
 const Field = () => {
   const [query, setQuery] = useState("");
+  const fielddummy = [
+    {
+      id: 1,
+      name: "สนามไรมง",
+      price: 700 ,
+      address: "ไรมง",
+
+    },
+ {
+      id: 2,
+      name: "สนามเมืองทอง",
+      price: 700 ,
+      address: "กรุงเทพมหานคร",
+
+    },
+   
+   
+  
+ 
+  ];
 
   return (
     <div className="container">
@@ -41,48 +61,60 @@ const Field = () => {
         <div>
           <h1 className="Hone">เลือกวันที่เเละเวลา</h1>
         </div>
-           <div>
-             <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DemoContainer components={['DateTimePicker']}>
-        <DateTimePicker label="วันที่เเละเวลา"
-         slotProps={{
-        textField: {
-          sx: {
-            backgroundColor: "#22C55E", // สีพื้นหลัง
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "#22C55E", // สีขอบ
-              },
-              "&:hover fieldset": {
-                borderColor: "#fff", // สีขอบเมื่อ hover
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "#004D40", // สีขอบเมื่อ focus
-              },
-            },
-            "& .MuiInputLabel-root": {
-              color: "#fff", // สี label
-            },
-            "& .MuiInputBase-input": {
-              color: "#fff", // สีข้อความ input
-            },
-          },
-        },
-      }}
-        />
-      </DemoContainer>
-    </LocalizationProvider>
-           </div>
-       
         <div>
-          < Cardfiled />
-           < Cardfiled />
-            < Cardfiled />
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DemoContainer components={["DateTimePicker"]}>
+              <DateTimePicker
+                label="วันที่เเละเวลา"
+                slotProps={{
+                  textField: {
+                    sx: {
+                      backgroundColor: "#22C55E", // สีพื้นหลัง
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderColor: "#22C55E", // สีขอบ
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "#fff", // สีขอบเมื่อ hover
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#004D40", // สีขอบเมื่อ focus
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "#fff", // สี label
+                      },
+                      "& .MuiInputBase-input": {
+                        color: "#fff", // สีข้อความ input
+                      },
+                    },
+                  },
+                }}
+              />
+            </DemoContainer>
+          </LocalizationProvider>
+        </div>
+
+        <div>
+
+         {fielddummy.map((item) => (
+            <Cardfiled
+              key={item.id}
+              image={Image}
+              name={item.name}
+              price={item.price}
+              address={item.address}
+            />
+          ))}
+
+
+
+
+
+       
         </div>
       </div>
-      <div>
-      
-      </div>
+      <div></div>
     </div>
   );
 };
