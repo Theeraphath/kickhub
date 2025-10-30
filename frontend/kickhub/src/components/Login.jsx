@@ -1,195 +1,206 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
+import { IoLockClosedOutline } from "react-icons/io5";
+import { MdOutlineAlternateEmail } from "react-icons/md";
 import KHlogo from "../../public/KHlogo.png";
+import Googlelogo from "../../public/google-icon-logo-svgrepo-com.svg";
+import Applelogo from "../../public/apple-black-logo-svgrepo-com.svg";
 
-function Login({ modal = false, onClose }) {
+export default function Login() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  if (modal) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center  ">
-        <div
-          className="absolute inset-0 bg-black/40"
-          onClick={onClose}
-          aria-hidden="true"
-        />
-        <div className="relative bg-green-600 rounded-lg shadow-lg w-[80rem] max-w-[90%] max-h-[90%] overflow-auto">
-          <button
-            type="button"
-            className="absolute top-3 right-3 text-gray-600 hover:text-gray-800 cursor-pointer"
-            onClick={onClose}
-            aria-label="Close"
+  const [inputs, setInputs] = useState({ email: "", password: "" });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setInputs((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const raw = JSON.stringify({
+      username: inputs.email,
+      password: inputs.password,
+      expiresIn: 60000,
+    });
+
+    try {
+      const res = await fetch("https://www.melivecode.com/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: raw,
+      });
+      const result = await res.json();
+
+      if (result.status === "ok") {
+        localStorage.setItem("token", result.accessToken);
+        alert("Login Successful!");
+        navigate("/test");
+      } else {
+        alert("Login Failed: " + result.message);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("An error occurred while logging in.");
+    }
+  };
+
+  return (
+    <motion.div
+      className="flex items-center justify-center h-screen bg-gray-100 md:bg-green-800 overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      <motion.div
+        className="flex flex-col items-center justify-center md:flex-row bg-green-600 md:shadow-lg md:rounded-lg"
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        {/* Left Side (Logo) */}
+        <motion.div
+          className="bg-green-600 flex items-center justify-center md:w-[40rem] md:h-[40rem] md:rounded-s-lg"
+          initial={{ x: -60, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+        >
+          <motion.img
+            src={KHlogo}
+            alt="Login Image"
+            className="object-cover"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.4 }}
+          />
+        </motion.div>
+
+        {/* Form Section */}
+        <motion.div
+          className="flex flex-col items-center bg-gray-100 rounded-t-[2rem] md:w-[40rem] md:h-[40rem] md:rounded-none w-full h-full md:rounded-e-lg"
+          initial={{ x: 60, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+        >
+          <h1 className="flex justify-center text-[3rem] font-black text-blue-600 mt-10 hidden md:block">
+            WELCOME
+          </h1>
+
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white flex flex-col gap-3 p-5 rounded-[2rem] shadow-lg mb-10 mt-8 w-[25rem]"
           >
-            ✕
-          </button>
-
-          <div className="flex flex-col items-center justify-center w-full h-full md:flex-row ">
-            <div className="bg-green-600 h-[18rem] flex items-center justify-center md:w[40rem] md:h-[40rem] md:rounded-s-lg">
-              <img src={KHlogo} alt="Login Image" className="object-cover" />
-            </div>
-            <div className="flex flex-col items-center justify-center bg-gray-100 rounded-t-[2rem] md:w-[40rem] md:h-[40rem] md:rounded-none w-full h-full">
-              <h1 className="flex justify-center text-[4rem] font-black text-blue-600 mt-10 hidden md:block">
-                WELCOME
-              </h1>
-              <div className="flex flex-col mt-10 w-85 md:full">
-                <form className="bg-white flex flex-col gap-1 p-3 rounded-lg shadow-lg mb-10 ">
-                  <div>
-                    <label className="text-black text-[0.9rem] font-bold">
-                      Email
-                    </label>
-                  </div>
-                  <div className="flex items-center justify-center border-1 border-gray-300 w-full h-[2rem] px-2 rounded-md gap-2">
-                    <svg
-                      height="20"
-                      viewBox="0 0 32 32"
-                      width="20"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g id="Layer_3" data-name="Layer 3">
-                        <path d="m30.853 13.87a15 15 0 0 0 -29.729 4.082 15.1 15.1 0 0 0 12.876 12.918 15.6 15.6 0 0 0 2.016.13 14.85 14.85 0 0 0 7.715-2.145 1 1 0 1 0 -1.031-1.711 13.007 13.007 0 1 1 5.458-6.529 2.149 2.149 0 0 1 -4.158-.759v-10.856a1 1 0 0 0 -2 0v1.726a8 8 0 1 0 .2 10.325 4.135 4.135 0 0 0 7.83.274 15.2 15.2 0 0 0 .823-7.455zm-14.853 8.13a6 6 0 1 1 6-6 6.006 6.006 0 0 1 -6 6z"></path>
-                      </g>
-                    </svg>
-                    <input
-                      type="text"
-                      className="text-black text-[0.7rem] opacity-70 w-full h-full outline-none "
-                      placeholder="Enter your Email"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-black text-[0.9rem] font-bold">
-                      Password
-                    </label>
-                    <div>
-                      <div className="flex items-center justify-center border-1 border-gray-300 w-full h-[2rem] px-2 rounded-md gap-2">
-                        <svg
-                          height="20"
-                          viewBox="-64 0 512 512"
-                          width="20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="m336 512h-288c-26.453125 0-48-21.523438-48-48v-224c0-26.476562 21.546875-48 48-48h288c26.453125 0 48 21.523438 48 48v224c0 26.476562-21.546875 48-48 48zm-288-288c-8.8125 0-16 7.167969-16 16v224c0 8.832031 7.1875 16 16 16h288c8.8125 0 16-7.167969 16-16v-224c0-8.832031-7.1875-16-16-16zm0 0"></path>
-                          <path d="m304 224c-8.832031 0-16-7.167969-16-16v-80c0-52.929688-43.070312-96-96-96s-96 43.070312-96 96v80c0 8.832031-7.167969 16-16 16s-16-7.167969-16-16v-80c0-70.59375 57.40625-128 128-128s128 57.40625 128 128v80c0 8.832031-7.167969 16-16 16zm0 0"></path>
-                        </svg>
-                        {showPassword ? (
-                          <input
-                            type="text"
-                            className="text-black text-[0.7rem] opacity-70 w-full h-full outline-none"
-                            placeholder="Enter your Password"
-                          />
-                        ) : (
-                          <input
-                            type="password"
-                            className="text-black text-[0.7rem] opacity-70 w-full h-full outline-none"
-                            placeholder="Enter your Password"
-                          />
-                        )}
-                        <svg
-                          viewBox="0 0 576 512"
-                          height="1em"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="cursor-pointer"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          <path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"></path>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-row align-center justify-between mt-3">
-                    <div className="flex flex-row gap-1 items-center">
-                      <input
-                        type="checkbox"
-                        className="peer h-4 w-4 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-slate-300 checked:bg-blue-600 checked:border-blue-600 focus:outline-none"
-                        id="remember"
-                      />
-                      <label className="text-black text-[0.7rem]">
-                        Remember me{" "}
-                      </label>
-                    </div>
-                    <span className="text-blue-600 text-[0.7rem] font-bold cursor-pointer">
-                      Forgot Password?
-                    </span>
-                  </div>
-                  <button
-                    type="submit"
-                    className="mt-2 bg-black text-white text-[0.8rem] font-medium py-2 rounded-md hover:bg-green-700 transition-colors cursor-pointer"
-                  >
-                    Sign In
-                  </button>
-                  <p className="text-black mt-3 text-[0.7rem] font-medium flex justify-center gap-1">
-                    Don't have an account?
-                    <span className="text-blue-600 cursor-pointer">
-                      Sign Up
-                    </span>
-                  </p>
-                  <p className="text-black mt-1 text-[0.7rem] font-medium flex justify-center mb-2">
-                    Or With
-                  </p>
-                  <div className="flex flex-row gap-2 justify-center mb-2">
-                    <button
-                      type="button"
-                      className="btn google flex items-center gap-2 text-[0.8rem] font-semibold justify-center w-[7rem] py-2 px-3 rounded-[0.6rem] hover:bg-gray-100 transition-colors cursor-pointer border-1 border-gray-300"
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 512 512"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          fill="#FBBB00"
-                          d="M113.47,309.408L95.648,375.94l-65.139,1.378C11.042,341.211,0,299.9,0,256
-        c0-42.451,10.324-82.483,28.624-117.732h0.014l57.992,10.632l25.404,57.644c-5.317,15.501-8.215,32.141-8.215,49.456
-        C103.821,274.792,107.225,292.797,113.47,309.408z"
-                        />
-                        <path
-                          fill="#518EF8"
-                          d="M507.527,208.176C510.467,223.662,512,239.655,512,256c0,18.328-1.927,36.206-5.598,53.451
-        c-12.462,58.683-45.025,109.925-90.134,146.187l-0.014-0.014l-73.044-3.727l-10.338-64.535
-        c29.932-17.554,53.324-45.025,65.646-77.911h-136.89V208.176h138.887z"
-                        />
-                        <path
-                          fill="#28B446"
-                          d="M416.253,455.624l0.014,0.014C372.396,490.901,316.666,512,256,512
-        c-97.491,0-182.252-54.491-225.491-134.681l82.961-67.91c21.619,57.698,77.278,98.771,142.53,98.771
-        c28.047,0,54.323-7.582,76.87-20.818L416.253,455.624z"
-                        />
-                        <path
-                          fill="#F14336"
-                          d="M419.404,58.936l-82.933,67.896c-23.335-14.586-50.919-23.012-80.471-23.012
-        c-66.729,0-123.429,42.957-143.965,102.724l-83.397-68.276C71.23,56.123,157.06,0,256,0
-        C318.115,0,375.068,22.126,419.404,58.936z"
-                        />
-                      </svg>
-                      <span className="text-black">Google</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      className="btn apple flex items-center gap-2 text-[0.7rem] font-semibold justify-center w-[7rem] py-2 px-4 rounded-[0.6rem] hover:bg-gray-100 transition-colors cursor-pointer border-1 border-gray-300"
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 22.773 22.773"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g>
-                          <g>
-                            <path d="M15.769,0c0.053,0,0.106,0,0.162,0c0.13,1.606-0.483,2.806-1.228,3.675c-0.731,0.863-1.732,1.7-3.351,1.573 c-0.108-1.583,0.506-2.694,1.25-3.561C13.292,0.879,14.557,0.16,15.769,0z" />
-                            <path d="M20.67,16.716c0,0.016,0,0.03,0,0.045c-0.455,1.378-1.104,2.559-1.896,3.655c-0.723,0.995-1.609,2.334-3.191,2.334 c-1.367,0-2.275-0.879-3.676-0.903c-1.482-0.024-2.297,0.735-3.652,0.926c-0.155,0-0.31,0-0.462,0 c-0.995-0.144-1.798-0.932-2.383-1.642c-1.725-2.098-3.058-4.808-3.306-8.276c0-0.34,0-0.679,0-1.019 c0.105-2.482,1.311-4.5,2.914-5.478c0.846-0.52,2.009-0.963,3.304-0.765c0.555,0.086,1.122,0.276,1.619,0.464 c0.471,0.181,1.06,0.502,1.618,0.485c0.378-0.011,0.754-0.208,1.135-0.347c1.116-0.403,2.21-0.865,3.652-0.648 c1.733,0.262,2.963,1.032,3.723,2.22c-1.466,0.933-2.625,2.339-2.427,4.74C17.818,14.688,19.086,15.964,20.67,16.716z" />
-                          </g>
-                        </g>
-                      </svg>
-                      <span className="text-black">Apple</span>
-                    </button>
-                  </div>
-                </form>
+            {/* Email */}
+            <div className="flex flex-col gap-1">
+              <label className="text-black text-[0.9rem] font-bold">Email</label>
+              <div className="flex items-center border border-gray-300 w-full px-3 py-2 rounded-full gap-2 focus-within:ring-2 focus-within:ring-green-400 transition">
+                <MdOutlineAlternateEmail className="text-black text-[1rem]" />
+                <input
+                  type="text"
+                  className="text-black text-[0.9rem] opacity-80 w-full outline-none bg-transparent"
+                  placeholder="Enter your Email || example: karn.yong"
+                  name="email"
+                  value={inputs.email}
+                  onChange={handleChange}
+                />
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-}
 
-export default Login;
+            {/* Password */}
+            <div className="flex flex-col gap-1">
+              <label className="text-black text-[0.9rem] font-bold">Password</label>
+              <div className="flex items-center border border-gray-300 w-full px-3 py-2 rounded-full gap-2 focus-within:ring-2 focus-within:ring-green-400 transition">
+                <IoLockClosedOutline className="text-black text-[1rem]" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="text-black text-[0.9rem] opacity-80 w-full outline-none bg-transparent"
+                  placeholder="Enter your Password || example: melivecode"
+                  name="password"
+                  value={inputs.password}
+                  onChange={handleChange}
+                />
+                {showPassword ? (
+                  <FaRegEyeSlash
+                    className="cursor-pointer text-gray-700 hover:text-green-600 transition"
+                    onClick={() => setShowPassword(false)}
+                  />
+                ) : (
+                  <FaRegEye
+                    className="cursor-pointer text-gray-700 hover:text-green-600 transition"
+                    onClick={() => setShowPassword(true)}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Remember + Forgot */}
+            <div className="flex justify-between mt-2 text-[0.8rem]">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="accent-green-600 cursor-pointer w-4 h-4"
+                />
+                Remember me
+              </label>
+              <span className="text-blue-600 font-medium cursor-pointer hover:underline">
+                Forgot Password?
+              </span>
+            </div>
+
+            {/* Login Button */}
+            <motion.button
+              type="submit"
+              className="mt-3 bg-black text-white text-[1rem] font-medium py-2 rounded-full hover:bg-gray-800 cursor-pointer transition"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Sign In
+            </motion.button>
+
+            {/* Go to Sign Up */}
+            <p className="text-black mt-3 text-[0.8rem] flex justify-center gap-1">
+              Don’t have an account?
+              <span
+                onClick={() => navigate("/SignUp")}
+                className="text-blue-600 cursor-pointer hover:underline"
+              >
+                Sign Up
+              </span>
+            </p>
+
+            {/* Social Login */}
+            <div className="flex flex-col items-center mt-2 gap-2">
+              <p className="text-gray-600 text-[0.8rem]">Or sign in with</p>
+
+              <div className="flex gap-3 w-full">
+                {/* Google */}
+                <motion.button
+                  type="button"
+                  className="flex items-center gap-2 text-[0.8rem] w-full justify-center py-2 px-4 rounded-full border border-gray-300 hover:bg-gray-100 cursor-pointer transition"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <img src={Googlelogo} alt="Google" className="w-4 h-4" />
+                  <span className="text-black font-medium">Google</span>
+                </motion.button>
+
+                {/* Apple */}
+                <motion.button
+                  type="button"
+                  className="flex items-center gap-2 text-[0.8rem] w-full justify-center py-2 px-4 rounded-full border border-gray-300 hover:bg-gray-100 cursor-pointer transition"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <img src={Applelogo} alt="Apple" className="w-4 h-4" />
+                  <span className="text-black font-medium">Apple</span>
+                </motion.button>
+              </div>
+            </div>
+          </form>
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
+}

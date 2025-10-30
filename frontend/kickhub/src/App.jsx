@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import BottomNav from "./components/Navbar";
 import Login from "./components/Login";
 import Test1 from "./components/test";
@@ -6,22 +6,61 @@ import Home from "./components/home";
 import Party from "./components/party";
 import Reserve from "./components/reserve";
 import Promptpay from "./components/prompypay";
-import CreateParty from "./components/CreateParty";
+import ProtectedRoute from "./components/ProtectedRoute";
+import SignUp from "./components/SignUp";
 
-function App() {
+function AppRoutes() {
+  const location = useLocation();
+  const hideNavPaths = ["/login", "/SignUp"];
+  const shouldShowNav = !hideNavPaths.includes(location.pathname);
+
   return (
-    <Router>
+    <>
       <Routes>
-        {/* <Route path="/" element={<Test1 />} />
-        <Route path="/reserve" element={<Reserve />} />
-        <Route path="/Login" element={<Login />} />
-        <Route path="/prompypay" element={<Promptpay />} /> */}
-        <Route path="/" element={<Home />} />
-        <Route path="/team" element={< CreateParty/>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/SignUp" element={<SignUp />} />
+        <Route
+          path="/test"
+          element={
+            <ProtectedRoute>
+              <Test1 />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/party"
+          element={
+            <ProtectedRoute>
+              <Party />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reserve"
+          element={
+            <ProtectedRoute>
+              <Reserve />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/promptpay"
+          element={
+            <ProtectedRoute>
+              <Promptpay />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-      <BottomNav />
-    </Router>
+      {shouldShowNav && <BottomNav />}
+    </>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <AppRoutes />
+    </Router>
+  );
+}
