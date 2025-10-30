@@ -1,5 +1,7 @@
 // import { React, useState } from "react";
 import promptpaylogo from "../../public/prompt-pay-logo.svg";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 import Qrcode from "../../public/googleQRcodes.png";
 
 export default function Promptpay() {
@@ -10,9 +12,19 @@ export default function Promptpay() {
     fieldName: "สนามฟุตบอลศรีปทุม",
   };
 
+  const navigate = useNavigate();
+
   return (
     <div className="bg-white rounded-lg shadow-md max-w-md mx-auto mt-10 font-noto-thai flex flex-col items-center">
-      <h1 className="text-2xl font-bold">QR PromptPay</h1>
+      <div className="relative flex items-center justify-between w-full p-4">
+        <FaArrowLeft
+          className="text-[1rem] font-bold cursor-pointer "
+          onClick={() => navigate(-1)}
+        />
+        <h1 className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-bold">
+          QR PromptPay
+        </h1>
+      </div>
       <div className="bg-green-300 p-4 mt-4 w-full flex flex-col items-center">
         <p>บันทึก QR Code นี้และนำไปสแกนผ่านแอปธนาคาร</p>
       </div>

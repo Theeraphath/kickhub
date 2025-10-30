@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { LuScanQrCode } from "react-icons/lu";
 import { FaMapMarkerAlt, FaRegCreditCard, FaMoneyBill } from "react-icons/fa";
 import field from "../../public/field.jpg";
@@ -66,6 +67,25 @@ const paymentMethods = [
 
 export default function Reserve() {
   const [selected, setSelected] = useState(null);
+  const navigate = useNavigate();
+  const handleClick = () => {
+    if (selected === null) {
+      alert("กรุณาเลือกวิธีการชําระเงิน");
+    }
+    if (selected === "promptpay") {
+      navigate("/promptpay");
+    }
+    if (selected === "card") {
+      alert(
+        "ขออภัย การชําระเงินด้วยบัญชีธนาคารยังไม่รองรับ กรุณาเลือกวิธีการชําระเงินอื่น"
+      );
+    }
+    if (selected === "cash") {
+      alert(
+        "ขออภัย การชําระเงินด้วยเงินสดยังไม่รองรับ กรุณาเลือกวิธีการชําระเงินอื่น"
+      );
+    }
+  };
 
   return (
     <div className="flex justify-center min-h-screen bg-gray-100">
@@ -176,7 +196,10 @@ export default function Reserve() {
               <p>ไม่สามารถยกเลิกการจองได้</p>
             </div>
             <div className="mt-4">
-              <button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200">
+              <button
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-full transition-colors duration-200"
+                onClick={handleClick}
+              >
                 ยืนยันการจอง
               </button>
             </div>
