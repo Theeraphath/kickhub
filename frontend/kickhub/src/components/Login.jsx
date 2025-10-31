@@ -24,7 +24,7 @@ export default function Login() {
     const raw = JSON.stringify({
       username: inputs.email,
       password: inputs.password,
-      expiresIn: 60000,
+      expiresIn: 600000,
     });
 
     try {

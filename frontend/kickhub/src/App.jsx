@@ -14,19 +14,28 @@ import Promptpay from "./components/prompypay";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignUp from "./components/SignUp";
 import Partybuffet from "./components/Partybuffet";
+import Test2 from "./components/test2";
 
 function AppRoutes() {
   const location = useLocation();
-  const hideNavPaths = ["/login", "/SignUp", "/reserve", "/promptpay", "/partybuffet"];
+  const hideNavPaths = [
+    "/login",
+    "/SignUp",
+    "/reserve",
+    "/promptpay",
+    "/partybuffet",
+  ];
   const shouldShowNav = !hideNavPaths.includes(location.pathname);
 
   return (
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/signUp" element={<SignUp />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route path="/" element={<Home />} />
         <Route path="/partybuffet" element={<Partybuffet />} />
+        <Route path="/test/:id" element={<Test2 />} />
+
         <Route
           path="/test"
           element={
@@ -60,7 +69,7 @@ function AppRoutes() {
           }
         />
       </Routes>
-      {shouldShowNav && <BottomNav />}
+      <ProtectedRoute>{shouldShowNav && <BottomNav />}</ProtectedRoute>
     </>
   );
 }
