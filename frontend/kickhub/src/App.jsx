@@ -14,6 +14,9 @@ import Promptpay from "./components/prompypay";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignUp from "./components/SignUp";
 import Partybuffet from "./components/Partybuffet";
+import FindCreateParty from "./components/FindCreateParty";
+import FindandCreate from "./components/FindandCreate";
+
 
 function AppRoutes() {
   const location = useLocation();
@@ -27,6 +30,9 @@ function AppRoutes() {
         <Route path="/signUp" element={<SignUp />} />
         <Route path="/" element={<Home />} />
         <Route path="/partybuffet" element={<Partybuffet />} />
+        <Route path="/team" element={<FindCreateParty />} />
+        <Route path="/findandcreate" element={<FindandCreate />} />
+
         <Route
           path="/test"
           element={
