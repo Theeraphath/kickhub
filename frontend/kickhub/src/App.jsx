@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import BottomNav from "./components/Navbar";
 import Login from "./components/Login";
 import Test1 from "./components/test";
@@ -8,17 +13,20 @@ import Reserve from "./components/reserve";
 import Promptpay from "./components/prompypay";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignUp from "./components/SignUp";
+import Partybuffet from "./components/Partybuffet";
 
 function AppRoutes() {
   const location = useLocation();
-  const hideNavPaths = ["/login", "/SignUp"];
+  const hideNavPaths = ["/login", "/SignUp", "/reserve", "/promptpay", "/partybuffet"];
   const shouldShowNav = !hideNavPaths.includes(location.pathname);
 
   return (
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/SignUp" element={<SignUp />} />
+        <Route path="/signUp" element={<SignUp />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/partybuffet" element={<Partybuffet />} />
         <Route
           path="/test"
           element={
