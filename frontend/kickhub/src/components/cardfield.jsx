@@ -7,7 +7,7 @@ const cardfield = (props) => {
   return (
     
    
-      <div className="cardfield">
+      <div className="cardfield relavive">
         <div className="">
         <img className="w-[100px] h-[100px]" src={Image} alt="" />
       </div>
@@ -25,12 +25,12 @@ const cardfield = (props) => {
       <div>
       </div>
       <div>
-       <button className="bg-red-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded  mt-4">
+       <button className="bg-red-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded  mt-4 borderradius rounded-xl ">
        <h1>ว่าง</h1>
        </button>
       </div>
       <div>
-       <button className="bg-green-400 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded  mt-4 text-center">
+       <button className="bg-green-400 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded  mt-4 text-center absolute right-23 rounded-xl">
        <h1>ดูรายละเอียด</h1>
        </button>
       </div>
