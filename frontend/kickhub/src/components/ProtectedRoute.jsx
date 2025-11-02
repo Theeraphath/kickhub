@@ -3,12 +3,16 @@ import { jwtDecode } from "jwt-decode"; // ✅ ใช้ named import
 
 const ProtectedRoute = ({ children }) => {
   const location = useLocation();
+  const publicPaths = ["/login", "/signup"];
 
   const rawToken = localStorage.getItem("token");
   let token = null;
   let isExpired = false;
-  // ✅ รายชื่อ path ที่ไม่ต้องตรวจ token
-  const publicPaths = ["/login", "/signUp"];
+// <<<<<<< 31-10-2025/aomsin
+// =======
+//   // ✅ รายชื่อ path ที่ไม่ต้องตรวจ token
+//   const publicPaths = ["/login", "/signUp"];
+// >>>>>>> main
 
   // 🧠 ตรวจว่า token เป็น object หรือ string
   try {

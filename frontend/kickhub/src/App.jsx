@@ -14,10 +14,17 @@ import Promptpay from "./components/prompypay";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignUp from "./components/SignUp";
 import Partybuffet from "./components/Partybuffet";
+import Test2 from "./components/test2";
 
 function AppRoutes() {
   const location = useLocation();
-  const hideNavPaths = ["/login", "/SignUp", "/reserve", "/promptpay", "/partybuffet"];
+  const hideNavPaths = [
+    "/login",
+    "/SignUp",
+    "/reserve",
+    "/promptpay",
+    "/partybuffet",
+  ];
   const shouldShowNav = !hideNavPaths.includes(location.pathname);
 
   return (
