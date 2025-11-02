@@ -1,55 +1,43 @@
-import * as React from 'react';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+import React from "react";
+import "./cardfield.css";
 import Image from "../../public/field.jpg";
-import './cardfield.css';
-import ButtonGroup from '@mui/material/ButtonGroup';
+import { FaMapPin } from "react-icons/fa";
 
-export default function ImgMediaCard(props) {
+const cardfield = (props) => {
   return (
-    <div className="card">
-       <Card sx={{ maxWidth: 345 }}>
-      <CardMedia
-        component="img"
-        alt="green iguana"
-        height="140"
-        image={Image}
-      />
-      <CardContent>
-        <Typography gutterBottom variant="h5" component="div">
-          สนาม
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          <p>Status</p>
-          <p>price</p>
-          <div>
-              <ButtonGroup variant="contained" aria-label="Basic button group">
-        <Button>ที่จอดรถ</Button>
-        <Button>ห้องน้ำ</Button>
-        <Button>ห้องอาบน้ำ</Button>
-      </ButtonGroup>
-          </div>
-          <div>
-            <div>
-               
-            </div>
-            <div>
-
-            </div>
-          </div>
-
-        </Typography>
-      </CardContent>
-      <CardActions>
-        <Button size="small">ว่าง</Button>
-        <Button size="small">ดูรายละเอียด</Button>
-      </CardActions>
-    </Card>
-    </div>
     
+   
+      <div className="cardfield relavive">
+        <div className="">
+        <img className="w-[100px] h-[100px]" src={Image} alt="" />
+      </div>
+      <div className="flex flex-col gap-2 pl-4">
+        <span>
+          <h1 className="text-2xl font-bold">{props.name}</h1>
+        </span>
+        <span className="flex ">
+          <FaMapPin />&nbsp;<h2>{props.address}</h2>
+        </span>
+        <span className="text-green-500">
+          <h2>{props.price} bath/hours</h2>
+        </span>
+      </div>
+      <div>
+      </div>
+      <div>
+       <button className="bg-red-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded  mt-4 borderradius rounded-xl ">
+       <h1>ว่าง</h1>
+       </button>
+      </div>
+      <div>
+       <button className="bg-green-400 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded  mt-4 text-center absolute right-23 rounded-xl">
+       <h1>ดูรายละเอียด</h1>
+       </button>
+      </div>
+      </div>
+      
+   
   );
-}
+};
+
+export default cardfield;
