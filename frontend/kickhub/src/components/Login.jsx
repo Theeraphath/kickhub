@@ -163,7 +163,7 @@ export default function Login() {
             <p className="text-black mt-3 text-[0.8rem] flex justify-center gap-1">
               Don’t have an account?
               <span
-                onClick={() => navigate("/SignUp")}
+                onClick={() => navigate("/signup")}
                 className="text-blue-600 cursor-pointer hover:underline"
               >
                 Sign Up
