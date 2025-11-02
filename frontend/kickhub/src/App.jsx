@@ -14,24 +14,38 @@ import Promptpay from "./components/prompypay";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignUp from "./components/SignUp";
 import Partybuffet from "./components/Partybuffet";
-import FindCreateParty from "./components/FindCreateParty";
-import FindandCreate from "./components/FindandCreate";
+// <<<<<<< 31findty
+// import FindCreateParty from "./components/FindCreateParty";
+// import FindandCreate from "./components/FindandCreate";
 
+// =======
+// import Test2 from "./components/test2";
+// >>>>>>> main
 
 function AppRoutes() {
   const location = useLocation();
-  const hideNavPaths = ["/login", "/SignUp", "/reserve", "/promptpay", "/partybuffet"];
+  const hideNavPaths = [
+    "/login",
+    "/SignUp",
+    "/reserve",
+    "/promptpay",
+    "/partybuffet",
+  ];
   const shouldShowNav = !hideNavPaths.includes(location.pathname);
 
   return (
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/signUp" element={<SignUp />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route path="/" element={<Home />} />
         <Route path="/partybuffet" element={<Partybuffet />} />
-        <Route path="/team" element={<FindCreateParty />} />
-        <Route path="/findandcreate" element={<FindandCreate />} />
+// <<<<<<< 31findty
+//         <Route path="/team" element={<FindCreateParty />} />
+//         <Route path="/findandcreate" element={<FindandCreate />} />
+// =======
+//         <Route path="/test/:id" element={<Test2 />} />
+// >>>>>>> main
 
         <Route
           path="/test"
@@ -66,7 +80,7 @@ function AppRoutes() {
           }
         />
       </Routes>
-      {shouldShowNav && <BottomNav />}
+      <ProtectedRoute>{shouldShowNav && <BottomNav />}</ProtectedRoute>
     </>
   );
 }

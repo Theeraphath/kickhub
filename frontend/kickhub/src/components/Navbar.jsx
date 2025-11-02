@@ -10,8 +10,13 @@ import {
 const BottomNav = () => {
   const navItems = [
     { name: "หน้าหลัก", icon: <FaHome />, path: "/" },
-    { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/search" },
-    { name: "หาไปรตี", icon: <FaFutbol />, path: "/team", },
+// <<<<<<< 31findty
+//     { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/search" },
+//     { name: "หาไปรตี", icon: <FaFutbol />, path: "/team", },
+// =======
+//     { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/test" },
+//     { name: "หาไปรตี", icon: <FaFutbol />, path: "/team" },
+// >>>>>>> main
     { name: "การแจ้งเตือน", icon: <FaBell />, path: "/notifications" },
     { name: "โปรไฟล์", icon: <FaUser />, path: "/login" },
 

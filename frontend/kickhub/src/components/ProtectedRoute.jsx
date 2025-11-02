@@ -1,18 +1,54 @@
 import { Navigate, useLocation } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; // ✅ ใช้ named import
 
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
   const location = useLocation();
+  const publicPaths = ["/login", "/signup"];
 
-  // ✅ รายชื่อ path ที่ไม่ต้องตรวจ token
-  const publicPaths = ["/login", "/signUp"];
+  const rawToken = localStorage.getItem("token");
+  let token = null;
+  let isExpired = false;
+// <<<<<<< 31-10-2025/aomsin
+// =======
+//   // ✅ รายชื่อ path ที่ไม่ต้องตรวจ token
+//   const publicPaths = ["/login", "/signUp"];
+// >>>>>>> main
 
-  // 🛡️ ถ้าไม่มี token และ path ไม่อยู่ใน publicPaths → redirect ไป /Login
+  // 🧠 ตรวจว่า token เป็น object หรือ string
+  try {
+    token = JSON.parse(rawToken); // custom token: { accessToken, expiry }
+  } catch {
+    token = rawToken; // JWT string
+  }
+
+  // 🔍 ตรวจหมดอายุ
+  if (typeof token === "string") {
+    try {
+      const decoded = jwtDecode(token);
+      if (decoded.exp * 1000 < Date.now()) {
+        isExpired = true;
+      }
+    } catch {
+      isExpired = true;
+    }
+  } else if (typeof token === "object" && token?.expiry) {
+    if (Date.now() > token.expiry) {
+      isExpired = true;
+    }
+  }
+
+  // 🧹 ลบ token ถ้าหมดอายุ
+  if (isExpired) {
+    localStorage.removeItem("token");
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  // 🛡️ ไม่มี token และไม่ใช่ public path → redirect
   if (!token && !publicPaths.includes(location.pathname)) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // 🧭 ถ้ามี token อยู่แล้ว และผู้ใช้พยายามเข้า /Login หรือ /SignUp → redirect ไปหน้าแรก
+  // 🚫 มี token แล้วเข้า /login หรือ /signup → redirect ไปหน้าแรก
   if (token && publicPaths.includes(location.pathname)) {
     return <Navigate to="/" replace />;
   }
