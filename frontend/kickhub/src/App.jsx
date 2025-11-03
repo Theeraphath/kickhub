@@ -14,13 +14,13 @@ import Promptpay from "./components/prompypay";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignUp from "./components/SignUp";
 import Partybuffet from "./components/Partybuffet";
-// <<<<<<< 31findty
-// import FindCreateParty from "./components/FindCreateParty";
-// import FindandCreate from "./components/FindandCreate";
 
-// =======
-// import Test2 from "./components/test2";
-// >>>>>>> main
+ import FindCreateParty from "./components/FindCreateParty";
+ import FindandCreate from "./components/FindandCreate";
+
+
+import Test2 from "./components/test2";
+
 
 function AppRoutes() {
   const location = useLocation();
@@ -40,12 +40,11 @@ function AppRoutes() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/" element={<Home />} />
         <Route path="/partybuffet" element={<Partybuffet />} />
-// <<<<<<< 31findty
-//         <Route path="/team" element={<FindCreateParty />} />
-//         <Route path="/findandcreate" element={<FindandCreate />} />
-// =======
-//         <Route path="/test/:id" element={<Test2 />} />
-// >>>>>>> main
+
+        <Route path="/team" element={<FindCreateParty />} />        <Route path="/findandcreate" element={<FindandCreate />} />
+
+        <Route path="/test/:id" element={<Test2 />} />
+
 
         <Route
           path="/test"
