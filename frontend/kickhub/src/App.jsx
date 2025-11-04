@@ -17,6 +17,7 @@ import Partybuffet from "./components/Partybuffet";
 import FindCreateParty from "./components/FindCreateParty";
 import FindandCreate from "./components/FindandCreate";
 import Notifications from "./components/Notification";
+import PartyRole from "./components/Partyrole";
 import Test2 from "./components/test2";
 
 function AppRoutes() {
@@ -27,6 +28,7 @@ function AppRoutes() {
     "/reserve",
     "/promptpay",
     "/partybuffet",
+    "/partyrole",
   ];
   const shouldShowNav = !hideNavPaths.includes(location.pathname);
 
@@ -41,6 +43,7 @@ function AppRoutes() {
         <Route path="/findandcreate" element={<FindandCreate />} />
         <Route path="/test/:id" element={<Test2 />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/partyrole" element={<PartyRole />} />
 
         <Route
           path="/test"
