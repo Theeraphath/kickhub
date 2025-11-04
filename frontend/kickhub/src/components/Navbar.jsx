@@ -10,16 +10,10 @@ import {
 const BottomNav = () => {
   const navItems = [
     { name: "หน้าหลัก", icon: <FaHome />, path: "/" },
-<<<<<<< 31findty
     { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/search" },
     { name: "หาไปรตี", icon: <FaFutbol />, path: "/team", },
-=======
-    { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/test" },
-    { name: "หาไปรตี", icon: <FaFutbol />, path: "/team" },
->>>>>>> main
     { name: "การแจ้งเตือน", icon: <FaBell />, path: "/notifications" },
     { name: "โปรไฟล์", icon: <FaUser />, path: "/login" },
-
   ];
 
   return (
@@ -31,7 +25,9 @@ const BottomNav = () => {
               to={item.path}
               className={({ isActive }) =>
                 `flex flex-col items-center text-xs py-2 ${
-                  isActive ? "text-green-500 border-t-2 border-green-500" : "text-gray-500"
+                  isActive
+                    ? "text-green-500 border-t-2 border-green-500"
+                    : "text-gray-500"
                 }`
               }
             >

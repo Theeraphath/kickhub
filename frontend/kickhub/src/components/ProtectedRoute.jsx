@@ -8,11 +8,6 @@ const ProtectedRoute = ({ children }) => {
   const rawToken = localStorage.getItem("token");
   let token = null;
   let isExpired = false;
-// <<<<<<< 31-10-2025/aomsin
-// =======
-//   // ✅ รายชื่อ path ที่ไม่ต้องตรวจ token
-//   const publicPaths = ["/login", "/signUp"];
-// >>>>>>> main
 
   // 🧠 ตรวจว่า token เป็น object หรือ string
   try {
@@ -44,9 +39,9 @@ const ProtectedRoute = ({ children }) => {
   }
 
   // 🛡️ ไม่มี token และไม่ใช่ public path → redirect
-  if (!token && !publicPaths.includes(location.pathname)) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
-  }
+  // if (!token && !publicPaths.includes(location.pathname)) {
+  //   return <Navigate to="/login" replace state={{ from: location }} />;
+  // }
 
   // 🚫 มี token แล้วเข้า /login หรือ /signup → redirect ไปหน้าแรก
   if (token && publicPaths.includes(location.pathname)) {
