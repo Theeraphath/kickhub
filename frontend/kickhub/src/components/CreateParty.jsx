@@ -1,4 +1,4 @@
-import findparty from "../../public/party2.png";
+ import findparty from "../../public/party2.png";
 import styled from "styled-components";
 export default function CreateParty() {
   return (

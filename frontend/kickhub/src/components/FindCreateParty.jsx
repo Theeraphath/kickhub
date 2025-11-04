@@ -26,6 +26,15 @@ export default function FindCreateParty() {
       features: ["ที่จอดรถ", "ห้องน้ำ"],
       image: fieldImg,
     },
+      {
+      id: 3,
+      name: "สนามฟุตซอลบางแค",
+      location: "บางแค, กรุงเทพฯ",
+      price: 600,
+      openingHours: "10:00 - 22:00",
+      features: ["ที่จอดรถ", "ห้องน้ำ"],
+      image: fieldImg,
+    },
   ]);
 
   return (

@@ -1,7 +1,7 @@
 import "./home.css";
 import Human from "../../public/human.png";
-import Team from "./team.jsx";
-import cardfield from "./cardfield.jsx";
+
+
 function Home() {
   const fielddummy = [
     {
@@ -29,7 +29,7 @@ function Home() {
         <h3>นัดถัดไป:</h3>
       </div>
       <div className="girl">
-        <img src={Human} alt="Human" />
+        <img src={Human} alt="Girl" />
       </div>
       <div className="homepage">
         <h1>ตี้ประจำ</h1>
