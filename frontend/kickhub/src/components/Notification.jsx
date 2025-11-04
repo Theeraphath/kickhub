@@ -3,7 +3,9 @@ import { CiSearch } from "react-icons/ci";
 import { FaCircleUser } from "react-icons/fa6";
 import field from "../../public/field.jpg";
 import CountdownTimer from "./CountdownTimer";
+import { useState } from "react";
 export default function Notifications() {
+  const [searchTerm, setSearchTerm] = useState("");
   const Navigate = useNavigate();
   const dummydata = [
     {
@@ -21,7 +23,18 @@ export default function Notifications() {
       id: 2,
       party_name: "ไรมง",
       type: "บุฟเฟ่ต์",
-      field_name: "สนามฟุตบอลศรีปทุม",
+      field_name: "สนามฟุตบอลMOON",
+      address: "สนามฟุตบอลศรีปทุม",
+      date: "2025-10-04",
+      start: "18:00",
+      end: "20:00",
+      host: { id: 1, name: "เอนโด มาโมรุ" },
+    },
+    {
+      id: 3,
+      party_name: "ไรมง",
+      type: "บุฟเฟ่ต์",
+      field_name: "สนามฟุตบอล A",
       address: "สนามฟุตบอลศรีปทุม",
       date: "2025-10-04",
       start: "18:00",
@@ -29,6 +42,10 @@ export default function Notifications() {
       host: { id: 1, name: "เอนโด มาโมรุ" },
     },
   ];
+
+  const filteredData = dummydata.filter((data) =>
+    data.field_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col items-center space-y-4 font-noto-thai bg-white h-screen">
@@ -39,21 +56,29 @@ export default function Notifications() {
           <input
             type="text"
             placeholder="ค้นหาสนามบอล"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="text-gray-600 w-full text-m focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
-      <div className="absolute top-50 bg-white p-4 w-full rounded-t-lg border-gray-300">
+      <div className="absolute top-50 bg-white p-4 w-full rounded-t-lg border-gray-300 min-h-full pb-16">
         <h1 className="text-4xl font-bold text-black">แมตซ์ของคุณ</h1>
-        <div className="space-y-4">
-          {dummydata.map((data) => (
+        <div className="space-y-4 cursor-pointer mb-4">
+          {filteredData.map((data) => (
             <div
               key={data.id}
               className="bg-white rounded-xl shadow-md p-4 grid grid-cols-2"
               onClick={
                 data.type === "บุฟเฟ่ต์"
-                  ? () => Navigate(`/historybuff/${data.id}`, { state: data })
-                  : () => Navigate(`/historyrole/${data.id}`, { state: data })
+                  ? () =>
+                      Navigate(`/historybuffet/${data.id}`, {
+                        state: data,
+                      })
+                  : () =>
+                      Navigate(`/historyrole/${data.id}`, {
+                        state: data,
+                      })
               }
             >
               <img
