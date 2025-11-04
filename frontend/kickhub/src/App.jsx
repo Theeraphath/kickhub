@@ -19,6 +19,7 @@ import FindandCreate from "./components/FindandCreate";
 import Notifications from "./components/Notification";
 import PartyRole from "./components/Partyrole";
 import Test2 from "./components/test2";
+import Owner from "./components/OwnerFieldManager";
 
 function AppRoutes() {
   const location = useLocation();
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route path="/test/:id" element={<Test2 />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/partyrole" element={<PartyRole />} />
+        <Route path="/owner" element={<Owner />} />
 
         <Route
           path="/test"
