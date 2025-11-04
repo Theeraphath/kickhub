@@ -1,9 +1,13 @@
 import { FaArrowLeft, FaRegUser, FaMapMarkerAlt } from "react-icons/fa";
 import { FaCircleUser } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import googlemap from "../../public/Google_Maps_icon_(2020).png";
 import photo from "../../public/field.jpg";
+import goalkeeper from "../../public/ประตู.png";
+import forward from "../../public/คน.png";
+import midfielder from "../../public/กองกลาง-removebg-preview.png";
+import defender from "../../public/กองหลัง-removebg-preview.png";
 
 export default function PartyRole() {
   const navigate = useNavigate();
@@ -11,13 +15,14 @@ export default function PartyRole() {
   const [selectedPos, setSelectedPos] = useState(null);
   const [reservedPos, setReservedPos] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [status, setStatus] = useState("waiting");
 
   const dummydata = {
     party_name: "ไรมง",
     type: "ล็อคตำแหน่ง",
     field_name: "สนามฟุตบอลศรีปทุม",
     address: "สนามฟุตบอลศรีปทุม",
-    date: "2023-06-30",
+    date: "2027-06-30",
     start: "17:00",
     end: "18:00",
     price: "90",
@@ -98,6 +103,26 @@ export default function PartyRole() {
     goalkeeper: dummydata.position.goalkeeper_need,
   };
 
+  useEffect(() => {
+    if (!dummydata.date || !dummydata.end) return;
+
+    const endTime = new Date(`${dummydata.date}T${dummydata.end}:00+07:00`);
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      if (now >= endTime) {
+        setStatus("ended");
+        clearInterval(interval);
+      }
+    }, 1000); // check every second
+
+    return () => clearInterval(interval); // cleanup
+  }, [dummydata.date, dummydata.end]);
+
+  useEffect(() => {
+    console.log("Status changed:", status);
+  }, [status]);
+
   return (
     <div className="max-w-md mx-auto bg-white shadow-lg rounded-xl overflow-hidden font-noto-thai mt-6 mb-20">
       {/* Header */}
@@ -114,6 +139,11 @@ export default function PartyRole() {
       {/* Cover */}
       <div className="relative">
         <img src={photo} alt="สนาม" className="w-full h-48 object-cover" />
+        {status === "ended" && (
+          <div className="absolute top-3 left-3 bg-red-500 px-3 py-1 rounded-full text-white text-sm flex items-center shadow-md transition-opacity duration-500 opacity-100">
+            <p>การแข่งขันสิ้นสุดแล้ว</p>
+          </div>
+        )}
         <div className="absolute top-3 right-3 bg-green-500 px-3 py-1 rounded-full text-white text-sm flex items-center shadow-md">
           <FaRegUser className="mr-2" />
           {dummydata.participants.length}/{dummydata.player_num}
@@ -201,10 +231,10 @@ export default function PartyRole() {
             {/* Position Booking */}
             <div className="grid grid-cols-2 gap-4">
               {[
-                { key: "goalkeeper", label: "ผู้รักษาประตู" },
-                { key: "forward", label: "กองหน้า" },
-                { key: "midfielder", label: "กองกลาง" },
-                { key: "defender", label: "กองหลัง" },
+                { key: "goalkeeper", label: "ผู้รักษาประตู", img: goalkeeper },
+                { key: "forward", label: "กองหน้า", img: forward },
+                { key: "midfielder", label: "กองกลาง", img: midfielder },
+                { key: "defender", label: "กองหลัง", img: defender },
               ].map((pos) => {
                 const isReserved = reservedPos === pos.key;
                 const isLocked = reservedPos && !isReserved;
@@ -213,6 +243,11 @@ export default function PartyRole() {
                     key={pos.key}
                     className="bg-gray-50 p-3 rounded-xl shadow-sm text-center hover:shadow-md transition"
                   >
+                    <img
+                      src={pos.img}
+                      alt={pos.label}
+                      className="w-16 h-16 mx-auto mb-2"
+                    />
                     <h1 className="font-bold mb-1">{pos.label}</h1>
                     <p className="text-gray-600 text-sm mb-2">
                       {displayedCounts[pos.key] || 0}/{need[pos.key]} คน
@@ -220,20 +255,25 @@ export default function PartyRole() {
                     {isReserved ? (
                       <button
                         onClick={() => setReservedPos(null)}
-                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 px-4 rounded-full w-full"
+                        disabled={status === "ended"}
+                        className={`font-bold py-1.5 px-4 rounded-full w-full transition ${
+                          status === "ended"
+                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                            : "bg-red-500 hover:bg-red-600 text-white"
+                        }`}
                       >
                         ยกเลิก
                       </button>
                     ) : (
                       <button
                         onClick={() => {
-                          if (reservedPos) return;
+                          if (reservedPos || status === "ended") return;
                           setSelectedPos(pos.key);
                           setShowConfirm(true);
                         }}
-                        disabled={isLocked}
+                        disabled={isLocked || status === "ended"}
                         className={`font-bold py-1.5 px-4 rounded-full w-full transition ${
-                          isLocked
+                          isLocked || status === "ended"
                             ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                             : "bg-green-600 hover:bg-green-700 text-white"
                         }`}
