@@ -11,7 +11,7 @@ const BottomNav = () => {
   const navItems = [
     { name: "หน้าหลัก", icon: <FaHome />, path: "/" },
     { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/search" },
-    { name: "หาไปรตี", icon: <FaFutbol />, path: "/team" },
+    { name: "หาไปรตี", icon: <FaFutbol />, path: "/team", },
     { name: "การแจ้งเตือน", icon: <FaBell />, path: "/notifications" },
     { name: "โปรไฟล์", icon: <FaUser />, path: "/login" },
   ];

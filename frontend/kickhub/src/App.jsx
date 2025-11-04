@@ -36,7 +36,7 @@ function AppRoutes() {
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
+        <Route path="/signUp" element={<SignUp />} />
         <Route path="/" element={<Home />} />
         <Route path="/partybuffet" element={<Partybuffet />} />
         <Route path="/team" element={<FindCreateParty />} />
@@ -78,7 +78,7 @@ function AppRoutes() {
           }
         />
       </Routes>
-      <ProtectedRoute>{shouldShowNav && <BottomNav />}</ProtectedRoute>
+      {shouldShowNav && <BottomNav />}
     </>
   );
 }
