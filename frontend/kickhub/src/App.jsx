@@ -20,6 +20,8 @@ import Notifications from "./components/Notification";
 import PartyRole from "./components/Partyrole";
 import Test2 from "./components/test2";
 import Field from "./components/field";
+import CreateParty from "./components/CreateParty";
+import CreateParty2 from "./components/CreateParty2";
 
 function AppRoutes() {
   const location = useLocation();
@@ -36,6 +38,7 @@ function AppRoutes() {
   return (
     <>
       <Routes>
+        
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/home" element={<Home />} />
@@ -46,6 +49,8 @@ function AppRoutes() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/partyrole" element={<PartyRole />} />
         <Route path="/search" element={<Field />} />
+        <Route path="/create-party" element={<CreateParty />} />
+        <Route path="/create-party2" element={<CreateParty2 />} />
         <Route
           path="/test"
           element={

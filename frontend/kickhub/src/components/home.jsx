@@ -32,16 +32,8 @@ const home = () => {
       image: team,
       mode: "บุฟเฟ่ต์",
     },
-    {
-      id: 3,
-      name: "B",
-      location: "บางบัว, กรุงเทพฯ",
-      price: 800,
-      openingHours: "10:00 - 22:00",
-      features: ["ที่จอดรถ", "ห้องน้ำ"],
-      image: team,
-      mode: "ตำเเหน่ง",
-    },
+   
+   
   ]);
 
   return (
