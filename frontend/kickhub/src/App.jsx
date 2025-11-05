@@ -28,8 +28,8 @@ function AppRoutes() {
     "/SignUp",
     "/reserve",
     "/promptpay",
-    "/partybuffet",
-    "/partyrole",
+    "/partybuffet/:id",
+    "/partyrole/:id",
     "/historybuffet/:id",
     "/historyrole/:id",
   ];
@@ -45,8 +45,8 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/signUp" element={<SignUp />} />
         <Route path="/" element={<Home />} />
-        <Route path="/partybuffet" element={<Partybuffet />} />
-        <Route path="/partyrole" element={<PartyRole />} />
+        <Route path="/partybuffet/:id" element={<Partybuffet />} />
+        <Route path="/partyrole/:id" element={<PartyRole />} />
         <Route path="/team" element={<FindCreateParty />} />
         <Route path="/findandcreate" element={<FindandCreate />} />
         <Route path="/test/:id" element={<Test2 />} />

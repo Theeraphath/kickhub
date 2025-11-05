@@ -22,21 +22,20 @@ export default function Login() {
     e.preventDefault();
 
     const raw = JSON.stringify({
-      username: inputs.email,
+      email: inputs.email,
       password: inputs.password,
-      expiresIn: 600000,
     });
 
     try {
-      const res = await fetch("https://www.melivecode.com/api/login", {
+      // แก้เป็นเลขเครื่องตัวเองนะ
+      const res = await fetch("http://192.168.1.26:3000/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: raw,
       });
       const result = await res.json();
-
       if (result.status === "ok") {
-        localStorage.setItem("token", result.accessToken);
+        localStorage.setItem("token", result.token);
         alert("Login Successful!");
         navigate("/test");
       } else {
@@ -44,7 +43,7 @@ export default function Login() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("An error occurred while logging in.");
+      alert("An error occurred while logging in." + error);
     }
   };
 
@@ -63,7 +62,7 @@ export default function Login() {
       >
         {/* Left Side (Logo) */}
         <motion.div
-          className="bg-green-600 flex items-center justify-center md:w-[40rem] md:h-[40rem] md:rounded-s-lg"
+          className="bg-green-600 flex items-center justify-center md:w-160 md:h-160 md:rounded-s-lg"
           initial={{ x: -60, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.6 }}
@@ -79,7 +78,7 @@ export default function Login() {
 
         {/* Form Section */}
         <motion.div
-          className="flex flex-col items-center bg-gray-100 rounded-t-[2rem] md:w-[40rem] md:h-[40rem] md:rounded-none w-full h-full md:rounded-e-lg"
+          className="flex flex-col items-center bg-gray-100 rounded-t-4xl md:w-160 md:h-160 md:rounded-none w-full h-full md:rounded-e-lg"
           initial={{ x: 60, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.6 }}
@@ -90,11 +89,13 @@ export default function Login() {
 
           <form
             onSubmit={handleSubmit}
-            className="bg-white flex flex-col gap-3 p-5 rounded-[2rem] shadow-lg mb-10 mt-8 w-[25rem]"
+            className="bg-white flex flex-col gap-3 p-5 rounded-4xl shadow-lg mb-10 mt-8 w-100"
           >
             {/* Email */}
             <div className="flex flex-col gap-1">
-              <label className="text-black text-[0.9rem] font-bold">Email</label>
+              <label className="text-black text-[0.9rem] font-bold">
+                Email
+              </label>
               <div className="flex items-center border border-gray-300 w-full px-3 py-2 rounded-full gap-2 focus-within:ring-2 focus-within:ring-green-400 transition">
                 <MdOutlineAlternateEmail className="text-black text-[1rem]" />
                 <input
@@ -110,7 +111,9 @@ export default function Login() {
 
             {/* Password */}
             <div className="flex flex-col gap-1">
-              <label className="text-black text-[0.9rem] font-bold">Password</label>
+              <label className="text-black text-[0.9rem] font-bold">
+                Password
+              </label>
               <div className="flex items-center border border-gray-300 w-full px-3 py-2 rounded-full gap-2 focus-within:ring-2 focus-within:ring-green-400 transition">
                 <IoLockClosedOutline className="text-black text-[1rem]" />
                 <input

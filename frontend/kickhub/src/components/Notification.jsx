@@ -3,48 +3,46 @@ import { CiSearch } from "react-icons/ci";
 import { FaCircleUser } from "react-icons/fa6";
 import field from "../../public/field.jpg";
 import CountdownTimer from "./CountdownTimer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 export default function Notifications() {
+  const [parties, setParties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const Navigate = useNavigate();
-  const dummydata = [
-    {
-      id: 1,
-      party_name: "ไรมง",
-      type: "ล็อคตำแหน่ง",
-      field_name: "สนามฟุตบอลศรีปทุม",
-      address: "สนามฟุตบอลศรีปทุม",
-      date: "2025-11-04",
-      start: "18:00",
-      end: "20:00",
-      host: { id: 1, name: "เอนโด มาโมรุ" },
-    },
-    {
-      id: 2,
-      party_name: "ไรมง",
-      type: "บุฟเฟ่ต์",
-      field_name: "สนามฟุตบอลMOON",
-      address: "สนามฟุตบอลศรีปทุม",
-      date: "2025-10-04",
-      start: "18:00",
-      end: "20:00",
-      host: { id: 1, name: "เอนโด มาโมรุ" },
-    },
-    {
-      id: 3,
-      party_name: "ไรมง",
-      type: "บุฟเฟ่ต์",
-      field_name: "สนามฟุตบอล A",
-      address: "สนามฟุตบอลศรีปทุม",
-      date: "2025-10-04",
-      start: "18:00",
-      end: "20:00",
-      host: { id: 1, name: "เอนโด มาโมรุ" },
-    },
-  ];
+  const fetchParties = async () => {
+    try {
+      const token = localStorage.getItem("token"); // ✅ ดึง token จาก localStorage
+      const res = await fetch("http://192.168.1.26:3000/api/posts/joiner", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ แนบ token แบบ Bearer
+        },
+      });
 
-  const filteredData = dummydata.filter((data) =>
-    data.field_name.toLowerCase().includes(searchTerm.toLowerCase())
+      const result = await res.json();
+      if (result.success && Array.isArray(result.data)) {
+        setParties(result.data); // หรือจัดการข้อมูลตามที่คุณต้องการ
+      } else {
+        setError("ไม่พบข้อมูลหรือ response ผิดรูปแบบ");
+      }
+    } catch (err) {
+      setError("เกิดข้อผิดพลาดในการโหลดข้อมูล: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchParties();
+  }, []);
+  useEffect(() => {
+    console.log("🎯 Parties updated:", parties);
+  }, [parties]);
+
+  const filteredData = parties.filter((data) =>
+    data.field_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -65,65 +63,77 @@ export default function Notifications() {
       <div className="absolute top-50 bg-white p-4 w-full rounded-t-lg border-gray-300 min-h-full pb-16">
         <h1 className="text-4xl font-bold text-black">แมตซ์ของคุณ</h1>
         <div className="space-y-4 cursor-pointer mb-4">
-          {filteredData.map((data) => (
-            <div
-              key={data.id}
-              className="bg-white rounded-xl shadow-md p-4 grid grid-cols-2"
-              onClick={
-                data.type === "บุฟเฟ่ต์"
-                  ? () =>
-                      Navigate(`/historybuffet/${data.id}`, {
-                        state: data,
-                      })
-                  : () =>
-                      Navigate(`/historyrole/${data.id}`, {
-                        state: data,
-                      })
-              }
-            >
-              <img
-                src={field}
-                alt=""
-                className="w-40 h-auto object-cover rounded-md mb-2"
-              />
-              <div className="space-y-1 text-gray-700 text-sm">
-                <h1 className="font-bold text-lg">{data.field_name}</h1>
-                <h1 className="font-bold text-lg">ทีม{data.party_name}</h1>
-                <span className="flex text-sm space-x-2 overflow-hidden">
-                  <p className="truncate max-w-40">{data.address}</p>
-                  <p className="whitespace-nowrap">โหมด: {data.type}</p>
-                </span>
-                <span className="flex text-sm space-x-2 overflow-hidden text-[#22C55E]">
-                  <p>{data.date}</p>
-                  <p>
-                    {data.start} - {data.end}
-                  </p>
-                </span>
-              </div>
-              <div className="mt-4">
-                <span className="flex items-center space-x-1 text-sm">
-                  {data.avatar ? (
-                    <img
-                      src={data.avatar}
-                      alt={data.name}
-                      className="w-10 h-10 rounded-full object-cover mr-2"
-                    />
-                  ) : (
-                    <FaCircleUser className="text-4xl text-gray-400 mr-2" />
-                  )}
-                  <p>{data.host.name.split(" ")[0]}</p>
-                  <p className="text-[#22C55E] font-bold">หัวหน้าปาร์ตี้</p>
-                </span>
-              </div>
-              <div className="mt-4 flex items-center space-x-1 text-sm">
-                <CountdownTimer
-                  date={data.date}
-                  start={data.start}
-                  end={data.end}
+          {filteredData.map((data) => {
+            return (
+              <div
+                key={data._id}
+                className="bg-white rounded-xl shadow-md p-4 grid grid-cols-2"
+                onClick={
+                  data.mode === "flexible"
+                    ? () =>
+                        Navigate(`/historybuffet/${data._id}`, {
+                          state: data,
+                        })
+                    : () =>
+                        Navigate(`/historyrole/${data._id}`, {
+                          state: data,
+                        })
+                }
+              >
+                <img
+                  src={field}
+                  alt=""
+                  className="w-40 h-auto object-cover rounded-md mb-2"
                 />
+                <div className="space-y-1 text-gray-700 text-sm">
+                  <h1 className="font-bold text-lg">{data.field_name}</h1>
+                  <h1 className="font-bold text-m">ปาตี้:{data.party_name}</h1>
+                  <span className="flex text-sm space-x-2 overflow-hidden">
+                    <p className="truncate max-w-40">{data.address}</p>
+                    <p className="whitespace-nowrap">
+                      โหมด:{" "}
+                      {data.mode === "flexible" ? "บุฟเฟ่ต์" : "ล็อคตำแหน่ง"}
+                    </p>
+                  </span>
+                  <span className="flex text-sm space-x-2 overflow-hidden text-[#22C55E]">
+                    <p>{new Date(data.start_datetime).toLocaleDateString()}</p>
+                    <p>
+                      {new Date(data.start_datetime).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      -{" "}
+                      {new Date(data.end_datetime).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <span className="flex items-center space-x-1 text-sm">
+                    {data.avatar ? (
+                      <img
+                        src={data.avatar}
+                        alt={data.name}
+                        className="w-10 h-10 rounded-full object-cover mr-2"
+                      />
+                    ) : (
+                      <FaCircleUser className="text-4xl text-gray-400 mr-2" />
+                    )}
+                    <p>{data.host_name.split(" ")[0]}</p>
+                    <p className="text-[#22C55E] font-bold">หัวหน้าปาร์ตี้</p>
+                  </span>
+                </div>
+                <div className="mt-4 flex items-center space-x-1 text-sm">
+                  <CountdownTimer
+                    start_datetime={data.start_datetime}
+                    end_datetime={data.end_datetime}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
