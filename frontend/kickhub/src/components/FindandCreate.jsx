@@ -120,7 +120,7 @@ export default function FindandCreate() {
           <button className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow hover:bg-green-600">
             ค้นหาปาร์ตี้
           </button>
-          <button className="border border-green-500 text-green-600 px-4 py-2 rounded-full text-sm font-semibold hover:bg-green-100">
+          <button  onClick={() => navigate("/create-party")} className="border border-green-500 text-green-600 px-4 py-2 rounded-full text-sm font-semibold hover:bg-green-100">
             สร้างปาร์ตี้
           </button>
         </div>

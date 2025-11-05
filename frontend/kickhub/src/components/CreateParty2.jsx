@@ -6,7 +6,7 @@ import teamImg from "../../public/team.png";
 import BottomNav from "./Navbar";
 import team from "../../public/team.png";
 
-const CreateParty = () => {
+const CreateParty2 = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState("บุฟเฟ่ต์");
   const [time, setTime] = useState("");
@@ -131,8 +131,8 @@ const CreateParty = () => {
 
           <div className="flex justify-center gap-4">
             <div
-              o
-              className="bg-green-100 border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col "
+              onClick={() => navigate("/create-party")}
+              className="bg-white border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col "
             >
               <img
                 src={team}
@@ -143,10 +143,7 @@ const CreateParty = () => {
             </div>
 
             <div>
-              <div
-                onClick={() => navigate("/create-party2")}
-                className="bg-white border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col "
-              >
+              <div className="bg-green-100  border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
                 <img
                   src={team}
                   alt=""
@@ -273,7 +270,66 @@ const CreateParty = () => {
                 หารเท่า
               </button>
             </div>
+            <div>
+              <h1 className="text-2xl pt-4 pr-2 pb-2">ตำเเหน่งที่ต้องการ</h1>
+            </div>
+            <div>
+              {/* เลือกตำเเหน่ง */}
 
+              <div>
+                <h1 className="text-2xl p-2 "></h1>
+              </div>
+
+              <div className="flex justify-center gap-4">
+                <div className="bg-white border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
+                  <img
+                    src={team}
+                    alt=""
+                    className="max-w-full max-h-3/4 object-contain"
+                  />
+                  <p className="mt-1 text-center">บุฟเฟ่ต์</p>
+                </div>
+
+                <div>
+                  <div className="bg-white  border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
+                    <img
+                      src={team}
+                      alt=""
+                      className="max-w-full max-h-3/4 object-contain"
+                    />
+                    <p className="mt-1 text-center">ล็อคตำแหน่ง</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h1 className="text-2xl p-2 "></h1>
+              </div>
+
+              <div className="flex justify-center gap-4">
+                <div className="bg-white border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
+                  <img
+                    src={team}
+                    alt=""
+                    className="max-w-full max-h-3/4 object-contain"
+                  />
+                  <p className="mt-1 text-center">บุฟเฟ่ต์</p>
+                </div>
+
+                <div>
+                  <div className="bg-white                        border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
+                    <img
+                      src={team}
+                      alt=""
+                      className="max-w-full max-h-3/4 object-contain"
+                    />
+                    <p className="mt-1 text-center">ล็อคตำแหน่ง</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* สร้างรายการ */}
             <div className="pt-10">
               <button
                 onClick={handleCreate}
@@ -290,7 +346,7 @@ const CreateParty = () => {
   );
 };
 
-export default CreateParty;
+export default CreateParty2;
 
 {
   /* <div>
