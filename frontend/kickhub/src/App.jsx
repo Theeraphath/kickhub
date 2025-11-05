@@ -41,7 +41,7 @@ function AppRoutes() {
         <Route path="/home" element={<Home />} />
         <Route path="/partybuffet" element={<Partybuffet />} />
         <Route path="/team" element={<FindCreateParty />} />
-        <Route path="/findandcreate" element={<FindandCreate />} />
+        <Route path="/Findandcreate" element={<FindandCreate />} />
         <Route path="/test/:id" element={<Test2 />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/partyrole" element={<PartyRole />} />
