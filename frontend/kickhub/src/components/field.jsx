@@ -1,129 +1,188 @@
 import React, { useState } from "react";
-import { FaChevronLeft } from "react-icons/fa";
-import "./field.css";
+import { FaMapMarkerAlt, FaClock } from "react-icons/fa";
 import KH from "../../public/KH.png";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import Cardfiled from "./cardfield.jsx";
-import Image from "../../public/field.jpg";
-const Field = () => {
-  const [query, setQuery] = useState("");
-  const fielddummy = [
+import field from "../../public/thefield.png";
+import { FaSearch, FaFire } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
+export default function FindCreateParty() {
+  const navigate = useNavigate();
+
+  const [fields, setFields] = useState([
     {
       id: 1,
       name: "สนามไรมง",
-      price: 700 ,
-      address: "ไรมง",
-
+      location: "คลองหลวง, ปทุมธานี",
+      price: 700,
+      openingHours: "11:00 - 23:00",
+      features: ["ที่จอดรถ", "ห้องน้ำ", "ห้องอาบน้ำ"],
+      image: field,
     },
- {
+    {
       id: 2,
-      name: "สนามเมืองทอง",
-      price: 700 ,
-      address: "กรุงเทพมหานคร",
-
+      name: "A",
+      location: "กรรมป่าไม้, กรุงเทพฯ",
+      price: 600,
+      openingHours: "10:00 - 22:00",
+      features: ["ที่จอดรถ", "ห้องน้ำ"],
+      image: field,
     },
-     {
-      id: 2,
-      name: "สนามเมืองทอง",
-      price: 700 ,
-      address: "กรุงเทพมหานคร",
-
+    {
+      id: 3,
+      name: "B",
+      location: "บางบัว, กรุงเทพฯ",
+      price: 800,
+      openingHours: "10:00 - 22:00",
+      features: ["ที่จอดรถ", "ห้องน้ำ"],
+      image: field,
     },
-   
-   
-  
- 
-  ];
+    {
+      id: 4,
+      name: "C",
+      location: "จตุจักร                   , กรุงเทพฯ",
+      price: 900,
+      openingHours: "10:00 - 22:00",
+      features: ["ที่จอดรถ", "ห้องน้ำ"],
+      image: field,
+    },
+  ]);
 
   return (
-    <div className="container">
-      <div calssName="absolute">
-        {/* ปุ่มย้อนกลับ */}
-        <div className="absolute bg-white pl-2 pr-2 top-1.5 left-2 rounded">
-          <button className="back-left">
-            <FaChevronLeft />
+    <div className="flex flex-col items-center font-noto-thai">
+      {/* HEADER */}
+      <div className="relative w-[24.5rem] h-[10rem]">
+        {/* form อยู่มุมขวาล่าง */}
+        <div className="absolute top-1 left-23 z-10">
+          <form className="flex bg-white rounded-full shadow-sm items-center  w-[220px]">
+            <button type="button" className="text-gray-400 ">
+              <svg
+                width={17}
+                height={16}
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                role="img"
+                aria-labelledby="search"
+              >
+                <path
+                  d="M7.667 12.667A5.333 5.333 0 107.667 2a5.333 5.333 0 000 10.667zM14.334 14l-2.9-2.9"
+                  stroke="currentColor"
+                  strokeWidth="1.333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <input
+              className="flex-1 px-4 py-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400"
+              placeholder="ค้นหาสนามบอล"
+              required
+              type="text"
+            />
+          </form>
+        </div>
+
+        {/* รูปภาพพื้นหลัง */}
+        <img
+          src={KH}
+          alt="findparty"
+          className="object-cover 
+        height-[390px] w-[400px]"
+        />
+      </div>
+
+      {/* BODY */}
+      <div className="relative bottom-0 bg-[#F2F2F7] rounded-t-lg h-[28.5rem] w-[24.5rem] p-5 overflow-y-auto absolute bottom-1">
+        <h2 className="text-black font-bold mb-4 text-lg">วันที่เเละเวลา</h2>
+        <div className="flex gap-4 pb-4">
+          <input
+            type="date"
+            className="bg-green-400 text-white rounded-lg px-3 py-1 text-sm font-semibold "
+            defaultValue="2025-10-22"
+          />
+          <input
+            type="time"
+            className="bg-green-400 text-white rounded-lg px-3 py-1 text-sm font-semibold"
+            defaultValue="12:30"
+          />
+          <button className="bg-green-400 text-green-700 rounded-lg px-3 py-1 text-sm font-semibold">
+            <FaSearch className="text-white text-lg mr-1  " />
           </button>
         </div>
-        <div className="w-full h-full object-cover">
-          <img src={KH} alt="" />
-        </div>
 
-        {/* ช่องค้นหา */}
-        <div className="relative w-64">
-          <div></div>
-          <input
-            type="text"
-            placeholder="ค้นหาลานฟุตบอล"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full  border border-gray-300 rounded-md px-4 py-1 focus:outline-none focus:ring-2 focus:ring- ml-20 bottom-47 absolute bg-white h-7"
-          />
-        </div>
-      </div>
+        <div className="flex flex-col gap-4">
+          {fields.map((field) => (
+            <div
+              key={field.id}
+              className="bg-white shadow-md rounded-2xl overflow-hidden relative"
+            >
+              <div className="flex p-4">
+                <img
+                  src={field.image}
+                  alt={field.name}
+                  className="w-[120px] h-[120px] object-cover rounded-xl"
+                />
+                <div className="ml-4 flex flex-col justify-between flex-1">
+                  <div>
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-bold text-gray-800">
+                        {field.name}
+                      </h3>
+                      <h2 className="inline-flex items-center bg-red-500 text-white px-2 py-1 rounded-full text-sm transition">
+                        <FaFire className="mr-1" /> ยอดนิยม
+                      </h2>
+                    </div>
 
-      <div className="info">
-        <div>
-          <h1 className="Hone">เลือกวันที่เเละเวลา</h1>
-        </div>
-        <div>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DemoContainer components={["DateTimePicker"]}>
-              <DateTimePicker
-                label="วันที่เเละเวลา"
-                slotProps={{
-                  textField: {
-                    sx: {
-                      backgroundColor: "#22C55E", // สีพื้นหลัง
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": {
-                          borderColor: "#22C55E", // สีขอบ
-                        },
-                        "&:hover fieldset": {
-                          borderColor: "#fff", // สีขอบเมื่อ hover
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: "#004D40", // สีขอบเมื่อ focus
-                        },
-                      },
-                      "& .MuiInputLabel-root": {
-                        color: "#fff", // สี label
-                      },
-                      "& .MuiInputBase-input": {
-                        color: "#fff", // สีข้อความ input
-                      },
-                    },
-                  },
-                }}
-              />
-            </DemoContainer>
-          </LocalizationProvider>
-        </div>
+                    <div className="flex items-center  text-gray-500 text-sm pt-2">
+                      <FaMapMarkerAlt className="text-green-500 mr-1" />
+                      <span>{field.location}</span>
+                    </div>
 
-        <div>
+                    <div className="flex justify-end items-center pt-2">
+                      <p className="text-white bg-green-500 font-semibold  py-1 px-1 rounded-lg text-xs">
+                        {field.price} บาท/ชม.
+                      </p>
+                      <div className="flex items-center bg-white shadow-sm rounded-lg px-2 py-1 text-xs font-semibold text-gray-700">
+                        <FaClock className="mr-1 text-gray-600" />
+                        <span>{field.openingHours}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-row justify-end gap-2 pt-2 mr-3">
+                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-full text-xs transition">
+                        ห้องน้ำ
+                      </div>
+                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-full text-xs transition">
+                        ที่จอดรถ
+                      </div>
+                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-full text-xs transition">
+                        ห้องอาบน้ำ
+                      </div>
+                    </div>
 
-         {fielddummy.map((item) => (
-            <Cardfiled
-              key={item.id}
-              image={Image}
-              name={item.name}
-              price={item.price}
-              address={item.address}
-            />
+                    <div className="flex justify-end flex-wrap gap-2 px-1 py-3 mr-18 ">
+                      <div className="text-gray-500 text-xs">2025-10-22</div>
+                      <div className="text-gray-500 text-xs">12:30</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ปุ่มดูรายละเอียด */}
+              <div className="flex justify-between px-4 py-3 bg-gray-100">
+                <p className="bg-red-500  text-white font-semibold px-4 py-2 rounded-full text-sm transition ">
+                  {" "}
+                  ว่าง
+                </p>
+                <button
+                  onClick={() => navigate("")}
+                  className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-full text-sm transition"
+                >
+                  ดูรายละเอียด →
+                </button>
+              </div>
+            </div>
           ))}
-
-
-
-
-
-       
         </div>
       </div>
-      <div></div>
     </div>
   );
-};
-
-export default Field;
+}
