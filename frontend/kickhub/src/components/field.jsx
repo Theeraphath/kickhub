@@ -7,6 +7,21 @@ import { useNavigate } from "react-router-dom";
 
 export default function FindCreateParty() {
   const navigate = useNavigate();
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [search, setSearch] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await fetch("http://localhost:3000/appointments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        start_datetime: new Date(start).toISOString(),
+        end_datetime: new Date(end).toISOString(),
+      }),
+    });
+  };
 
   const [fields, setFields] = useState([
     {
@@ -44,8 +59,13 @@ export default function FindCreateParty() {
       openingHours: "10:00 - 22:00",
       features: ["ที่จอดรถ", "ห้องน้ำ"],
       image: field,
+      timestart: "10:00",
+      timeend: "22:00",
     },
   ]);
+  const filteredFields = fields.filter((f) =>
+    f.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col items-center font-noto-thai">
@@ -76,7 +96,10 @@ export default function FindCreateParty() {
               className="flex-1 px-4 py-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400"
               placeholder="ค้นหาสนามบอล"
               required
-              type="text"
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
             />
           </form>
         </div>
@@ -109,79 +132,94 @@ export default function FindCreateParty() {
           </button>
         </div>
 
+        {/* card */}
+
         <div className="flex flex-col gap-4">
-          {fields.map((field) => (
-            <div
-              key={field.id}
-              className="bg-white shadow-md rounded-2xl overflow-hidden relative"
-            >
-              <div className="flex p-4">
-                <img
-                  src={field.image}
-                  alt={field.name}
-                  className="w-[120px] h-[120px] object-cover rounded-xl"
-                />
-                <div className="ml-4 flex flex-col justify-between flex-1">
-                  <div>
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-bold text-gray-800">
-                        {field.name}
-                      </h3>
-                      <h2 className="inline-flex items-center bg-red-500 text-white px-2 py-1 rounded-full text-sm transition">
-                        <FaFire className="mr-1" /> ยอดนิยม
-                      </h2>
-                    </div>
+          {fields
+            .filter((field) =>
+              field.name.toLowerCase().includes(search.toLowerCase())
+            )
+            .map((field) => (
+              <div
+                key={field.id}
+                className="bg-white shadow-md rounded-2xl overflow-hidden relative"
+              >
+                <div className="flex p-4">
+                  <img
+                    src={field.image}
+                    alt={field.name}
+                    className="w-[120px] h-[120px] object-cover rounded-xl"
+                  />
+                  <div className="ml-4 flex flex-col justify-between flex-1">
+                    <div>
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-bold text-gray-800">
+                          {field.name}
+                        </h3>
+                        <h2 className="inline-flex items-center bg-red-500 text-white px-2 py-1 rounded-full text-sm transition">
+                          <FaFire className="mr-1" /> ยอดนิยม
+                        </h2>
+                      </div>
 
-                    <div className="flex items-center  text-gray-500 text-sm pt-2">
-                      <FaMapMarkerAlt className="text-green-500 mr-1" />
-                      <span>{field.location}</span>
-                    </div>
+                      <div className="flex items-center  text-gray-500 text-sm pt-2">
+                        <FaMapMarkerAlt className="text-green-500 mr-1" />
+                        <span>{field.location}</span>
+                      </div>
 
-                    <div className="flex justify-end items-center pt-2">
-                      <p className="text-white bg-green-500 font-semibold  py-1 px-1 rounded-lg text-xs">
-                        {field.price} บาท/ชม.
-                      </p>
-                      <div className="flex items-center bg-white shadow-sm rounded-lg px-2 py-1 text-xs font-semibold text-gray-700">
-                        <FaClock className="mr-1 text-gray-600" />
-                        <span>{field.openingHours}</span>
+                      <div className="flex justify-end items-center pt-2">
+                        <p className="text-white bg-green-500 font-semibold  py-1 px-1 rounded-lg text-xs">
+                          {field.price} บาท/ชม.
+                        </p>
+                        <div className="flex items-center bg-white shadow-sm rounded-lg px-2 py-1 text-xs font-semibold text-gray-700">
+                          <FaClock className="mr-1 text-gray-600" />
+                          <span>{field.openingHours}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-row justify-end gap-2 pt-2 mr-3">
-                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
-                        ห้องน้ำ
+                      <div className="flex flex-row justify-end gap-2 pt-2 mr-3">
+                        <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
+                          ห้องน้ำ
+                        </div>
+                        <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
+                          ที่จอดรถ
+                        </div>
+                        <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
+                          ห้องอาบน้ำ
+                        </div>
                       </div>
-                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
-                        ที่จอดรถ
+                      <div>
+                        {fields.map((field) => (
+                          <div
+                            key={field.id}
+                            className="flex justify-end gap-2 p-1 mr-3"
+                          >
+                            <div className="text-gray-500 text-xs">
+                              {field.timestart}
+                            </div>
+                            <div className="text-gray-500 text-xs">
+                              {field.timeend}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
-                        ห้องอาบน้ำ
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end flex-wrap gap-2 px-1 py-3 mr-18 ">
-                      <div className="text-gray-500 text-xs">2025-10-22</div>
-                      <div className="text-gray-500 text-xs">12:30</div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* ปุ่มดูรายละเอียด */}
-              <div className="flex justify-between px-4 py-3 bg-gray-100">
-                <p className="bg-red-500  text-white font-semibold px-4 py-2 rounded-md text-sm transition ">
-                  {" "}
-                  ว่าง
-                </p>
-                <button
-                  onClick={() => navigate("")}
-                  className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-md text-sm transition"
-                >
-                  ดูรายละเอียด →
-                </button>
+                {/* ปุ่มดูรายละเอียด */}
+                <div className="flex justify-between px-4 py-3 bg-gray-100">
+                  <p className="bg-red-500  text-white font-semibold px-4 py-2 rounded-md text-sm transition ">
+                    {" "}
+                    ว่าง
+                  </p>
+                  <button
+                    onClick={() => navigate("")}
+                    className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-md text-sm transition"
+                  >
+                    ดูรายละเอียด →
+                  </button>
+                </div>
               </div>
-              
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </div>
