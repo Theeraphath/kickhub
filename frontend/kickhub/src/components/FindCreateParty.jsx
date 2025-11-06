@@ -81,8 +81,8 @@ export default function FindCreateParty() {
         <img src={findparty} alt="findparty" className="w-full h-full object-cover" />
       </div>
 
-      {/* BODY */}
-      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
+      {/* BODY */}<div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
+      
         <h2 className="text-black font-bold mb-4 text-lg">
           ค้นหาปาร์ตี้ / สร้างปาร์ตี้
         </h2>

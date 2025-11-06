@@ -181,7 +181,7 @@ export default function OwnerFieldManager() {
       </div>
 
       {/* title + add button */}
-      <div className="relative w-[24.5rem] bg-white rounded-t-2xl shadow-lg p-6 mt-[-1rem]">
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-bold text-gray-800">จัดการสนามใหม่</h1>
           <button

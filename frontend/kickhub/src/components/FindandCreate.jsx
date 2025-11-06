@@ -40,6 +40,32 @@ export default function FindandCreate() {
       image: teamImg,
       mode: "ล็อคตำแหน่ง",
     },
+    {
+      id: 3,
+      teamName: "ทีมpsd",
+      fieldName: "สนามฟุตซอลสหกดาเ",
+      location: "บางแค, กรุงเทพฯ",
+      time: "19:00 - 20:00",
+      date: "06/11/2568",
+      currentPlayers: 5,
+      maxPlayers: 12,
+      status: "ว่างอยู่ 7 คน",
+      image: teamImg,
+      mode: "ล็อคตำแหน่ง",
+    },
+    {
+      id: 4,
+      teamName: "ทีมsdfgg",
+      fieldName: "สนามฟุตซอลบางวัน",
+      location: "บางแค, กรุงเทพฯ",
+      time: "19:00 - 20:00",
+      date: "06/11/2568",
+      currentPlayers: 5,
+      maxPlayers: 12,
+      status: "ว่างอยู่ 7 คน",
+      image: teamImg,
+      mode: "ล็อคตำแหน่ง",
+    },
   ]);
 
   //  ฟังก์ชันแปลงรูปแบบวันที่จาก input (YYYY-MM-DD) → DD/MM/YYYY (แบบไทย)
@@ -103,7 +129,7 @@ export default function FindandCreate() {
       </div>
 
       {/* BODY */}
-      <div className="relative bg-[#F2F2F7] rounded-t-2xl w-[24.5rem] h-[100.5rem] p-5 overflow-y-auto absolute bottom-10">
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
         {/* ชื่อสนาม */}
         <h2 className="text-black font-bold text-xl mb-2">สนามฟุตบอล</h2>
         <p className="text-gray-600 mb-3 text-sm">สนามไรมง</p>
