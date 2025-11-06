@@ -5,9 +5,9 @@ import { useState, useEffect } from "react";
 import googlemap from "../../public/Google_Maps_icon_(2020).png";
 import photo from "../../public/field.jpg";
 import goalkeeper from "../../public/ประตู.png";
-import forward from "../../public/คน.png";
-import midfielder from "../../public/กองกลาง-removebg-preview.png";
-import defender from "../../public/กองหลัง-removebg-preview.png";
+import forward from "../../public/กองหน้า.png";
+import midfielder from "../../public/กองกลาง.png";
+import defender from "../../public/กองหลัง.png";
 
 export default function PartyRole() {
   const navigate = useNavigate();

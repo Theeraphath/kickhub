@@ -25,12 +25,13 @@ export default function SignUp() {
 
     const raw = JSON.stringify({
       name: inputs.fullName,
-      password: inputs.password,
       email: inputs.email,
+      password: inputs.password,
     });
 
     try {
-      const res = await fetch("https://www.melivecode.com/api/users", {
+      // แก้เป็นเลขเครื่องตัวเองนะ
+      const res = await fetch("http://192.168.1.26:3000/register/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: raw,

@@ -1,42 +1,49 @@
 import { FaArrowLeft, FaRegUser, FaMapMarkerAlt } from "react-icons/fa";
 import { FaCircleUser } from "react-icons/fa6";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import googlemap from "../../public/Google_Maps_icon_(2020).png";
 import photo from "../../public/field.jpg";
 
 export default function Partybuffet() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [postData, setPostData] = useState(null);
   const navigate = useNavigate();
   const [tab, setTab] = useState("info");
   const [status, setStatus] = useState("waiting");
+  const { id } = useParams();
+  const token = localStorage.getItem("token");
 
-  const dummydata = {
-    id: 2,
-    party_name: "ไรมง",
-    type: "บุฟเฟ่ต์",
-    field_name: "สนามฟุตบอลศรีปทุม",
-    address: "สนามฟุตบอลศรีปทุม",
-    date: "2022-06-30",
-    start: "17:00",
-    end: "18:00",
-    price: "90",
-    host: { id: 1, name: "เอนโด มาโมรุ" },
-    participants: [
-      { id: 1, name: "เอนโด มาโมรุ", status: "เข้าร่วม" },
-      { id: 2, name: "โกเอนจิ ชูยะ", status: "เข้าร่วม" },
-      { id: 3, name: "คิโด ยูโตะ", status: "เข้าร่วม" },
-      { id: 4, name: "คาเซมารุ อิจิโรตะ", status: "เข้าร่วม" },
-      { id: 5, name: "โซเมโอกะ ริวโกะ", status: "เข้าร่วม" },
-      { id: 6, name: "โซเมโอกะ ริวโกะ", status: "เข้าร่วม" },
-      { id: 7, name: "โซเมโอกะ ริวโกะ", status: "เข้าร่วม" },
-    ],
-    player_num: 14,
-    body: "บอลสมัครเล่นรวมตัวกันทุกเย็นวันพุธ เล่นแบบเป็นกันเอง เน้นความสนุกและการรู้จักเพื่อนใหม่",
-    google_map_link: "https://maps.app.goo.gl/oKR8s7gfsfGVqKPs8",
+  const fetchPost = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://192.168.1.26:3000/api/post/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await response.json();
+      if (result.success) {
+        setPostData(result.data);
+      } else {
+        setError("ไม่พบข้อมูล");
+      }
+      setLoading(false);
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
+    }
   };
 
-  const convertDateThai = (dateString) => {
-    const date = new Date(dateString);
+  useEffect(() => {
+    fetchPost(id);
+  }, [id]);
+
+  const convertDateThai = (datetimeString) => {
+    const date = new Date(datetimeString);
     const daysThai = [
       "อาทิตย์",
       "จันทร์",
@@ -68,9 +75,9 @@ export default function Partybuffet() {
   const progress = (current, total) => (current / total) * 100;
 
   useEffect(() => {
-    if (!dummydata.date || !dummydata.end) return;
+    if (!postData?.end_datetime) return;
 
-    const endTime = new Date(`${dummydata.date}T${dummydata.end}:00+07:00`);
+    const endTime = new Date(postData.end_datetime);
 
     const interval = setInterval(() => {
       const now = new Date();
@@ -81,11 +88,84 @@ export default function Partybuffet() {
     }, 1000); // check every second
 
     return () => clearInterval(interval); // cleanup
-  }, [dummydata.date, dummydata.end]);
+  }, [postData?.end_datetime]);
 
-  useEffect(() => {
-    console.log("Status changed:", status);
-  }, [status]);
+  const getUserIdFromToken = (token) => {
+    if (!token) return null;
+    try {
+      const payloadBase64 = token.split(".")[1];
+      const decodedPayload = atob(payloadBase64);
+      const payload = JSON.parse(decodedPayload);
+      return payload._id || payload.user_id || payload.id || null;
+    } catch (err) {
+      console.error("❌ Token decode error:", err);
+      return null;
+    }
+  };
+
+  const currentUserId = getUserIdFromToken(localStorage.getItem("token"));
+
+  const hasJoined =
+    Array.isArray(postData?.participants) &&
+    postData.participants.some(
+      (p) => String(p.user_id) === String(currentUserId)
+    );
+
+  const joinParty = async (postId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://192.168.1.26:3000/api/join-party/${postId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log("✅ เข้าร่วมสำเร็จ:", result);
+        fetchPost(postId); // รีโหลดข้อมูลใหม่
+      } else {
+        console.error("❌ เข้าร่วมไม่สำเร็จ:", result.error);
+      }
+    } catch (err) {
+      console.error("❌ Error joining party:", err);
+    }
+  };
+
+  const leaveParty = async (postId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://192.168.1.26:3000/api/leave-party/${postId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log("✅ ออกจากปาร์ตี้สำเร็จ:", result);
+        fetchPost(postId); // รีโหลดข้อมูลใหม่
+      } else {
+        console.error("❌ ออกจากปาร์ตี้ไม่สำเร็จ:", result.error);
+      }
+    } catch (err) {
+      console.error("❌ Error leaving party:", err);
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+  if (!postData) return <p>ไม่พบข้อมูล</p>;
 
   return (
     <div className="max-w-md mx-auto bg-white shadow-lg rounded-xl overflow-hidden font-noto-thai mt-6 mb-20">
@@ -96,7 +176,7 @@ export default function Partybuffet() {
           className="text-lg text-gray-600 cursor-pointer mr-3 hover:text-green-500"
         />
         <h1 className="font-bold text-lg">
-          รายละเอียดปาร์ตี้ {dummydata.party_name}
+          รายละเอียดปาร์ตี้ {postData.party_name}
         </h1>
       </div>
 
@@ -110,7 +190,7 @@ export default function Partybuffet() {
         )}
         <div className="absolute top-3 right-3 bg-green-500 px-3 py-1 rounded-full text-white text-sm flex items-center shadow-md">
           <FaRegUser className="mr-2" />
-          {dummydata.participants.length}/{dummydata.player_num}
+          {postData.participants.length}/{postData.total_required_players}
         </div>
       </div>
 
@@ -143,29 +223,40 @@ export default function Partybuffet() {
         {tab === "info" && (
           <>
             <div className="flex justify-between items-center mb-2">
-              <h2 className="text-lg font-bold">{dummydata.field_name}</h2>
+              <h2 className="text-lg font-bold">{postData.field_name}</h2>
               <span className="text-green-600 font-bold">
-                {dummydata.price}฿ / คน
+                {postData.price}฿ / คน
               </span>
             </div>
 
             <p className="flex items-center text-gray-600 mb-3">
               <FaMapMarkerAlt className="mr-1 text-green-500" />{" "}
-              {dummydata.address}
+              {postData.address}
             </p>
 
             <div className="grid grid-cols-2 text-sm text-gray-700 mb-4">
               <div>
                 <p className="text-gray-400">วัน/เวลา</p>
-                <p>
-                  {convertDateThai(dummydata.date)}{" "}
-                  <span className="text-red-500">*</span> {dummydata.start} -{" "}
-                  {dummydata.end}
+                <p className="text-xs">
+                  {convertDateThai(postData.start_datetime)}{" "}
+                  <span className="text-red-500">*</span>{" "}
+                  {new Date(postData.start_datetime).toLocaleTimeString(
+                    "th-TH",
+                    {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }
+                  )}{" "}
+                  -{" "}
+                  {new Date(postData.end_datetime).toLocaleTimeString("th-TH", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-gray-400">หัวหน้าปาร์ตี้</p>
-                <p>{dummydata.host.name.split(" ")[0]}</p>
+                <p>{postData.host_name.split(" ")[0]}</p>
               </div>
             </div>
 
@@ -176,30 +267,34 @@ export default function Partybuffet() {
                 className="h-2 bg-green-500 rounded-full"
                 style={{
                   width: `${progress(
-                    dummydata.participants.length,
-                    dummydata.player_num
+                    postData.participants.length,
+                    postData.total_required_players
                   )}%`,
                 }}
               />
             </div>
             <p className="text-xs text-gray-500">
-              {dummydata.participants.length}/{dummydata.player_num} คน
+              {postData.participants.length}/{postData.total_required_players}{" "}
+              คน
             </p>
 
             {/* Description */}
             <div className="mt-4">
               <span className="flex items-center">
                 <h3 className="font-semibold text-green-600">
-                  [ โหมด: {dummydata.type} ]
+                  [ โหมด:{" "}
+                  {postData.mode === "flexible" ? "บุฟเฟ่ต์" : "ไม่ทราบ"} ]
                 </h3>
-                <h3 className="ml-2">{dummydata.party_name}</h3>
+                <h3 className="ml-2">{postData.party_name}</h3>
               </span>
-              <p className="text-gray-700 mt-1 text-sm">{dummydata.body}</p>
+              <p className="text-gray-700 mt-1 text-sm">
+                {postData.description}
+              </p>
             </div>
 
             {/* Map Button */}
             <a
-              href={dummydata.google_map_link}
+              href={postData.google_map}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center mt-5 border border-green-500 text-green-600 py-2 rounded-full hover:bg-green-50 transition"
@@ -217,10 +312,10 @@ export default function Partybuffet() {
         {tab === "participants" && (
           <div>
             <h3 className="font-bold mb-3">
-              ผู้เข้าร่วมทั้งหมด ({dummydata.participants.length})
+              ผู้เข้าร่วมทั้งหมด ({postData.participants.length})
             </h3>
             <div className="min-h-full pb-20 overflow-y-auto space-y-2">
-              {dummydata.participants.map((p) => (
+              {postData.participants.map((p) => (
                 <div
                   key={p.id}
                   className="flex items-center bg-gray-50 rounded-lg p-3 shadow-sm hover:shadow-md transition"
@@ -238,12 +333,12 @@ export default function Partybuffet() {
                     <p className="font-semibold">{p.name.split(" ")[0]}</p>
                     <span
                       className={`text-xs mt-1 w-fit px-2 py-0.5 rounded-full ${
-                        p.status === "เข้าร่วม"
+                        p.status === "Joined"
                           ? "bg-green-100 text-green-600"
                           : "bg-yellow-100 text-yellow-600"
                       }`}
                     >
-                      {p.status}
+                      {p.status === "Joined" ? "เข้าร่วม" : "ไม่ทราบ"}
                     </span>
                   </div>
                 </div>
@@ -255,11 +350,16 @@ export default function Partybuffet() {
 
       {status === "waiting" && (
         <div className="fixed bottom-0 left-0 w-full flex justify-center p-4 bg-white shadow-md">
-          {" "}
-          <button className="bg-green-500 text-white font-bold text-[1.2rem] px-4 py-2 w-full rounded-full">
-            {" "}
-            เข้าร่วม{" "}
-          </button>{" "}
+          <button
+            className={`${
+              hasJoined ? "bg-red-500" : "bg-green-500"
+            } text-white font-bold text-[1.2rem] px-4 py-2 w-full rounded-full`}
+            onClick={() => {
+              hasJoined ? leaveParty(postData._id) : joinParty(postData._id);
+            }}
+          >
+            {hasJoined ? "ออกจากปาร์ตี้" : "เข้าร่วม"}
+          </button>
         </div>
       )}
     </div>
