@@ -10,7 +10,7 @@ import {
 const BottomNav = () => {
   const location = useLocation();
   const navItems = [
-    { name: "หน้าหลัก", icon: <FaHome />, path: "/home" },
+    { name: "หน้าหลัก", icon: <FaHome />, path: "/" },
     { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/search" },
     { name: "หาปาร์ตี", icon: <FaFutbol />, path: "/team" },
     { name: "การแจ้งเตือน", icon: <FaBell />, path: "/notifications" },

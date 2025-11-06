@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 export default function FindCreateParty() {
   const navigate = useNavigate(); 
 
+  const [searchTerm, setSearchTerm] = useState(""); // ✅ เพิ่ม state สำหรับค้นหา
+
   const [fields, setFields] = useState([
     {
       id: 1,
@@ -26,7 +28,7 @@ export default function FindCreateParty() {
       features: ["ที่จอดรถ", "ห้องน้ำ"],
       image: fieldImg,
     },
-      {
+    {
       id: 3,
       name: "สนามฟุตซอลบางแค",
       location: "บางแค, กรุงเทพฯ",
@@ -36,6 +38,11 @@ export default function FindCreateParty() {
       image: fieldImg,
     },
   ]);
+
+  // ✅ ฟิลเตอร์เฉพาะชื่อสนาม
+  const filteredFields = fields.filter((field) =>
+    field.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col items-center">
@@ -66,6 +73,8 @@ export default function FindCreateParty() {
               placeholder="ค้นหาสนามบอล"
               required
               type="text"
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
             />
           </form>
         </div>
@@ -73,31 +82,55 @@ export default function FindCreateParty() {
       </div>
 
       {/* BODY */}
-      <div className="relative bottom-0 bg-[#F2F2F7] rounded-t-lg h-[28.5rem] w-[24.5rem] p-5 overflow-y-auto absolute bottom-1">
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
         <h2 className="text-black font-bold mb-4 text-lg">
           ค้นหาปาร์ตี้ / สร้างปาร์ตี้
         </h2>
 
         <div className="flex flex-col gap-4">
-          {fields.map((field) => (
-            <div key={field.id} className="bg-white shadow-md rounded-2xl overflow-hidden relative">
-              <div className="flex p-4">
-                <img src={field.image} alt={field.name} className="w-[120px] h-[120px] object-cover rounded-xl" />
-                <div className="ml-4 flex flex-col justify-between flex-1">
+          {filteredFields.map((field) => (
+            <div
+              key={field.id}
+              className="bg-white shadow-md rounded-2xl p-4 flex flex-col"
+            >
+              <div className="flex">
+                <img
+                  src={field.image}
+                  alt={field.name}
+                  className="w-[120px] h-[100px] object-cover rounded-xl"
+                />
+
+                <div className="ml-4 flex flex-col justify-between flex-1 overflow-hidden">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-800">{field.name}</h3>
-                    <div className="flex items-center mt-1 text-gray-500 text-sm">
-                      <FaMapMarkerAlt className="text-green-500 mr-1" />
-                      <span>{field.location}</span>
+                    <h3 className="text-lg font-bold text-gray-800 truncate">
+                      {field.name}
+                    </h3>
+                    <div className="flex items-center mt-1 text-gray-500 text-sm truncate">
+                      <FaMapMarkerAlt className="text-green-500 mr-1 flex-shrink-0" />
+                      <span className="truncate">{field.location}</span>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center mt-1">
-                    <p className="text-green-700 bg-green-100 font-semibold px-2 py-1 rounded-lg text-xs">
+
+                  {/* ✅ ราคา เวลา และฟีเจอร์ */}
+                  <div className="flex flex-row flex-wrap items-center gap-2 mt-2 overflow-hidden">
+                    <p className="flex items-center text-white bg-green-500 font-semibold px-3 py-1 rounded-full text-xs whitespace-nowrap">
                       {field.price} บาท/ชม.
                     </p>
-                    <div className="flex items-center bg-white shadow-sm rounded-lg px-2 py-1 text-xs font-semibold text-gray-700">
-                      <FaClock className="mr-1 text-gray-600" />
-                      <span>{field.openingHours}</span>
+
+                    <div className="flex items-center bg-gray-100 border border-gray-300 rounded-full px-3 py-1 text-xs text-gray-600 font-medium whitespace-nowrap">
+                      <FaClock className="mr-1 text-gray-500" />
+                      {field.openingHours}
+                    </div>
+
+                    <div className="flex flex-row flex-wrap gap-2 overflow-hidden">
+                      {field.features.map((feature, i) => (
+                        <span
+                          key={i}
+                          className="bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap"
+                        >
+                          {feature}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>

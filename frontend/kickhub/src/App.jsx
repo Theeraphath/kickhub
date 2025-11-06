@@ -20,6 +20,7 @@ import FindandCreate from "./components/FindandCreate";
 import Notifications from "./components/Notification";
 import Partybuffet from "./components/Partybuffet";
 import PartyRole from "./components/Partyrole";
+import OwnerFieldManager from "./components/OwnerFieldManager";
 
 function AppRoutes() {
   const location = useLocation();
@@ -54,6 +55,8 @@ function AppRoutes() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/historybuffet/:id" element={<Partybuffet />} />
         <Route path="/historyrole/:id" element={<PartyRole />} />
+        <Route path="/owner" element={< OwnerFieldManager />} />
+
 
         <Route
           path="/test"
