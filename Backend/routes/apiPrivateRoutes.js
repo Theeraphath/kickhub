@@ -302,7 +302,8 @@ router.put("/join-party/:id", authenticateToken, async (req, res) => {
   try {
     const post_id = req.params.id;
     const user_id = req.user._id;
-    const result = await joinParty(post_id, user_id);
+    const { position } = req.body;
+    const result = await joinParty(post_id, user_id, position);
     if (result.success) {
       res.status(200).json(result.data);
     } else {

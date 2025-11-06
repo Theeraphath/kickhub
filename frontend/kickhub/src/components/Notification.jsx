@@ -70,14 +70,8 @@ export default function Notifications() {
                 className="bg-white rounded-xl shadow-md p-4 grid grid-cols-2"
                 onClick={
                   data.mode === "flexible"
-                    ? () =>
-                        Navigate(`/historybuffet/${data._id}`, {
-                          state: data,
-                        })
-                    : () =>
-                        Navigate(`/historyrole/${data._id}`, {
-                          state: data,
-                        })
+                    ? () => Navigate(`/historybuffet/${data._id}`, {})
+                    : () => Navigate(`/historyrole/${data._id}`, {})
                 }
               >
                 <img

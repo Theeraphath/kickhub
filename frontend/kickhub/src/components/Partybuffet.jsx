@@ -13,7 +13,6 @@ export default function Partybuffet() {
   const [tab, setTab] = useState("info");
   const [status, setStatus] = useState("waiting");
   const { id } = useParams();
-  const token = localStorage.getItem("token");
 
   const fetchPost = async (id) => {
     try {
@@ -75,20 +74,33 @@ export default function Partybuffet() {
   const progress = (current, total) => (current / total) * 100;
 
   useEffect(() => {
-    if (!postData?.end_datetime) return;
+    if (!postData?.start_datetime || !postData?.end_datetime) return;
 
+    const startTime = new Date(postData.start_datetime);
     const endTime = new Date(postData.end_datetime);
+    const now = new Date();
+
+    if (now >= endTime) {
+      setStatus("ended");
+      return;
+    } else if (now >= startTime) {
+      setStatus("started");
+    } else {
+      setStatus("waiting");
+    }
 
     const interval = setInterval(() => {
       const now = new Date();
       if (now >= endTime) {
         setStatus("ended");
         clearInterval(interval);
+      } else if (now >= startTime) {
+        setStatus("started");
       }
-    }, 1000); // check every second
+    }, 1000);
 
-    return () => clearInterval(interval); // cleanup
-  }, [postData?.end_datetime]);
+    return () => clearInterval(interval);
+  }, [postData?.start_datetime, postData?.end_datetime]);
 
   const getUserIdFromToken = (token) => {
     if (!token) return null;

@@ -37,7 +37,7 @@ const postSchema = new mongoose.Schema(
     // ✅ แบบล็อคตำแหน่ง
     required_positions: [
       {
-        position: { type: String }, // "GK", "FW", "DF", "MF", etc.
+        position: { type: String, enum: ["GK", "FW", "DF", "MF"] }, // "GK", "FW", "DF", "MF", etc.
         amount: { type: Number, default: 0 },
       },
     ],
@@ -50,13 +50,16 @@ const postSchema = new mongoose.Schema(
       {
         user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         name: { type: String },
-        position: { type: String },
+        position: {
+          type: String,
+          enum: ["GK", "FW", "DF", "MF", null],
+          default: null,
+        },
         status: { type: String, default: "Joined" },
         joined_at: { type: Date, default: Date.now },
       },
     ],
     price: { type: Number, required: true },
-    description: { type: String },
     google_map: { type: String, required: true },
   },
   { timestamps: true }
