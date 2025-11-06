@@ -160,7 +160,7 @@ const CreateParty = () => {
           {/* รายการ */}
 
           <div className="p-2">
-            <h1 className="text-2xl pt-2 pr-2 pb-2 ">เวลา</h1>
+            <h1 className="l pt-2 pr-2 pb-2 ">เวลา</h1>
             <div className="w-full h-10">
               <input
                 type="time"
@@ -172,9 +172,9 @@ const CreateParty = () => {
             </div>
 
             <div className="">
-              <div className="flex flew-row gap-8">
-                <h1 className="text-2xl pt-2 pr-2 pb-2">จํานวนชั่วโมง</h1>
-                <h1 className="text-2xl p-2 ">ราคา (บาท/คน)</h1>
+              <div className="flex flew-row gap-17">
+                <h1 className=" pt-2 pr-2 pb-2">จํานวนชั่วโมง</h1>
+                <h1 className=" p-2 ">ราคา (บาท/คน)</h1>
               </div>
             </div>
             <div className="flex flew-row gap-3">
@@ -197,9 +197,9 @@ const CreateParty = () => {
 
             <div>
               <div className="">
-                <div className="flex flew-row gap-19">
-                  <h1 className="text-2xl pt-2 pr-2 pb-2">ชื่อปาร์ตี้</h1>
-                  <h1 className="text-2xl p-2 ">จำนวนผู้เล่น</h1>
+                <div className="flex flew-row gap-25">
+                  <h1 className=" pt-2 pr-2 pb-2">ชื่อปาร์ตี้</h1>
+                  <h1 className=" p-2 ">จำนวนผู้เล่น</h1>
                 </div>
               </div>
               <div className="flex flew-row gap-3">
@@ -221,7 +221,7 @@ const CreateParty = () => {
               </div>
             </div>
             <div>
-              <h1 className="text-2xl pt-2 pr-2 pb-2">รายละเอียด</h1>
+              <h1 className=" pt-2 pr-2 pb-2">รายละเอียด</h1>
             </div>
             <div>
               <textarea
@@ -233,7 +233,7 @@ const CreateParty = () => {
               />
             </div>
             <div>
-              <h1 className="text-2xl pt-2 pr-2 pb-2">รูปภาพปก</h1>
+              <h1 className=" pt-2 pr-2 pb-2">รูปภาพปก</h1>
             </div>
             <div>
               <div className="flex flex-col">
@@ -263,7 +263,7 @@ const CreateParty = () => {
               </div>
             </div>
             <div>
-              <h1 className="text-2xl pt-3 pr-2 pb-2">รูปเเบบการเก็บเงิน</h1>
+              <h1 className=" pt-3 pr-2 pb-2">รูปเเบบการเก็บเงิน</h1>
             </div>
             <div className="flex flew-row gap-3">
               <button className="active:bg-green-100 active:text-green-600 bg-white text-green-500 border-green-500 border border-gray-300 rounded-lg p-4 w-20 text-center h-10 text-sm text-gray-400 flex items-center cursor-pointer hover:bg-gray-100">

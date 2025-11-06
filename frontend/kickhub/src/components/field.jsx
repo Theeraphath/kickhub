@@ -147,13 +147,13 @@ export default function FindCreateParty() {
                       </div>
                     </div>
                     <div className="flex flex-row justify-end gap-2 pt-2 mr-3">
-                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-full text-xs transition">
+                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
                         ห้องน้ำ
                       </div>
-                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-full text-xs transition">
+                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
                         ที่จอดรถ
                       </div>
-                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-full text-xs transition">
+                      <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
                         ห้องอาบน้ำ
                       </div>
                     </div>
@@ -168,17 +168,18 @@ export default function FindCreateParty() {
 
               {/* ปุ่มดูรายละเอียด */}
               <div className="flex justify-between px-4 py-3 bg-gray-100">
-                <p className="bg-red-500  text-white font-semibold px-4 py-2 rounded-full text-sm transition ">
+                <p className="bg-red-500  text-white font-semibold px-4 py-2 rounded-md text-sm transition ">
                   {" "}
                   ว่าง
                 </p>
                 <button
                   onClick={() => navigate("")}
-                  className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-full text-sm transition"
+                  className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-md text-sm transition"
                 >
                   ดูรายละเอียด →
                 </button>
               </div>
+              
             </div>
           ))}
         </div>
