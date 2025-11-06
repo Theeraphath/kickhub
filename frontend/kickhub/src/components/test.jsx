@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Login from "./Login";
+import TimeSelector from "./testtime";
 function Test1() {
   const Navigate = useNavigate();
 
@@ -33,6 +34,9 @@ function Test1() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-red-100">
+      <div>
+        <TimeSelector />
+      </div>
       <div className="flex flex-col items-center justify-center mb-4">
         <h1 className="text-4xl font-bold text-black mb-4">
           congratulations you are logged in
@@ -41,7 +45,11 @@ function Test1() {
       </div>
       <div className="flex flex-col items-center justify-center mb-4">
         {dummydata.map((item) => (
-          <button key={item.id} className="cursor-pointer mb-4" onClick={() => Navigate(`/test/${item.id}`, { state: item })}>
+          <button
+            key={item.id}
+            className="cursor-pointer mb-4"
+            onClick={() => Navigate(`/test/${item.id}`, { state: item })}
+          >
             <h1>{item.fild_name}</h1>
             <h1>{item.status}</h1>
           </button>
