@@ -20,6 +20,9 @@ import FindandCreate from "./components/FindandCreate";
 import Notifications from "./components/Notification";
 import Partybuffet from "./components/Partybuffet";
 import PartyRole from "./components/Partyrole";
+import CreateParty from "./components/CreateParty";
+import CreateParty2 from "./components/CreateParty2";
+import Field from "./components/field";
 
 function AppRoutes() {
   const location = useLocation();
@@ -45,7 +48,7 @@ function AppRoutes() {
         
         <Route path="/login" element={<Login />} />
         <Route path="/signUp" element={<SignUp />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/partybuffet/:id" element={<Partybuffet />} />
         <Route path="/partyrole/:id" element={<PartyRole />} />
         <Route path="/team" element={<FindCreateParty />} />
@@ -54,6 +57,9 @@ function AppRoutes() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/historybuffet/:id" element={<Partybuffet />} />
         <Route path="/historyrole/:id" element={<PartyRole />} />
+        <Route path="/create-party" element={<CreateParty />} />
+        <Route path="/create-party2" element={<CreateParty2 />} />
+        <Route path="/field" element={<Field />} />
 
         <Route
           path="/test"

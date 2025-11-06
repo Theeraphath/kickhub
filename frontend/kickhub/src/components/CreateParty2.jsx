@@ -5,6 +5,10 @@ import findparty from "../../public/party2.png";
 import teamImg from "../../public/team.png";
 import BottomNav from "./Navbar";
 import team from "../../public/team.png";
+import attcker from "../../public/กองหน้า.png";
+import defender from "../../public/กองหลัง.png";
+import midfielder from "../../public/กองกลาง.png";
+import goalkeeper from "../../public/ประตู.png";
 
 const CreateParty2 = () => {
   const navigate = useNavigate();
@@ -283,21 +287,37 @@ const CreateParty2 = () => {
               <div className="flex justify-center gap-4">
                 <div className="bg-white border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
                   <img
-                    src={team}
+                    src={goalkeeper}
                     alt=""
-                    className="max-w-full max-h-3/4 object-contain"
+                    className="w-13 h-23 object-contain"
                   />
-                  <p className="mt-1 text-center">บุฟเฟ่ต์</p>
+                     <input
+                      type="number"
+                      min="0"
+                      max="11"
+                      step="5"
+                      className="border border-green-500 rounded-2xl p-2 w-20 text-center h-9 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0"
+                    />
+                  <p className="mt-1 text-center">ประตู</p>
                 </div>
 
                 <div>
                   <div className="bg-white  border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
                     <img
-                      src={team}
+                      src={attcker}
                       alt=""
                       className="max-w-full max-h-3/4 object-contain"
                     />
-                    <p className="mt-1 text-center">ล็อคตำแหน่ง</p>
+                       <input
+                      type="number"
+                      min="0"
+                      max="11"
+                      step="5"
+                      className="border border-green-500 rounded-2xl p-2 w-20 text-center h-9 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0"
+                    />
+                    <p className="mt-1 text-center">กองหน้า</p>
                   </div>
                 </div>
               </div>
@@ -309,21 +329,38 @@ const CreateParty2 = () => {
               <div className="flex justify-center gap-4">
                 <div className="bg-white border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
                   <img
-                    src={team}
+                    src={midfielder}
                     alt=""
                     className="max-w-full max-h-3/4 object-contain"
                   />
-                  <p className="mt-1 text-center">บุฟเฟ่ต์</p>
+                     <input
+                      type="number"
+                      min="0"
+                      max="11"
+                      step="5"
+                      className="border border-green-500 rounded-2xl p-2 w-20 text-center h-9 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0"
+                    />
+                  <p className="mt-1 text-center">กองกลาง</p>
                 </div>
 
                 <div>
                   <div className="bg-white                        border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
                     <img
-                      src={team}
+                      src={defender}
                       alt=""
                       className="max-w-full max-h-3/4 object-contain"
                     />
-                    <p className="mt-1 text-center">ล็อคตำแหน่ง</p>
+                    <input
+                      type="number"
+                      min="0"
+                      max="11"
+                      step="5"
+                      className="border border-green-500 rounded-2xl p-2 w-20 text-center h-9 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0"
+                    />
+
+                    <p className="mt-1 text-center">กองหลัง</p>
                   </div>
                 </div>
               </div>
@@ -347,42 +384,3 @@ const CreateParty2 = () => {
 };
 
 export default CreateParty2;
-
-{
-  /* <div>
-                    <div className="">
-      <h2 className="text-xl font-bold text-center">สร้างรายการ</h2>
-
-      <input
-        type="time"
-        value={time}
-        onChange={(e) => setTime(e.target.value)}
-        className="border p-2 w-full rounded"
-        placeholder="เวลา"
-      />
-
-      <input
-        type="number"
-        value={hours}
-        onChange={(e) => setHours(e.target.value)}
-        className="border p-2 w-full rounded"
-        placeholder="จำนวนชั่วโมง"
-      />
-
-      <input
-        type="number"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        className="border p-2 w-full rounded"
-        placeholder="ราคา"
-      />
-
-      <button
-        onClick={handleCreate}
-        className="bg-blue-500 text-white w-full p-2 rounded hover:bg-blue-600 transition"
-      >
-        สร้าง
-      </button>
-    </div>
-           </div> */
-}
