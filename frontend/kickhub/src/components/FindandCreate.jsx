@@ -3,7 +3,7 @@ import { FaMapMarkerAlt, FaClock, FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import findparty from "../../public/party2.png";
 import teamImg from "../../public/team.png";
-import BottomNav from "./Navbar"; 
+import BottomNav from "./Navbar";
 
 export default function FindandCreate() {
   const navigate = useNavigate();
@@ -11,7 +11,6 @@ export default function FindandCreate() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-
 
   const [teams, setTeams] = useState([
     {
@@ -129,7 +128,7 @@ export default function FindandCreate() {
       </div>
 
       {/* BODY */}
-      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] h-[100rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
         {/* ชื่อสนาม */}
         <h2 className="text-black font-bold text-xl mb-2">สนามฟุตบอล</h2>
         <p className="text-gray-600 mb-3 text-sm">สนามไรมง</p>
@@ -137,7 +136,9 @@ export default function FindandCreate() {
         {/* โหมด */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-gray-700">เลือกโหมด:</span>
+            <span className="text-sm font-semibold text-gray-700">
+              เลือกโหมด:
+            </span>
             <select
               className="bg-green-100 text-green-700 font-semibold rounded-lg px-3 py-1 text-sm"
               value={mode}

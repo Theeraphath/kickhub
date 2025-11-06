@@ -5,7 +5,7 @@ import fieldImg from "../../public/field.jpg";
 import { useNavigate } from "react-router-dom";
 
 export default function FindCreateParty() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState(""); // ✅ เพิ่ม state สำหรับค้นหา
 
@@ -73,16 +73,20 @@ export default function FindCreateParty() {
               placeholder="ค้นหาสนามบอล"
               required
               type="text"
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </form>
         </div>
-        <img src={findparty} alt="findparty" className="w-full h-full object-cover" />
+        <img
+          src={findparty}
+          alt="findparty"
+          className="w-full h-full object-cover"
+        />
       </div>
 
-      {/* BODY */}<div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
-      
+      {/* BODY */}
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
         <h2 className="text-black font-bold mb-4 text-lg">
           ค้นหาปาร์ตี้ / สร้างปาร์ตี้
         </h2>
