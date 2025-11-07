@@ -1,6 +1,6 @@
 import { FaArrowLeft, FaRegUser, FaMapMarkerAlt } from "react-icons/fa";
 import { FaCircleUser } from "react-icons/fa6";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import googlemap from "../../public/Google_Maps_icon_(2020).png";
 import photo from "../../public/field.jpg";
@@ -15,37 +15,63 @@ export default function PartyRole() {
   const [selectedPos, setSelectedPos] = useState(null);
   const [reservedPos, setReservedPos] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [postData, setPostData] = useState(null);
   const [status, setStatus] = useState("waiting");
+  const { id } = useParams();
+  const token = localStorage.getItem("token");
 
-  const dummydata = {
-    party_name: "ไรมง",
-    type: "ล็อคตำแหน่ง",
-    field_name: "สนามฟุตบอลศรีปทุม",
-    address: "สนามฟุตบอลศรีปทุม",
-    date: "2027-06-30",
-    start: "17:00",
-    end: "18:00",
-    price: "90",
-    host: { id: 1, name: "เอนโด มาโมรุ" },
-    participants: [
-      { id: 1, name: "เอนโด มาโมรุ", position: "forward" },
-      { id: 2, name: "โกเอนจิ ชูยะ", position: "forward" },
-      { id: 3, name: "คิโด ยูโตะ", position: "midfielder" },
-      { id: 4, name: "คาเซมารุ อิจิโรตะ", position: "defender" },
-      { id: 5, name: "โซเมโอกะ ริวโกะ", position: "goalkeeper" },
-      { id: 6, name: "โดมอน อาซึกะ", position: "midfielder" },
-      { id: 7, name: "อิจิโนะ", position: "defender" },
-    ],
-    position: {
-      forward_need: 2,
-      midfield_need: 6,
-      defender_need: 4,
-      goalkeeper_need: 2,
-    },
-    player_num: 14,
-    body: "บอลสมัครเล่นรวมตัวกันทุกเย็นวันพุธ เล่นแบบเป็นกันเอง เน้นความสนุกและการรู้จักเพื่อนใหม่",
-    google_map_link: "https://maps.app.goo.gl/oKR8s7gfsfGVqKPs8",
+  const getUserIdFromToken = (token) => {
+    if (!token) return null;
+    try {
+      const payloadBase64 = token.split(".")[1];
+      const decodedPayload = atob(payloadBase64);
+      const payload = JSON.parse(decodedPayload);
+      return payload._id || payload.user_id || payload.id || null;
+    } catch (err) {
+      console.error("❌ Token decode error:", err);
+      return null;
+    }
   };
+
+  const fetchPost = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://192.168.1.26:3000/api/post/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await response.json();
+      if (result.success) {
+        const data = result.data;
+        setPostData(data);
+
+        // ✅ ตรวจสอบว่าผู้ใช้เคยจองตำแหน่งไว้ก่อนแล้วหรือไม่
+        const userId = getUserIdFromToken(token);
+        const myJoin = data.participants.find((p) => p.user_id === userId);
+        setReservedPos(myJoin ? myJoin.position : null);
+      } else {
+        setError("ไม่พบข้อมูล");
+      }
+
+      setLoading(false);
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPost(id);
+  }, [id]);
+
+  useEffect(() => {
+    console.log("data:", postData);
+  }, [postData]);
 
   const convertDateThai = (dateString) => {
     const date = new Date(dateString);
@@ -80,48 +106,137 @@ export default function PartyRole() {
   const progress = (current, total) => (current / total) * 100;
 
   const positionLabels = {
-    forward: "กองหน้า",
-    midfielder: "กองกลาง",
-    goalkeeper: "ผู้รักษาประตู",
-    defender: "กองหลัง",
+    FW: "กองหน้า",
+    MF: "กองกลาง",
+    GK: "ผู้รักษาประตู",
+    DF: "กองหลัง",
   };
 
-  const countPositions = (participants) =>
-    participants.reduce((acc, p) => {
+  const userId = getUserIdFromToken(token);
+
+  const counts =
+    postData?.participants?.reduce((acc, p) => {
       acc[p.position] = (acc[p.position] || 0) + 1;
       return acc;
-    }, {});
-  const counts = countPositions(dummydata.participants);
+    }, {}) || {};
+
+  const alreadyJoined = postData?.participants?.some(
+    (p) => p.user_id === userId
+  );
+
   const displayedCounts = { ...counts };
-  if (reservedPos)
+
+  if (!alreadyJoined && reservedPos) {
     displayedCounts[reservedPos] = (displayedCounts[reservedPos] || 0) + 1;
+  }
+
+  console.log("✅ displayedCounts:", displayedCounts);
+
+  const total = postData?.required_positions.reduce((acc, item) => {
+    return acc + item.amount;
+  }, 0);
+  console.log("จำนวนผู้เล่นที่ต้องการทั้งหมด:", total);
+
+  const getRequiredAmount = (positionCode) =>
+    postData?.required_positions?.find((p) => p.position === positionCode)
+      ?.amount || 0;
 
   const need = {
-    forward: dummydata.position.forward_need,
-    midfielder: dummydata.position.midfield_need,
-    defender: dummydata.position.defender_need,
-    goalkeeper: dummydata.position.goalkeeper_need,
+    FW: getRequiredAmount("FW"),
+    MF: getRequiredAmount("MF"),
+    DF: getRequiredAmount("DF"),
+    GK: getRequiredAmount("GK"),
   };
 
   useEffect(() => {
-    if (!dummydata.date || !dummydata.end) return;
+    if (!postData?.start_datetime || !postData?.end_datetime) return;
 
-    const endTime = new Date(`${dummydata.date}T${dummydata.end}:00+07:00`);
+    const startTime = new Date(postData.start_datetime);
+    const endTime = new Date(postData.end_datetime);
+    const now = new Date();
+
+    if (now >= endTime) {
+      setStatus("ended");
+      return;
+    } else if (now >= startTime) {
+      setStatus("started");
+    } else {
+      setStatus("waiting");
+    }
 
     const interval = setInterval(() => {
       const now = new Date();
       if (now >= endTime) {
         setStatus("ended");
         clearInterval(interval);
+      } else if (now >= startTime) {
+        setStatus("started");
       }
-    }, 1000); // check every second
+    }, 1000);
 
-    return () => clearInterval(interval); // cleanup
-  }, [dummydata.date, dummydata.end]);
+    return () => clearInterval(interval);
+  }, [postData?.start_datetime, postData?.end_datetime]);
 
   useEffect(() => {
     console.log("Status changed:", status);
   }, [status]);
+
+  const joinParty = async (postId, selectedPos) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://192.168.1.26:3000/api/join-party/${postId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ position: selectedPos }), // ✅ ส่งตำแหน่ง
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log("✅ เข้าร่วมสำเร็จ:", result);
+        fetchPost(postId);
+      } else {
+        console.error("❌ เข้าร่วมไม่สำเร็จ:", result.error);
+      }
+    } catch (err) {
+      console.error("❌ Error joining party:", err);
+    }
+  };
+
+  const leaveParty = async (postId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://192.168.1.26:3000/api/leave-party/${postId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log("✅ ออกจากปาร์ตี้สำเร็จ:", result);
+        fetchPost(postId); // รีโหลดข้อมูลใหม่
+      } else {
+        console.error("❌ ออกจากปาร์ตี้ไม่สำเร็จ:", result.error);
+      }
+    } catch (err) {
+      console.error("❌ Error leaving party:", err);
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+  if (!postData) return <p>ไม่พบข้อมูล</p>;
 
   return (
     <div className="max-w-md mx-auto bg-white shadow-lg rounded-xl overflow-hidden font-noto-thai mt-6 mb-20">
@@ -132,7 +247,7 @@ export default function PartyRole() {
           className="text-lg text-gray-600 cursor-pointer mr-3 hover:text-green-500"
         />
         <h1 className="font-bold text-lg">
-          รายละเอียดปาร์ตี้ {dummydata.party_name}
+          รายละเอียดปาร์ตี้ {postData.party_name}
         </h1>
       </div>
 
@@ -146,7 +261,7 @@ export default function PartyRole() {
         )}
         <div className="absolute top-3 right-3 bg-green-500 px-3 py-1 rounded-full text-white text-sm flex items-center shadow-md">
           <FaRegUser className="mr-2" />
-          {dummydata.participants.length}/{dummydata.player_num}
+          {postData.participants.length}/{total}
         </div>
       </div>
 
@@ -174,29 +289,43 @@ export default function PartyRole() {
             {/* Info Section */}
             <div className="mb-5">
               <div className="flex justify-between items-center mb-2">
-                <h2 className="text-lg font-bold">{dummydata.field_name}</h2>
+                <h2 className="text-lg font-bold">{postData.field_name}</h2>
                 <span className="text-green-600 font-bold">
-                  {dummydata.price}฿ / คน
+                  {postData.price}฿ / คน
                 </span>
               </div>
 
               <p className="flex items-center text-gray-600 mb-3">
                 <FaMapMarkerAlt className="mr-1 text-green-500" />
-                {dummydata.address}
+                {postData.address}
               </p>
 
               <div className="grid grid-cols-2 text-sm text-gray-700 mb-4">
                 <div>
                   <p className="text-gray-400">วัน/เวลา</p>
-                  <p>
-                    {convertDateThai(dummydata.date)}{" "}
-                    <span className="text-red-500">*</span> {dummydata.start} -{" "}
-                    {dummydata.end}
+                  <p className="text-xs">
+                    {convertDateThai(postData.start_datetime)}{" "}
+                    <span className="text-red-500">*</span>{" "}
+                    {new Date(postData.start_datetime).toLocaleTimeString(
+                      "th-TH",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}{" "}
+                    -{" "}
+                    {new Date(postData.end_datetime).toLocaleTimeString(
+                      "th-TH",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-gray-400">หัวหน้าปาร์ตี้</p>
-                  <p>{dummydata.host.name.split(" ")[0]}</p>
+                  <p>{postData.host_name.split(" ")[0]}</p>
                 </div>
               </div>
 
@@ -206,38 +335,40 @@ export default function PartyRole() {
                 <div
                   className="h-2 bg-green-500 rounded-full"
                   style={{
-                    width: `${progress(
-                      dummydata.participants.length,
-                      dummydata.player_num
-                    )}%`,
+                    width: `${progress(postData.participants.length, total)}%`,
                   }}
                 />
               </div>
               <p className="text-xs text-gray-500">
-                {dummydata.participants.length}/{dummydata.player_num} คน
+                {postData.participants.length}/{total} คน
               </p>
 
               <div className="mt-4">
                 <span className="flex items-center">
                   <h3 className="font-semibold text-green-600">
-                    [ โหมด: {dummydata.type} ]
+                    [ โหมด:{" "}
+                    {postData.mode === "fixed" ? "ล็อคตําแหน่ง" : "ไม่ทราบ"} ]
                   </h3>
-                  <h3 className="ml-2">{dummydata.party_name}</h3>
+                  <h3 className="ml-2">{postData.party_name}</h3>
                 </span>
-                <p className="text-gray-700 mt-1 text-sm">{dummydata.body}</p>
+                <p className="text-gray-700 mt-1 text-sm">
+                  {postData.description}
+                </p>
               </div>
             </div>
 
             {/* Position Booking */}
             <div className="grid grid-cols-2 gap-4">
               {[
-                { key: "goalkeeper", label: "ผู้รักษาประตู", img: goalkeeper },
-                { key: "forward", label: "กองหน้า", img: forward },
-                { key: "midfielder", label: "กองกลาง", img: midfielder },
-                { key: "defender", label: "กองหลัง", img: defender },
+                { key: "GK", label: "ผู้รักษาประตู", img: goalkeeper },
+                { key: "FW", label: "กองหน้า", img: forward },
+                { key: "MF", label: "กองกลาง", img: midfielder },
+                { key: "DF", label: "กองหลัง", img: defender },
               ].map((pos) => {
                 const isReserved = reservedPos === pos.key;
                 const isLocked = reservedPos && !isReserved;
+
+                const isFull = displayedCounts[pos.key] >= need[pos.key];
                 return (
                   <div
                     key={pos.key}
@@ -254,7 +385,9 @@ export default function PartyRole() {
                     </p>
                     {isReserved ? (
                       <button
-                        onClick={() => setReservedPos(null)}
+                        onClick={() => {
+                          leaveParty(postData._id);
+                        }}
                         disabled={status === "ended"}
                         className={`font-bold py-1.5 px-4 rounded-full w-full transition ${
                           status === "ended"
@@ -264,10 +397,13 @@ export default function PartyRole() {
                       >
                         ยกเลิก
                       </button>
+                    ) : isFull ? (
+                      <button className="py-1.5 px-4 rounded-full w-full transition font-bold bg-gray-300 text-gray-600 cursor-not-allowed">
+                        เต็มแล้ว
+                      </button>
                     ) : (
                       <button
                         onClick={() => {
-                          if (reservedPos || status === "ended") return;
                           setSelectedPos(pos.key);
                           setShowConfirm(true);
                         }}
@@ -288,7 +424,7 @@ export default function PartyRole() {
 
             {/* Map Button */}
             <a
-              href={dummydata.google_map_link}
+              href={postData.google_map}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center mt-6 border border-green-500 text-green-600 py-2 rounded-full hover:bg-green-50 transition"
@@ -306,10 +442,10 @@ export default function PartyRole() {
         {tab === "participants" && (
           <div>
             <h3 className="font-bold mb-3">
-              ผู้เข้าร่วมทั้งหมด ({dummydata.participants.length})
+              ผู้เข้าร่วมทั้งหมด ({postData.participants.length})
             </h3>
             <div className="max-h-[65vh] overflow-y-auto space-y-2">
-              {dummydata.participants.map((p) => (
+              {postData.participants.map((p) => (
                 <div
                   key={p.id}
                   className="flex items-center bg-gray-50 rounded-lg p-3 shadow-sm hover:shadow-md transition"
@@ -319,11 +455,11 @@ export default function PartyRole() {
                     <p className="font-semibold">{p.name.split(" ")[0]}</p>
                     <span
                       className={`text-xs mt-1 w-fit px-2 py-0.5 rounded-full ${
-                        p.position === "forward"
+                        p.position === "FW"
                           ? "bg-green-100 text-green-600"
-                          : p.position === "goalkeeper"
+                          : p.position === "GK"
                           ? "bg-red-100 text-red-600"
-                          : p.position === "defender"
+                          : p.position === "DF"
                           ? "bg-blue-100 text-blue-600"
                           : "bg-yellow-100 text-yellow-600"
                       }`}
@@ -364,7 +500,7 @@ export default function PartyRole() {
               </button>
               <button
                 onClick={() => {
-                  setReservedPos(selectedPos);
+                  joinParty(postData._id, selectedPos);
                   setShowConfirm(false);
                   setSelectedPos(null);
                 }}
