@@ -19,7 +19,7 @@ const newPost = async (user_id, field_id, postdata) => {
         {
           user_id: user_id,
           name: user.name,
-          position: null,
+          position: postdata.position || null,
           status: "Joined",
           joined_at: new Date(),
         },
@@ -76,7 +76,7 @@ const updatePost = async (id, postData) => {
   }
 };
 
-const joinParty = async (id, user_id) => {
+const joinParty = async (id, user_id, position) => {
   const user = await User.findById(user_id);
 
   try {
@@ -87,8 +87,9 @@ const joinParty = async (id, user_id) => {
           participants: {
             user_id: user_id,
             name: user.name,
+            position: position || null, // ✅ ใช้ค่าที่ส่งเข้ามา
             status: "Joined",
-            position: null,
+            joined_at: new Date(),
           },
         },
       },
