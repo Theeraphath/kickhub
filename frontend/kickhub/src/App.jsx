@@ -23,6 +23,7 @@ import PartyRole from "./components/Partyrole";
 import CreateParty from "./components/CreateParty";
 import CreateParty2 from "./components/CreateParty2";
 import Field from "./components/field";
+import CountdownTimer from "./components/CountdownTimer";
 
 function AppRoutes() {
   const location = useLocation();
@@ -60,6 +61,7 @@ function AppRoutes() {
         <Route path="/create-party" element={<CreateParty />} />
         <Route path="/create-party2" element={<CreateParty2 />} />
         <Route path="/field" element={<Field />} />
+        <Route path="/countdown" element={<CountdownTimer />} />
 
         <Route
           path="/test"

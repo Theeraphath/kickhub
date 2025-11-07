@@ -11,6 +11,12 @@ export default function FindCreateParty() {
   const [end, setEnd] = useState("");
   const [search, setSearch] = useState("");
 
+  const [dateSearch, setDateSearch] = useState("");
+  const [startSearch, setStartSearch] = useState("");
+  const [endSearch, setEndSearch] = useState("");
+  const [filteredFields, setFilteredFields] = useState([]);
+  const [isSearched, setIsSearched] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     await fetch("http://localhost:3000/appointments", {
@@ -32,40 +38,65 @@ export default function FindCreateParty() {
       openingHours: "11:00 - 23:00",
       features: ["ที่จอดรถ", "ห้องน้ำ", "ห้องอาบน้ำ"],
       image: field,
+
+      start_datetime: "2025-11-20T10:00:00+07:00",
+      end_datetime: "2025-11-20T22:00:00+07:00",
     },
     {
       id: 2,
       name: "A",
-      location: "กรรมป่าไม้, กรุงเทพฯ",
-      price: 600,
-      openingHours: "10:00 - 22:00",
-      features: ["ที่จอดรถ", "ห้องน้ำ"],
+      location: "คลองหลวง, ปทุมธานี",
+      price: 700,
+      openingHours: "11:00 - 23:00",
+      features: ["ที่จอดรถ", "ห้องน้ำ", "ห้องอาบน้ำ"],
       image: field,
+
+      start_datetime: "2025-11-21T10:00:00+07:00",
+      end_datetime: "2025-11-21T22:00:00+07:00",
     },
     {
       id: 3,
       name: "B",
-      location: "บางบัว, กรุงเทพฯ",
-      price: 800,
-      openingHours: "10:00 - 22:00",
-      features: ["ที่จอดรถ", "ห้องน้ำ"],
+      location: "คลองหลวง, ปทุมธานี",
+      price: 700,
+      openingHours: "11:00 - 23:00",
+      features: ["ที่จอดรถ", "ห้องน้ำ", "ห้องอาบน้ำ"],
       image: field,
-    },
-    {
-      id: 4,
-      name: "C",
-      location: "จตุจักร                   , กรุงเทพฯ",
-      price: 900,
-      openingHours: "10:00 - 22:00",
-      features: ["ที่จอดรถ", "ห้องน้ำ"],
-      image: field,
-      timestart: "10:00",
-      timeend: "22:00",
+
+      start_datetime: "2025-11-22T10:00:00+07:00",
+      end_datetime: "2025-11-22T22:00:00+07:00",
     },
   ]);
-  const filteredFields = fields.filter((f) =>
-    f.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // ฟังก์ชันกรองข้อมูลทั้งหมด
+  const handleSearch = () => {
+    const result = fields.filter((f) => {
+      const matchName = search
+        ? f.name.toLowerCase().includes(search.toLowerCase())
+        : true;
+
+      const start = new Date(f.start_datetime);
+      const end = new Date(f.end_datetime);
+
+      // ✅ ตรวจวันที่
+      const matchDate = dateSearch
+        ? start.toISOString().slice(0, 10) === dateSearch
+        : true;
+
+      // ✅ ตรวจเวลา (เฉพาะเวลาภายในวัน)
+      const matchStart = startSearch
+        ? start.getHours() >= Number(startSearch.split(":")[0])
+        : true;
+
+      const matchEnd = endSearch
+        ? end.getHours() <= Number(endSearch.split(":")[0])
+        : true;
+
+      return matchName && matchDate && matchStart && matchEnd;
+    });
+
+    setFilteredFields(result);
+    setIsSearched(true);
+  };
 
   return (
     <div className="flex flex-col items-center font-noto-thai">
@@ -114,24 +145,69 @@ export default function FindCreateParty() {
       </div>
 
       {/* BODY */}
-      <div className="relative bottom-0 bg-[#F2F2F7] rounded-t-lg h-[28.5rem] w-[24.5rem] p-5 overflow-y-auto absolute bottom-1">
-        <h2 className="text-black font-bold mb-4 text-lg">วันที่เเละเวลา</h2>
-        <div className="flex gap-4 pb-4">
-          <input
-            type="date"
-            className="bg-green-400 text-white rounded-lg px-3 py-1 text-sm font-semibold "
-            defaultValue="2025-10-22"
-          />
-          <input
-            type="time"
-            className="bg-green-400 text-white rounded-lg px-3 py-1 text-sm font-semibold"
-            defaultValue="12:30"
-          />
-          <button className="bg-green-400 text-green-700 rounded-lg px-3 py-1 text-sm font-semibold">
-            <FaSearch className="text-white text-lg mr-1  " />
-          </button>
-        </div>
 
+      <div className="relative bottom-0 bg-[#F2F2F7] rounded-t-lg h-[28.5rem] w-[24.5rem] p-5 overflow-y-auto absolute bottom-1">
+        <div className="p-4 font-noto-thai">
+          <h2 className="text-lg font-semibold mb-3">วันที่เเละเวลา</h2>
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            <input
+              type="date"
+              value={dateSearch}
+              onChange={(e) => setDateSearch(e.target.value)}
+              className="border rounded px-2 py-1 border-green-500 bg-green-500 text-white"
+            />
+            <input
+              type="time"
+              value={startSearch}
+              onChange={(e) => setStartSearch(e.target.value)}
+              className="border rounded px-2 py-1  border-green-500 bg-green-500 text-white"
+            />
+            <input
+              type="time"
+              value={endSearch}
+              onChange={(e) => setEndSearch(e.target.value)}
+              className="border rounded px-2 py-1  border-green-500 bg-green-500 text-white"
+            />
+            <button
+              onClick={handleSearch}
+              className="bg-green-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition"
+            >
+              ค้นหา
+            </button>
+          </div>
+
+          {isSearched &&
+            (filteredFields.length > 0 ? (
+              <div className="space-y-2">
+                {filteredFields.map((f) => (
+                  <div
+                    key={f.id}
+                    className="p-3 border rounded-lg shadow-sm bg-white"
+                  >
+                    <p className="font-medium">{f.name}</p>
+                    <p>
+                      วันที่: {new Date(f.start_datetime).toLocaleDateString()}
+                    </p>
+                    <p>
+                      เวลา:{" "}
+                      {new Date(f.start_datetime).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      -{" "}
+                      {new Date(f.end_datetime).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">ไม่พบสนามที่ตรงกับเงื่อนไข</p>
+            ))}
+        </div>
         {/* card */}
 
         <div className="flex flex-col gap-4">
@@ -186,20 +262,21 @@ export default function FindCreateParty() {
                           ห้องอาบน้ำ
                         </div>
                       </div>
-                      <div>
-                        {fields.map((field) => (
-                          <div
-                            key={field.id}
-                            className="flex justify-end gap-2 p-1 mr-3"
-                          >
-                            <div className="text-gray-500 text-xs">
-                              {field.timestart}
-                            </div>
-                            <div className="text-gray-500 text-xs">
-                              {field.timeend}
-                            </div>
+
+                      <div className="">
+                        <div className="pt-2 ml-2">
+                          <div className="text-gray-500">{field.Date}</div>
+                        </div>
+                        <div className="flex flex-col ml-2">
+                          <p className="text-gray-500 text-xs">TimeStart</p>
+                          <div className="text-gray-500 text-xs">
+                            {field.start_datetime}
                           </div>
-                        ))}
+                          <p className="text-gray-500 text-xs">TimeEnd</p>
+                          <div className="text-gray-500 text-xs">
+                            {field.end_datetime}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
