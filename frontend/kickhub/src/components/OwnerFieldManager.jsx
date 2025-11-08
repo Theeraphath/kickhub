@@ -32,6 +32,18 @@ export default function OwnerFieldManager() {
   const amenitiesList = ["ห้องน้ำ", "ที่จอดรถ", "ร้านค้า", "wifi free"];
 
   const token = localStorage.getItem("token"); // ✅ ต้องมี token จากการ login
+  const fetchFields = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/api/owner-fields`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setFields(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error("Error fetching fields:", err);
+  }
+};
+
 
   // 🧩 โหลดสนามทั้งหมดของเจ้าของเมื่อเปิดหน้า
   useEffect(() => { 
@@ -84,57 +96,69 @@ export default function OwnerFieldManager() {
 
   // ➕ เพิ่ม หรือ ✏️ แก้ไข สนาม
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const body = {
-      field_name: formData.name,
-      field_type: formData.fieldType,
-      mobile_number: formData.promptPay,
-      address: formData.address,
-      price: formData.price,
-      open: formData.openTime,
-      close: formData.closeTime,
-      facilities: formData.amenities,
-      image: formData.image,
-      description: formData.description,
-      google_map: formData.mapLink,
-    };
+  const body = {
+    field_name: formData.name,
+    field_type: formData.fieldType,
+    mobile_number: formData.promptPay,
+    address: formData.address,
+    price: formData.price,
+    open: formData.openTime,
+    close: formData.closeTime,
+    facilities: formData.amenities,
+    image: formData.image,
+    description: formData.description,
+    google_map: formData.mapLink,
+  };
 
-    try {
-      if (isEditing && editingId) {
-        // ✏️ update field
-        const res = await fetch(`${API_BASE}/api/update-fields/${editingId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
-        });
-        const updated = await res.json();
+
+  try {
+    if (isEditing && editingId) {
+      // ✏️ update field
+      const res = await fetch(`${API_BASE}/api/update-fields/${editingId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const updated = await res.json();
+
+      // ✅ ถ้ามีข้อมูล field กลับมา
+      if (updated && updated._id) {
         setFields((prev) =>
           prev.map((f) => (f._id === editingId ? updated : f))
         );
       } else {
-        // ➕ add field
-        const res = await fetch(`${API_BASE}/add-fields`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
-        });
-        const added = await res.json();
-        setFields((prev) => [added, ...prev]);
+        await fetchFields();
       }
-
-      resetForm();
-      setShowForm(false);
-    } catch (err) {
-      console.error("Error saving field:", err);
+    } else {
+      // ➕ add field
+      const res = await fetch(`${API_BASE}/api/add-fields`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const added = await res.json();
+      if (added && added._id) {
+        setFields((prev) => [added, ...prev]);
+      } else {
+        await fetchFields();
+      }
     }
-  };
+
+    resetForm();
+    setShowForm(false);
+  } catch (err) {
+    console.error("Error saving field:", err);
+  }
+};
+
 
   const handleEdit = (field) => {
   setFormData({
