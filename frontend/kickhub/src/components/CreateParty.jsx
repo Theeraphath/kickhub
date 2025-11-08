@@ -5,6 +5,8 @@ import findparty from "../../public/party2.png";
 import teamImg from "../../public/team.png";
 import BottomNav from "./Navbar";
 import team from "../../public/team.png";
+import LP from "../../public/lockposition.png";
+import Buffetpic from "../../public/buffetpic.png";
 
 const CreateParty = () => {
   const navigate = useNavigate();
@@ -135,7 +137,7 @@ const CreateParty = () => {
               className="bg-green-100 border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col "
             >
               <img
-                src={team}
+                src={Buffetpic}
                 alt=""
                 className="max-w-full max-h-3/4 object-contain"
               />
@@ -144,15 +146,15 @@ const CreateParty = () => {
 
             <div>
               <div
-                onClick={() => navigate("/create-party2")}
-                className="bg-white border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col "
-              >
+               onClick={() => navigate("/create-party2")}
+              className="bg-white border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
+                
                 <img
-                  src={team}
+                  src={LP}
                   alt=""
-                  className="max-w-full max-h-3/4 object-contain"
+                  className="w-78 max-h-3/4 object-contain absolute mb-4"
                 />
-                <p className="mt-1 text-center">ล็อคตำแหน่ง</p>
+                <p className="mt-24 text-center">ล็อคตำแหน่ง</p>
               </div>
             </div>
           </div>

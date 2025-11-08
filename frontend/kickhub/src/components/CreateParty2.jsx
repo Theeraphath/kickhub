@@ -9,6 +9,8 @@ import attcker from "../../public/กองหน้า.png";
 import defender from "../../public/กองหลัง.png";
 import midfielder from "../../public/กองกลาง.png";
 import goalkeeper from "../../public/ประตู.png";
+import LP from "../../public/lockposition.png";
+import Buffetpic from "../../public/buffetpic.png";
 
 const CreateParty2 = () => {
   const navigate = useNavigate();
@@ -139,7 +141,7 @@ const CreateParty2 = () => {
               className="bg-white border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col "
             >
               <img
-                src={team}
+                src={Buffetpic}
                 alt=""
                 className="max-w-full max-h-3/4 object-contain"
               />
@@ -149,11 +151,11 @@ const CreateParty2 = () => {
             <div>
               <div className="bg-green-100  border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
                 <img
-                  src={team}
+                  src={LP}
                   alt=""
-                  className="max-w-full max-h-3/4 object-contain"
+                  className="w-78 max-h-3/4 object-contain absolute mb-4"
                 />
-                <p className="mt-1 text-center">ล็อคตำแหน่ง</p>
+                <p className="mt-24 text-center">ล็อคตำแหน่ง</p>
               </div>
             </div>
           </div>
@@ -307,7 +309,7 @@ const CreateParty2 = () => {
                     <img
                       src={attcker}
                       alt=""
-                      className="max-w-full max-h-3/4 object-contain"
+                      className="w-13 h-23 object-contain object-contain"
                     />
                        <input
                       type="number"
@@ -331,7 +333,7 @@ const CreateParty2 = () => {
                   <img
                     src={midfielder}
                     alt=""
-                    className="max-w-full max-h-3/4 object-contain"
+                    className="w-13 h-23 object-contain object-contain"
                   />
                      <input
                       type="number"
@@ -349,7 +351,7 @@ const CreateParty2 = () => {
                     <img
                       src={defender}
                       alt=""
-                      className="max-w-full max-h-3/4 object-contain"
+                      className="w-13 h-23 object-contain object-contain"
                     />
                     <input
                       type="number"
