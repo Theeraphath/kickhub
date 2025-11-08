@@ -133,6 +133,7 @@ export default function FindCreateParty() {
                       <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
                         ห้องอาบน้ำ
                       </div>
+                      <p>ลบ</p>
                     </div>
                   </div>
                 </div>
