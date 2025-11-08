@@ -146,7 +146,7 @@ export default function FindCreateParty() {
 
       {/* BODY */}
 
-      <div className="relative bottom-0 bg-[#F2F2F7] rounded-t-lg h-[28.5rem] w-[24.5rem] p-5 overflow-y-auto absolute bottom-1">
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
         <div className="p-4 font-noto-thai">
           <h2 className="text-lg font-semibold mb-3">วันที่เเละเวลา</h2>
 
