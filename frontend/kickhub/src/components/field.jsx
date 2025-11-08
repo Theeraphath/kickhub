@@ -5,6 +5,7 @@ import field from "../../public/thefield.png";
 import { FaSearch, FaFire } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
+
 export default function FindCreateParty() {
   const navigate = useNavigate();
   const [start, setStart] = useState("");
@@ -149,20 +150,24 @@ export default function FindCreateParty() {
       <div className="relative bottom-0 bg-[#F2F2F7] rounded-t-lg h-[28.5rem] w-[24.5rem] p-5 overflow-y-auto absolute bottom-1">
         <div className="p-4 font-noto-thai">
           <h2 className="text-lg font-semibold mb-3">วันที่เเละเวลา</h2>
-
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div>
             <input
               type="date"
               value={dateSearch}
               onChange={(e) => setDateSearch(e.target.value)}
               className="border rounded px-2 py-1 border-green-500 bg-green-500 text-white"
             />
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-4 pt-4 ">
+            <p>เริ่ม</p>
             <input
               type="time"
               value={startSearch}
               onChange={(e) => setStartSearch(e.target.value)}
               className="border rounded px-2 py-1  border-green-500 bg-green-500 text-white"
             />
+            <p>สิ้นสุด</p>
             <input
               type="time"
               value={endSearch}
