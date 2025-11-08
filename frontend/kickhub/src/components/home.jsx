@@ -85,7 +85,7 @@ export default function FindandCreate() {
   return (
     <div className="flex flex-col items-center pb-20 font-noto-thai">
       {/* HEADER */}
-      <div className="bg-[#22C55E] rounded-b-2xl relative w-[24.5rem] h-[10rem]">
+      <div className=" bg-[#22C55E] relative w-[24.5rem] h-[10rem]">
                <p className="text-white text-2xl pl-5 pt-10">ทีมของคุณ:Buddy</p>
                <p className="text-white text-sm pl-5">นัดถัดไป:21 </p>
 
@@ -97,7 +97,7 @@ export default function FindandCreate() {
       </div>
 
       {/* BODY */}
-      <div className="relative bg-[#F2F2F7] rounded-t-2xl w-[24.5rem] h-[100.5rem] p-5 overflow-y-auto absolute bottom-10">
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
         {/* ชื่อสนาม */}
 
         {/* โหมด */}
