@@ -16,7 +16,6 @@ export default function FindCreateParty() {
       location: "คลองหลวง, ปทุมธานี",
       price: 700,
       openingHours: "11:00 - 23:00",
-      features: ["ที่จอดรถ", "ห้องน้ำ", "ห้องอาบน้ำ"],
       image: fieldImg,
     },
     {
@@ -25,7 +24,6 @@ export default function FindCreateParty() {
       location: "บางแค, กรุงเทพฯ",
       price: 600,
       openingHours: "10:00 - 22:00",
-      features: ["ที่จอดรถ", "ห้องน้ำ"],
       image: fieldImg,
     },
     {
@@ -34,7 +32,6 @@ export default function FindCreateParty() {
       location: "บางแค, กรุงเทพฯ",
       price: 600,
       openingHours: "10:00 - 22:00",
-      features: ["ที่จอดรถ", "ห้องน้ำ"],
       image: fieldImg,
     },
   ]);
