@@ -28,7 +28,7 @@ export default function Login() {
 
     try {
       // แก้เป็นเลขเครื่องตัวเองนะ
-      const res = await fetch("http://192.168.1.26:3000/login/", {
+      const res = await fetch("http://192.168.1.35:3000/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: raw,
