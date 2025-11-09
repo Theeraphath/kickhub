@@ -34,6 +34,16 @@ const newPost = async (user_id, field_id, postdata) => {
   }
 };
 
+const getPosts = async () => {
+  try {
+    const posts = await Post.find();
+    return { success: true, data: posts };
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    return { success: false, error };
+  }
+};
+
 const getPostbyJoinerID = async (user_id) => {
   try {
     const posts = await Post.find({ "participants.user_id": user_id });
@@ -126,4 +136,5 @@ module.exports = {
   getPostbyID,
   joinParty,
   leaveParty,
+  getPosts,
 };

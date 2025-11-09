@@ -1,15 +1,26 @@
 const Reservation = require("../models/Reservation");
+const Field = require("../models/Field");
 
 const addReservation = async (fieldId, user_id, reservationData) => {
   try {
+    const field = await Field.findById(fieldId);
+    if (!field) {
+      return { success: false, error: new Error("Field not found") };
+    }
+
     const newReservation = new Reservation({
       field_id: fieldId,
-      user_id: user_id,
+      field_name: field.field_name,
+      user_id,
+      mobile_number: field.mobile_number,
       ...reservationData,
     });
+
     const savedReservation = await newReservation.save();
+
     return { success: true, data: savedReservation };
   } catch (error) {
+    console.error("Error in addReservation:", error);
     return { success: false, error };
   }
 };

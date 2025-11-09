@@ -1,10 +1,9 @@
 import { useState } from "react";
 
-export default function TimeSelector() {
+export default function TimeSelector({ onSubmit }) {
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("10:00");
-  const [result, setResult] = useState(null);
 
   const handleSubmit = () => {
     if (!date || !startTime || !endTime) return;
@@ -12,10 +11,12 @@ export default function TimeSelector() {
     const start = new Date(`${date}T${startTime}:00.000`);
     const end = new Date(`${date}T${endTime}:00.000`);
 
-    setResult({
+    const result = {
       start_datetime: start.toISOString(),
       end_datetime: end.toISOString(),
-    });
+    };
+
+    onSubmit?.(result);
   };
 
   return (
@@ -65,12 +66,6 @@ export default function TimeSelector() {
       <button className="mt-4" onClick={handleSubmit}>
         Submit
       </button>
-
-      {result && (
-        <pre className="mt-4 bg-gray-100 p-2 rounded">
-          {JSON.stringify(result, null, 2)}
-        </pre>
-      )}
     </div>
   );
 }

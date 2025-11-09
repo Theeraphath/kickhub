@@ -46,7 +46,7 @@ export default function PartyRole() {
         },
       });
       const result = await response.json();
-      if (result.success) {
+      if (result.status === "success") {
         const data = result.data;
         setPostData(data);
 
@@ -197,7 +197,7 @@ export default function PartyRole() {
       );
 
       const result = await response.json();
-      if (response.ok) {
+      if (result.status === "success") {
         console.log("✅ เข้าร่วมสำเร็จ:", result);
         fetchPost(postId);
       } else {
@@ -223,7 +223,7 @@ export default function PartyRole() {
       );
 
       const result = await response.json();
-      if (response.ok) {
+      if (result.status === "success") {
         console.log("✅ ออกจากปาร์ตี้สำเร็จ:", result);
         fetchPost(postId); // รีโหลดข้อมูลใหม่
       } else {
@@ -447,7 +447,7 @@ export default function PartyRole() {
             <div className="max-h-[65vh] overflow-y-auto space-y-2">
               {postData.participants.map((p) => (
                 <div
-                  key={p.id}
+                  key={p._id}
                   className="flex items-center bg-gray-50 rounded-lg p-3 shadow-sm hover:shadow-md transition"
                 >
                   <FaCircleUser className="text-4xl text-gray-400 mr-3" />

@@ -7,12 +7,17 @@ const reservationSchema = new mongoose.Schema(
       ref: "Field",
       required: true,
     },
+    field_name: { type: String, ref: "Field", required: true },
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    post_id: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
+    mobile_number: {
+      type: String,
+      ref: "Field",
+      required: true,
+    },
     start_datetime: { type: Date, required: true },
     end_datetime: { type: Date, required: true },
     payment_amount: { type: Number },
