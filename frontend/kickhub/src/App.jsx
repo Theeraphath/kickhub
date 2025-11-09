@@ -26,7 +26,6 @@ import Field from "./components/field";
 import CountdownTimer from "./components/CountdownTimer";
 import Owner from "./components/OwnerFieldManager";
 
-
 function AppRoutes() {
   const location = useLocation();
   const hideNavPaths = [

@@ -16,7 +16,6 @@ export default function FindCreateParty() {
       location: "คลองหลวง, ปทุมธานี",
       price: 700,
       openingHours: "11:00 - 23:00",
-      features: ["ที่จอดรถ", "ห้องน้ำ", "ห้องอาบน้ำ"],
       image: fieldImg,
     },
     {
@@ -25,7 +24,6 @@ export default function FindCreateParty() {
       location: "บางแค, กรุงเทพฯ",
       price: 600,
       openingHours: "10:00 - 22:00",
-      features: ["ที่จอดรถ", "ห้องน้ำ"],
       image: fieldImg,
     },
     {
@@ -34,7 +32,6 @@ export default function FindCreateParty() {
       location: "บางแค, กรุงเทพฯ",
       price: 600,
       openingHours: "10:00 - 22:00",
-      features: ["ที่จอดรถ", "ห้องน้ำ"],
       image: fieldImg,
     },
   ]);
@@ -116,14 +113,16 @@ export default function FindCreateParty() {
                   </div>
 
                   {/* ✅ ราคา เวลา และฟีเจอร์ */}
-                  <div className="flex flex-row flex-wrap items-center gap-2 mt-2 overflow-hidden">
-                    <p className="text-white bg-green-500 font-semibold  py-1 px-1 rounded-lg text-xs">
-                      {field.price} บาท/ชม.
-                    </p>
+                  <div className="items-center gap-2 mt-2 overflow-hidden">
+                    <div className="flex flex-row gap-2">
+                      <p className="text-white bg-green-500 font-semibold  py-1 px-1 rounded-lg text-xs">
+                        {field.price} บาท/ชม.
+                      </p>
 
-                    <div className="flex items-center bg-white shadow-sm rounded-lg px-2 py-1 text-xs font-semibold text-gray-700">
-                      <FaClock className="mr-1 text-gray-500" />
-                      {field.openingHours}
+                      <div className="flex items-center bg-white shadow-sm rounded-lg px-2 py-1 text-xs font-semibold text-gray-700">
+                        <FaClock className="mr-1 text-gray-500" />
+                        {field.openingHours}
+                      </div>
                     </div>
 
                     <div className="flex flex-row flex-wrap gap-2 overflow-hidden">

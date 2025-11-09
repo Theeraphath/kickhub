@@ -20,7 +20,7 @@ router.post("/", async (req, res) => {
     if (!passwordMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    const token = jwt.sign({ _id: user._id }, SECRET_KEY, { expiresIn: "1h" });
+    const token = jwt.sign({ _id: user._id }, SECRET_KEY, { expiresIn: "24h" });
     res.status(200).json({ status: "ok", message: "Login successful", token });
   } catch (error) {
     console.error("Error fetching user:", error);
