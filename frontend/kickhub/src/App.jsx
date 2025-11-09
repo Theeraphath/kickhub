@@ -25,6 +25,7 @@ import CreateParty2 from "./components/CreateParty2";
 import Field from "./components/field";
 import CountdownTimer from "./components/CountdownTimer";
 
+
 function AppRoutes() {
   const location = useLocation();
   const hideNavPaths = [
