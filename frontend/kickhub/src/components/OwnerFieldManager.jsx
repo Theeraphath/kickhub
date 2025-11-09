@@ -4,7 +4,7 @@ import { FaMapMarkerAlt, FaClock, FaInfoCircle } from "react-icons/fa";
 import styled from "styled-components";
 import OwnerField from "../../public/สนามของเรา.png";
 
-const API_BASE = "http://localhost:3000"; 
+const API_BASE = "http://localhost:3000";
 
 export default function OwnerFieldManager() {
   const [fields, setFields] = useState([]);
@@ -28,25 +28,50 @@ export default function OwnerFieldManager() {
     image: null,
   });
 
+  const [amenitiesState, setAmenitiesState] = useState({
+    ห้องน้ำ: false,
+    ที่จอดรถ: false,
+    ร้านค้า: false,
+    "wifi free": false,
+  });
+
+  // 🕒 ฟังก์ชันจัดรูปแบบเวลาให้สวยและสม่ำเสมอ
+  const formatTime = (time) => {
+    if (!time) return "-";
+    if (typeof time === "number") {
+      // ถ้าเป็น 1000 หรือ 2300 ให้แปลงเป็น "10:00" "23:00"
+      const str = time.toString().padStart(4, "0");
+      return `${str.slice(0, 2)}:${str.slice(2, 4)}`;
+    }
+    if (typeof time === "string") {
+      // ถ้ามีรูปแบบเช่น "10", "1000", "10:00"
+      const clean = time.replace(/\D/g, "");
+      if (clean.length === 4)
+        return `${clean.slice(0, 2)}:${clean.slice(2, 4)}`;
+      if (clean.length === 2) return `${clean}:00`;
+      return time;
+    }
+    return time;
+  };
+
   const fileInputRef = useRef(null);
   const amenitiesList = ["ห้องน้ำ", "ที่จอดรถ", "ร้านค้า", "wifi free"];
 
   const token = localStorage.getItem("token"); // ✅ ต้องมี token จากการ login
   const fetchFields = async () => {
-  try {
-    const res = await fetch(`${API_BASE}/api/owner-fields`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    setFields(Array.isArray(data) ? data : []);
-  } catch (err) {
-    console.error("Error fetching fields:", err);
-  }
-};
-
+    try {
+      const res = await fetch(`${API_BASE}/api/owner-fields`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setFields(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching fields:", err);
+    }
+  };
 
   // 🧩 โหลดสนามทั้งหมดของเจ้าของเมื่อเปิดหน้า
-  useEffect(() => { 
+  useEffect(() => {
     const token = localStorage.getItem("token");
     console.log(token);
     if (!token) return;
@@ -57,7 +82,6 @@ export default function OwnerFieldManager() {
       .then((data) => setFields(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Error fetching fields:", err));
   }, [token]);
-  
 
   const resetForm = () => {
     setFormData({
@@ -96,92 +120,89 @@ export default function OwnerFieldManager() {
 
   // ➕ เพิ่ม หรือ ✏️ แก้ไข สนาม
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const body = {
-    field_name: formData.name,
-    field_type: formData.fieldType,
-    mobile_number: formData.promptPay,
-    address: formData.address,
-    price: formData.price,
-    open: formData.openTime,
-    close: formData.closeTime,
-    facilities: formData.amenities,
-    image: formData.image,
-    description: formData.description,
-    google_map: formData.mapLink,
+    const body = {
+      field_name: formData.name,
+      field_type: formData.fieldType,
+      mobile_number: formData.promptPay,
+      address: formData.address,
+      price: formData.price,
+      open: formData.openTime,
+      close: formData.closeTime,
+      facilities: formData.amenities,
+      image: formData.image,
+      description: formData.description,
+      google_map: formData.mapLink,
+    };
+
+    try {
+      if (isEditing && editingId) {
+        // ✏️ update field
+        const res = await fetch(`${API_BASE}/api/update-fields/${editingId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        });
+        const updated = await res.json();
+
+        // ✅ ถ้ามีข้อมูล field กลับมา
+        if (updated && updated._id) {
+          setFields((prev) =>
+            prev.map((f) => (f._id === editingId ? updated : f))
+          );
+        } else {
+          await fetchFields();
+        }
+      } else {
+        // ➕ add field
+        const res = await fetch(`${API_BASE}/api/add-fields`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        });
+        const added = await res.json();
+        if (added && added._id) {
+          setFields((prev) => [added, ...prev]);
+        } else {
+          await fetchFields();
+        }
+      }
+
+      resetForm();
+      setShowForm(false);
+    } catch (err) {
+      console.error("Error saving field:", err);
+    }
   };
 
-
-  try {
-    if (isEditing && editingId) {
-      // ✏️ update field
-      const res = await fetch(`${API_BASE}/api/update-fields/${editingId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
-      });
-      const updated = await res.json();
-
-      // ✅ ถ้ามีข้อมูล field กลับมา
-      if (updated && updated._id) {
-        setFields((prev) =>
-          prev.map((f) => (f._id === editingId ? updated : f))
-        );
-      } else {
-        await fetchFields();
-      }
-    } else {
-      // ➕ add field
-      const res = await fetch(`${API_BASE}/api/add-fields`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
-      });
-      const added = await res.json();
-      if (added && added._id) {
-        setFields((prev) => [added, ...prev]);
-      } else {
-        await fetchFields();
-      }
-    }
-
-    resetForm();
-    setShowForm(false);
-  } catch (err) {
-    console.error("Error saving field:", err);
-  }
-};
-
-
   const handleEdit = (field) => {
-  setFormData({
-    name: field.field_name,
-    address: field.address,
-    mapLink: field.google_map,
-    price: field.price,
-    openTime: field.open,
-    closeTime: field.close,
-    fieldType: field.field_type,
-    promptPay: field.mobile_number,
-    amenities: Array.isArray(field.facilities)
-      ? field.facilities
-      : Object.values(field.facilities || {}),
-    description: field.description,
-    image: field.image,
-  });
-  setIsEditing(true);
-  setEditingId(field._id);
-  setShowForm(true);
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
+    setFormData({
+      name: field.field_name,
+      address: field.address,
+      mapLink: field.google_map,
+      price: field.price,
+      openTime: field.open,
+      closeTime: field.close,
+      fieldType: field.field_type,
+      promptPay: field.mobile_number,
+      amenities: Array.isArray(field.facilities)
+        ? field.facilities
+        : Object.values(field.facilities || {}),
+      description: field.description,
+      image: field.image,
+    });
+    setIsEditing(true);
+    setEditingId(field._id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // ❌ ลบสนาม
   const confirmDeleteNow = async () => {
@@ -360,19 +381,33 @@ export default function OwnerFieldManager() {
               className="w-full border rounded-lg p-2"
             />
 
+            {/* สิ่งอำนวยความสะดวก */}
             <div>
               <p className="text-gray-700 font-medium mb-2">
                 สิ่งอำนวยความสะดวก
               </p>
               <div className="flex flex-wrap gap-2">
-                {amenitiesList.map((item) => (
+                {Object.keys(amenitiesState).map((item) => (
                   <button
                     type="button"
                     key={item}
-                    onClick={() => handleAmenityToggle(item)}
-                    className={`px-3 py-1 rounded-full border text-sm ${
-                      (Array.isArray(formData.amenities) ? formData.amenities : []).includes(item)
+                    onClick={() => {
+                      // toggle true/false ใน amenitiesState
+                      setAmenitiesState((prev) => ({
+                        ...prev,
+                        [item]: !prev[item],
+                      }));
 
+                      // update formData.amenities สำหรับส่ง backend
+                      setFormData((prev) => ({
+                        ...prev,
+                        amenities: prev.amenities.includes(item)
+                          ? prev.amenities.filter((a) => a !== item)
+                          : [...prev.amenities, item],
+                      }));
+                    }}
+                    className={`px-3 py-1 rounded-full border text-sm ${
+                      amenitiesState[item]
                         ? "bg-emerald-500 text-white border-emerald-500"
                         : "border-gray-300 text-gray-600"
                     }`}
@@ -537,7 +572,9 @@ export default function OwnerFieldManager() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="bg-white rounded-2xl w-full max-w-md p-5 shadow-xl overflow-auto max-h-[90vh]">
             <div className="mb-3 flex justify-between items-start">
-              <h2 className="text-lg font-semibold">{detailField.field_name}</h2>
+              <h2 className="text-lg font-semibold">
+                {detailField.field_name}
+              </h2>
               <button
                 onClick={() => setDetailField(null)}
                 className="text-gray-500"
@@ -561,8 +598,10 @@ export default function OwnerFieldManager() {
               <strong>ราคา:</strong> ฿{detailField.price}/ชม.
             </p>
             <p className="text-sm text-slate-600 mb-2 flex items-center gap-2">
-              <FaClock /> {detailField.open} - {detailField.close}
+              <FaClock />
+              {formatTime(detailField.open)} - {formatTime(detailField.close)}
             </p>
+
             <p className="text-sm text-slate-600 mb-2">
               <strong>พร้อมเพย์:</strong> {detailField.mobile_number || "-"}
             </p>
@@ -577,24 +616,46 @@ export default function OwnerFieldManager() {
               </a>
             </p>
 
-            {Array.isArray(detailField.facilities) &&
-              detailField.facilities.length > 0 && (
-                <div className="mb-3">
-                  <strong className="text-sm text-slate-700">
-                    สิ่งอำนวยความสะดวก:
-                  </strong>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {detailField.facilities.map((a) => (
-                      <span
-                        key={a}
-                        className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs border border-emerald-200"
-                      >
-                        {a}
-                      </span>
-                    ))}
-                  </div>
+            {detailField.facilities && (
+              <div className="mb-3">
+                <strong className="text-sm text-slate-700">
+                  สิ่งอำนวยความสะดวก:
+                </strong>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {Array.isArray(detailField.facilities)
+                    ? detailField.facilities.map((a) => (
+                        <span
+                          key={a}
+                          className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs border border-emerald-200"
+                        >
+                          {a}
+                        </span>
+                      ))
+                    : Object.entries(detailField.facilities)
+                        .filter(([_, v]) => v) // แสดงเฉพาะที่เป็น true
+                        .map(([key]) => {
+                          // ✅ แปลงชื่อ key อังกฤษ -> ไทย
+                          const translate = {
+                            lights: "ไฟส่องสว่าง",
+                            parking: "ที่จอดรถ",
+                            restroom: "ห้องน้ำ",
+                            shop: "ร้านค้า",
+                            wifi: "Wi-Fi ฟรี",
+                            aircon: "ห้องปรับอากาศ",
+                          };
+                          const label = translate[key] || key; // ถ้าไม่มีใน dict ให้ใช้ key เดิม
+                          return (
+                            <span
+                              key={key}
+                              className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs border border-emerald-200"
+                            >
+                              {label}
+                            </span>
+                          );
+                        })}
                 </div>
-              )}
+              </div>
+            )}
 
             {detailField.description && (
               <div className="mb-3">
