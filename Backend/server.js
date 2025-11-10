@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const path = require("path");
 const port = 3000;
 
 const app = express();
@@ -48,6 +49,11 @@ app.use((err, req, res, next) => {
     next(err);
   }
 });
+
+app.use(
+  "/uploads/photos",
+  express.static(path.join(__dirname, "uploads/photos"))
+);
 
 app.use("/api", apiPrivateRoutes);
 app.use("/register", apiRegisterRoutes);
