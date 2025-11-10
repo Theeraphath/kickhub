@@ -9,8 +9,10 @@ function Test2() {
   return (
     <div>
       <h1>ยินดีต้อนรับ</h1>
-      <h1>{item?.fild_name}</h1>
-      <h1>ลำดับ: {item?.id}</h1>
+      <h1>{item?.data.field_name}</h1>
+      <h1>หมายเลข: {item?.data._id}</h1>
+      <h1>เวลาเริ่ม: {item?.time.start_datetime}</h1>
+      <h1>เวลาสิ้นสุด: {item?.time.end_datetime}</h1>
     </div>
   );
 }

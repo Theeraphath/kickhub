@@ -1,42 +1,17 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { LuScanQrCode } from "react-icons/lu";
 import { FaMapMarkerAlt, FaRegCreditCard, FaMoneyBill } from "react-icons/fa";
 import field from "../../public/field.jpg";
 import googlemap from "../../public/Google_Maps_icon_(2015-2020).svg.png";
 
-// 📦 ข้อมูลจำลอง
-const FIELD_DATA = {
-  name: "สนามฟุตบอลศรีปทุม",
-  type: "หญ้าเทียม",
-  location: "2410/2 ถ. พหลโยธิน แขวงเสนานิคม เขตจตุจักร กรุงเทพมหานคร 10900",
-  googlemapLink: "https://maps.app.goo.gl/oKR8s7gfsfGVqKPs8",
-  details: [
-    "ขนาดสนาม: 5 คน",
-    "อุปกรณ์ที่มีให้: ประตูฟุตบอล, ลูกฟุตบอล",
-    "สิ่งอำนวยความสะดวก: ห้องเปลี่ยนเสื้อผ้า, ที่จอดรถ",
-    "กฎระเบียบ: ห้ามสูบบุหรี่ในสนาม, ห้ามนำสัตว์เลี้ยงเข้า",
-  ],
-  price: 700,
-};
-
-const RESERVE_DATE = { day: 22, month: 10, year: 2024 };
-const TIME_START = "18:00";
-const TIME_END = "19:00";
-
-// 🕒 Utility functions
-const formatDate = ({ day, month, year }) =>
-  `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
-
-const getDurationInHours = (start, end) => {
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  const total = eh * 60 + em - (sh * 60 + sm);
-  return Math.floor(total / 60);
-};
-
-const calculateTotal = () =>
-  getDurationInHours(TIME_START, TIME_END) * FIELD_DATA.price;
+function getDurationInHours(start, end) {
+  const startTime = new Date(start);
+  const endTime = new Date(end);
+  const diffMs = endTime - startTime;
+  const diffHours = diffMs / (1000 * 60 * 60);
+  return diffHours.toFixed(0);
+}
 
 const paymentMethods = [
   {
@@ -68,12 +43,79 @@ const paymentMethods = [
 export default function Reserve() {
   const [selected, setSelected] = useState(null);
   const navigate = useNavigate();
-  const handleClick = () => {
+  const [payment_amount, setAmount] = useState(0);
+  const [error, setError] = useState(null);
+
+  const location = useLocation();
+  const item = location.state;
+
+  console.log(item);
+
+  const descriptionList = item.data.description
+    .split(" ")
+    .map((desc, index) => (
+      <li key={index}>{index === 0 ? desc : "" + desc}</li>
+    ));
+
+  const calculateTotal = () =>
+    getDurationInHours(item?.time.start_datetime, item?.time.end_datetime) *
+    item?.data.price;
+
+  useEffect(() => {
+    const total =
+      getDurationInHours(item?.time.start_datetime, item?.time.end_datetime) *
+      item?.data.price;
+
+    setAmount(total);
+  }, [item]);
+
+  const reservation = async (fieldId, start_datetime, end_datetime) => {
+    try {
+      const token = localStorage.getItem("token");
+      console.log(token);
+      console.log(fieldId, start_datetime, end_datetime, payment_amount);
+      const res = await fetch(
+        `http://192.168.1.26:3000/api/new-reservation/${fieldId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            start_datetime,
+            end_datetime,
+            payment_amount,
+          }),
+        }
+      );
+      console.log;
+
+      const result = await res.json();
+
+      if (res.ok) {
+        console.log("จองสำเร็จ:", result);
+        navigate(`/promptpay/${result.data._id}`, {
+          state: { data: result.data },
+        });
+      } else {
+        setError("จองไม่สำเร็จ: " + result.error);
+      }
+    } catch (err) {
+      setError("เกิดข้อผิดพลาดในการโหลดข้อมูล: " + err.message);
+    }
+  };
+
+  const handleClick = async () => {
     if (selected === null) {
       alert("กรุณาเลือกวิธีการชําระเงิน");
     }
     if (selected === "promptpay") {
-      navigate("/promptpay");
+      await reservation(
+        item.data._id,
+        item.time.start_datetime,
+        item.time.end_datetime
+      );
     }
     if (selected === "card") {
       alert(
@@ -101,14 +143,14 @@ export default function Reserve() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="font-noto-thai text-2xl font-bold">
-                {FIELD_DATA.name}
+                {item?.data.field_name}
               </h1>
               <p className="font-noto-thai text-gray-700">
-                ประเภทสนาม: {FIELD_DATA.type}
+                ประเภทสนาม: {item?.data.field_type}
               </p>
             </div>
             <a
-              href={FIELD_DATA.googlemapLink}
+              href={item?.data.google_map}
               target="_blank"
               rel="noopener noreferrer"
               className="flex flex-col items-center"
@@ -128,31 +170,40 @@ export default function Reserve() {
               <p>พิกัดสถานที่</p>
               <div className="flex text-gray-600">
                 <FaMapMarkerAlt className="text-green-600 mr-1" />
-                <span className="truncate max-w-[10rem]">
-                  {FIELD_DATA.location}
-                </span>
+                <span className="truncate max-w-40">{item?.data.address}</span>
               </div>
             </div>
 
             <div className="flex justify-between mt-2">
               <p>วันที่</p>
-              <p>{formatDate(RESERVE_DATE)}</p>
+              <p>{new Date(item?.time.start_datetime).toLocaleDateString()}</p>
             </div>
 
             <div className="flex justify-between mt-2">
               <p>เวลา</p>
               <p>
-                {TIME_START} - {TIME_END} (
-                {getDurationInHours(TIME_START, TIME_END)} ชั่วโมง)
+                {new Date(item?.time.start_datetime).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}{" "}
+                -{" "}
+                {new Date(item?.time.end_datetime).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}{" "}
+                (
+                {getDurationInHours(
+                  item?.time.start_datetime,
+                  item?.time.end_datetime
+                )}{" "}
+                ชั่วโมง)
               </p>
             </div>
 
             <div className="mt-2">
               <p className="font-bold">รายละเอียดเพิ่มเติม</p>
               <ul className="list-disc pl-5 text-gray-700">
-                {FIELD_DATA.details.map((detail, i) => (
-                  <li key={i}>{detail}</li>
-                ))}
+                {descriptionList}
               </ul>
             </div>
 
@@ -184,7 +235,7 @@ export default function Reserve() {
               <p>ราคาค่าเช่าสนามต่อชั่วโมง</p>
               <p className="font-bold place-self-end">
                 {" "}
-                {FIELD_DATA.price} บาท
+                {item?.data.price} บาท
               </p>
               <p>ยอดชำระรวม</p>
               <p className="font-bold text-red-600 place-self-end">

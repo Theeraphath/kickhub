@@ -2,10 +2,15 @@ import { FaArrowLeft, FaRegUser, FaMapMarkerAlt } from "react-icons/fa";
 import { FaCircleUser } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { Modal, Box, Typography, Button } from "@mui/material";
 import googlemap from "../../public/Google_Maps_icon_(2020).png";
 import photo from "../../public/field.jpg";
+import { IoIosRemoveCircle } from "react-icons/io";
+import { CiCircleRemove } from "react-icons/ci";
 
 export default function Partybuffet() {
+  const [open, setOpen] = useState(false);
+  const [openSuccess, setOpenSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [postData, setPostData] = useState(null);
@@ -25,7 +30,7 @@ export default function Partybuffet() {
         },
       });
       const result = await response.json();
-      if (result.success) {
+      if (result.status === "success") {
         setPostData(result.data);
       } else {
         setError("ไม่พบข้อมูล");
@@ -123,6 +128,8 @@ export default function Partybuffet() {
       (p) => String(p.user_id) === String(currentUserId)
     );
 
+  const isOwner = String(postData?.user_id) === String(currentUserId);
+
   const joinParty = async (postId) => {
     try {
       const token = localStorage.getItem("token");
@@ -138,7 +145,7 @@ export default function Partybuffet() {
       );
 
       const result = await response.json();
-      if (response.ok) {
+      if (result.status === "success") {
         console.log("✅ เข้าร่วมสำเร็จ:", result);
         fetchPost(postId); // รีโหลดข้อมูลใหม่
       } else {
@@ -164,7 +171,7 @@ export default function Partybuffet() {
       );
 
       const result = await response.json();
-      if (response.ok) {
+      if (result.status === "success") {
         console.log("✅ ออกจากปาร์ตี้สำเร็จ:", result);
         fetchPost(postId); // รีโหลดข้อมูลใหม่
       } else {
@@ -172,6 +179,33 @@ export default function Partybuffet() {
       }
     } catch (err) {
       console.error("❌ Error leaving party:", err);
+    }
+  };
+
+  const deleteParty = async (postId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://192.168.1.26:3000/api/delete-post/${postId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+      console.log(result);
+      if (result.status === "success") {
+        console.log("✅ ลบปาร์ตี้สำเร็จ:", result);
+        setOpenSuccess(true);
+      } else {
+        console.error("❌ ลบปาร์ตี้ไม่สำเร็จ:", result.error);
+      }
+    } catch (err) {
+      console.error("❌ Error deleting party:", err);
     }
   };
 
@@ -329,7 +363,7 @@ export default function Partybuffet() {
             <div className="min-h-full pb-20 overflow-y-auto space-y-2">
               {postData.participants.map((p) => (
                 <div
-                  key={p.id}
+                  key={p._id}
                   className="flex items-center bg-gray-50 rounded-lg p-3 shadow-sm hover:shadow-md transition"
                 >
                   {p.avatar ? (
@@ -362,18 +396,190 @@ export default function Partybuffet() {
 
       {status === "waiting" && (
         <div className="fixed bottom-0 left-0 w-full flex justify-center p-4 bg-white shadow-md">
-          <button
-            className={`${
-              hasJoined ? "bg-red-500" : "bg-green-500"
-            } text-white font-bold text-[1.2rem] px-4 py-2 w-full rounded-full`}
-            onClick={() => {
-              hasJoined ? leaveParty(postData._id) : joinParty(postData._id);
-            }}
-          >
-            {hasJoined ? "ออกจากปาร์ตี้" : "เข้าร่วม"}
-          </button>
+          {isOwner && (
+            <button
+              className="bg-red-500 text-white font-bold text-[1.2rem] px-4 py-2 w-full rounded-full"
+              onClick={() => setOpen(true)}
+            >
+              ลบโพสต์
+            </button>
+          )}
+          {!isOwner && (
+            <button
+              className={`${
+                hasJoined ? "bg-red-500" : "bg-green-500"
+              } text-white font-bold text-[1.2rem] px-4 py-2 w-full rounded-full`}
+              onClick={() => {
+                hasJoined ? leaveParty(postData._id) : joinParty(postData._id);
+              }}
+            >
+              {hasJoined ? "ออกจากปาร์ตี้" : "เข้าร่วม"}
+            </button>
+          )}
         </div>
       )}
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 340,
+            bgcolor: "white",
+            borderRadius: 3,
+            p: 4,
+            textAlign: "center",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+          }}
+        >
+          {/* ไอคอนด้านบน */}
+          {/* red */}
+          <Box
+            sx={{
+              width: 60,
+              height: 60,
+              borderRadius: "50%",
+              backgroundColor: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto",
+              mb: 2,
+            }}
+          >
+            <IoIosRemoveCircle size={100} color="red" />
+          </Box>
+
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              fontFamily: '"Noto Sans Thai", sans-serif',
+            }}
+          >
+            ยืนยันการลบโพสต์
+          </Typography>
+
+          <Typography
+            sx={{
+              mt: 1,
+              color: "#666666",
+              fontFamily: '"Noto Sans Thai", sans-serif',
+            }}
+          >
+            คุณต้องการยืนยันการลบโพสต์นี้หรือไม่?
+          </Typography>
+
+          <Box
+            sx={{
+              mt: 4,
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 2,
+            }}
+          >
+            <Button
+              fullWidth
+              onClick={() => setOpen(false)}
+              variant="outlined"
+              sx={{
+                fontFamily: '"Noto Sans Thai", sans-serif',
+                // need color: red,
+                color: "#FF0000",
+                borderColor: "#FF0000",
+                "&:hover": { borderColor: "#FF0000", color: "#FF0000" },
+              }}
+            >
+              ยกเลิก
+            </Button>
+
+            <Button
+              fullWidth
+              onClick={() => {
+                setOpen(false);
+                deleteParty(postData._id);
+              }}
+              variant="contained"
+              sx={{
+                fontFamily: '"Noto Sans Thai", sans-serif',
+                backgroundColor: "#FF0000",
+                "&:hover": { backgroundColor: "#FF0000" },
+              }}
+            >
+              ยืนยัน
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      <Modal open={openSuccess} onClose={() => navigate("/")}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 340,
+            bgcolor: "white",
+            borderRadius: 3,
+            p: 4,
+            textAlign: "center",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+          }}
+        >
+          <Box
+            sx={{
+              width: 70,
+              height: 70,
+              borderRadius: "50%",
+              backgroundColor: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto",
+              mb: 2,
+            }}
+          >
+            {/* <FiCheckCircle size={38} color="#16A34A" /> */}
+            <CiCircleRemove size={100} color="#ff0000" />
+          </Box>
+
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              fontFamily: '"Noto Sans Thai", sans-serif',
+            }}
+          >
+            การลบโพสต์สำเร็จ
+          </Typography>
+
+          <Typography
+            sx={{
+              mt: 1,
+              color: "#4b5563",
+              fontFamily: '"Noto Sans Thai", sans-serif',
+            }}
+          >
+            ระบบได้ลบโพสต์ของท่านเรียบร้อยแล้ว
+          </Typography>
+
+          <Button
+            fullWidth
+            onClick={() => navigate("/home")}
+            variant="contained"
+            sx={{
+              mt: 4,
+              backgroundColor: "#16A34A",
+              fontFamily: '"Noto Sans Thai", sans-serif',
+              "&:hover": { backgroundColor: "#15803d" },
+            }}
+          >
+            กลับหน้าหลัก
+          </Button>
+        </Box>
+      </Modal>
     </div>
   );
 }

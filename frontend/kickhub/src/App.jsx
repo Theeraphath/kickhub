@@ -31,8 +31,8 @@ function AppRoutes() {
   const hideNavPaths = [
     "/login",
     "/SignUp",
-    "/reserve",
-    "/promptpay",
+    "/reserve/:id",
+    "/promptpay/:id",
     "/partybuffet/:id",
     "/partyrole/:id",
     "/historybuffet/:id",
@@ -47,7 +47,6 @@ function AppRoutes() {
   return (
     <>
       <Routes>
-        
         <Route path="/login" element={<Login />} />
         <Route path="/signUp" element={<SignUp />} />
         <Route path="/home" element={<Home />} />
@@ -64,15 +63,8 @@ function AppRoutes() {
         <Route path="/field" element={<Field />} />
         <Route path="/countdown" element={<CountdownTimer />} />
         <Route path="/Owner" element={<Owner />} />
+        <Route path="/test" element={<Test1 />} />
 
-        <Route
-          path="/test"
-          element={
-            <ProtectedRoute>
-              <Test1 />
-            </ProtectedRoute>
-          }
-        />
         <Route
           path="/party"
           element={
@@ -82,7 +74,7 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/reserve"
+          path="/reserve/:id"
           element={
             <ProtectedRoute>
               <Reserve />
@@ -90,7 +82,7 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/promptpay"
+          path="/promptpay/:id"
           element={
             <ProtectedRoute>
               <Promptpay />

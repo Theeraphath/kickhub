@@ -17,7 +17,7 @@ const getAllFields = async () => {
     return { success: true, data: fields };
   } catch (error) {
     console.error("Error fetching fields:", error);
-    return { success: false, error };
+    return { error };
   }
 };
 

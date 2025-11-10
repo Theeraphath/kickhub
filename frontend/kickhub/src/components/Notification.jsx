@@ -22,7 +22,7 @@ export default function Notifications() {
       });
 
       const result = await res.json();
-      if (result.success && Array.isArray(result.data)) {
+      if (result.status === "success" && Array.isArray(result.data)) {
         setParties(result.data); // หรือจัดการข้อมูลตามที่คุณต้องการ
       } else {
         setError("ไม่พบข้อมูลหรือ response ผิดรูปแบบ");
