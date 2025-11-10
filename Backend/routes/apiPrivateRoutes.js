@@ -10,6 +10,7 @@ const {
   deleteField,
   getFieldbyownerID,
   getFieldbyID,
+  getFieldbyFreetime,
 } = require("../controllers/fieldController");
 
 const {
@@ -149,6 +150,36 @@ router.get("/fields/:id", authenticateToken, async (req, res) => {
     });
   }
 });
+// fields available in time range
+router.get("/available-fields", async (req, res) => {
+  try {
+    const startTime = req.query.start_time;
+    const endTime = req.query.end_time;
+    const result = await getFieldbyFreetime(startTime, endTime);
+
+    if (result.success) {
+      return res.status(200).json({
+        status: "success",
+        message: "ดึงข้อมูลสนามสำเร็จ",
+        data: result.data,
+      });
+    }
+
+    return res.status(404).json({
+      status: "error",
+      message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ",
+    });
+  } catch (err) {
+    console.error(
+      "เกิดข้อผิดพลาดที่ไม่คาดคิดในการดึงข้อมูลสนามด้วยช่วงเวลาที่กำหนด:",
+      err
+    );
+    return res.status(500).json({
+      status: "error",
+      message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+    });
+  }
+});
 
 router.get(
   "/owner-fields",
@@ -247,7 +278,7 @@ router.delete(
   authorizeOwner,
   async (req, res) => {
     try {
-      const fieldId = req.body;
+      const fieldId = req.params.id;
 
       const existingField = await getFieldbyID(fieldId);
       if (!existingField.success || !existingField.data) {
