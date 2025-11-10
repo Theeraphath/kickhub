@@ -68,7 +68,6 @@ const getFieldbyFreetime = async (startdate, enddate) => {
   try {
     const start = new Date(startdate);
     const end = new Date(enddate);
-
     const reservedFields = await Reservation.find({
       $and: [
         { start_datetime: { $lt: end } },

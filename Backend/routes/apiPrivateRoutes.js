@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const authenticateToken = require("../middleware/authMiddleware");
 const authorizeOwner = require("../middleware/authorizeOwner");
+const upload = require("../middleware/uploadMiddleware");
 const { MongoClient } = require("mongodb");
 const {
   addField,
@@ -60,11 +61,13 @@ router.post(
   "/add-fields",
   authenticateToken,
   authorizeOwner,
+  upload.single("image"),
   async (req, res) => {
     try {
       const fieldData = {
         ...req.body,
         owner_id: req.user._id,
+        image: req.file.path,
       };
 
       const result = await addField(fieldData);
