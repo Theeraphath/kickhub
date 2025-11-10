@@ -1,31 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaMapMarkerAlt, FaClock } from "react-icons/fa";
 import KH from "../../public/KH.png";
 import field from "../../public/thefield.png";
 import { FaSearch, FaFire } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-
 export default function FindCreateParty() {
   const navigate = useNavigate();
+
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [search, setSearch] = useState("");
-
   const [dateSearch, setDateSearch] = useState("");
   const [startSearch, setStartSearch] = useState("");
   const [endSearch, setEndSearch] = useState("");
   const [filteredFields, setFilteredFields] = useState([]);
   const [isSearched, setIsSearched] = useState(false);
 
+  // ✅ ฟังก์ชันแปลง ISO → วันที่ไทย
+  const formatThaiDateTime = (startISO, endISO) => {
+    const start = new Date(startISO);
+    const end = new Date(endISO);
+
+    const thaiDate = start.toLocaleDateString("th-TH", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    const startTime = start.toLocaleTimeString("th-TH", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    const endTime = end.toLocaleTimeString("th-TH", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    return `${thaiDate} ${startTime} - ${endTime}`;
+  };
+
+  // ✅ เมื่อกดบันทึก
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const startISO = new Date(start).toISOString();
+    const endISO = new Date(end).toISOString();
+
+    console.log("🗄️ เก็บในฐานข้อมูลแบบ ISO:", startISO, endISO);
+
     await fetch("http://localhost:3000/appointments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        start_datetime: new Date(start).toISOString(),
-        end_datetime: new Date(end).toISOString(),
+        start_datetime: startISO,
+        end_datetime: endISO,
       }),
     });
   };
@@ -39,7 +71,6 @@ export default function FindCreateParty() {
       openingHours: "11:00 - 23:00",
       features: ["ที่จอดรถ", "ห้องน้ำ", "ห้องอาบน้ำ"],
       image: field,
-
       start_datetime: "2025-11-20T10:00:00+07:00",
       end_datetime: "2025-11-20T22:00:00+07:00",
     },
@@ -51,7 +82,6 @@ export default function FindCreateParty() {
       openingHours: "11:00 - 23:00",
       features: ["ที่จอดรถ", "ห้องน้ำ", "ห้องอาบน้ำ"],
       image: field,
-
       start_datetime: "2025-11-21T10:00:00+07:00",
       end_datetime: "2025-11-21T22:00:00+07:00",
     },
@@ -63,12 +93,12 @@ export default function FindCreateParty() {
       openingHours: "11:00 - 23:00",
       features: ["ที่จอดรถ", "ห้องน้ำ", "ห้องอาบน้ำ"],
       image: field,
-
       start_datetime: "2025-11-22T10:00:00+07:00",
       end_datetime: "2025-11-22T22:00:00+07:00",
     },
   ]);
-  // ฟังก์ชันกรองข้อมูลทั้งหมด
+
+  // ✅ ฟังก์ชันกรองข้อมูล
   const handleSearch = () => {
     const result = fields.filter((f) => {
       const matchName = search
@@ -78,12 +108,10 @@ export default function FindCreateParty() {
       const start = new Date(f.start_datetime);
       const end = new Date(f.end_datetime);
 
-      // ✅ ตรวจวันที่
       const matchDate = dateSearch
         ? start.toISOString().slice(0, 10) === dateSearch
         : true;
 
-      // ✅ ตรวจเวลา (เฉพาะเวลาภายในวัน)
       const matchStart = startSearch
         ? start.getHours() >= Number(startSearch.split(":")[0])
         : true;
@@ -98,6 +126,15 @@ export default function FindCreateParty() {
     setFilteredFields(result);
     setIsSearched(true);
   };
+
+  useEffect(() => {
+    const fetchFields = async () => {
+      const res = await fetch("http://localhost:3000/fields");
+      const data = await res.json();
+      setFields(data);
+    };
+    fetchFields();
+  }, []);
 
   return (
     <div className="flex flex-col items-center font-noto-thai">
@@ -256,31 +293,28 @@ export default function FindCreateParty() {
                           <span>{field.openingHours}</span>
                         </div>
                       </div>
-                      <div className="flex flex-row justify-end gap-2 pt-2 mr-3">
-                        <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
-                          ห้องน้ำ
-                        </div>
-                        <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
-                          ที่จอดรถ
-                        </div>
-                        <div className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition">
-                          ห้องอาบน้ำ
+
+                      <div>
+                        <div className="flex flex-row flex-wrap gap-1 overflow-hidden pt-2 ml-1">
+                          {field.features.map((feature, i) => (
+                            <span
+                              key={i}
+                              className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition"
+                            >
+                              {feature}
+                            </span>
+                          ))}
                         </div>
                       </div>
 
-                      <div className="">
-                        <div className="pt-2 ml-2">
-                          <div className="text-gray-500">{field.Date}</div>
-                        </div>
-                        <div className="flex flex-col ml-2">
-                          <p className="text-gray-500 text-xs">TimeStart</p>
-                          <div className="text-gray-500 text-xs">
-                            {field.start_datetime}
-                          </div>
-                          <p className="text-gray-500 text-xs">TimeEnd</p>
-                          <div className="text-gray-500 text-xs">
-                            {field.end_datetime}
-                          </div>
+                      <div>
+                        <div className=" text-gray-500 text-sm pt-2 ml-1">
+                          <p>
+                            {formatThaiDateTime(
+                              field.start_datetime,
+                              field.end_datetime
+                            )}
+                          </p>
                         </div>
                       </div>
                     </div>

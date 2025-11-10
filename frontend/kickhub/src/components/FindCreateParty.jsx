@@ -11,29 +11,32 @@ export default function FindCreateParty() {
 
   const [fields, setFields] = useState([
     {
-      id: 1,
-      name: "สนามไรมง",
-      location: "คลองหลวง, ปทุมธานี",
-      price: 700,
-      openingHours: "11:00 - 23:00",
-      image: fieldImg,
-    },
+    id: 1,
+    name: "สนามไรมง",
+    location: "คลองหลวง, ปทุมธานี",
+    price: 700,
+    openingHours: "11:00 - 23:00",
+    image: fieldImg,
+    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
+  },
     {
-      id: 2,
-      name: "สนามฟุตซอลบางแค",
-      location: "บางแค, กรุงเทพฯ",
-      price: 600,
-      openingHours: "10:00 - 22:00",
-      image: fieldImg,
-    },
+    id: 2,
+    name: "A",
+    location: "คลองหลวง, ปทุมธานี",
+    price: 700,
+    openingHours: "11:00 - 23:00",
+    image: fieldImg,
+    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
+  },
     {
-      id: 3,
-      name: "สนามฟุตซอลบางแค",
-      location: "บางแค, กรุงเทพฯ",
-      price: 600,
-      openingHours: "10:00 - 22:00",
-      image: fieldImg,
-    },
+    id: 3,
+    name: "B",
+    location: "คลองหลวง, ปทุมธานี",
+    price: 700,
+    openingHours: "11:00 - 23:00",
+    image: fieldImg,
+    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
+  },
   ]);
 
   // ✅ ฟิลเตอร์เฉพาะชื่อสนาม
@@ -125,7 +128,7 @@ export default function FindCreateParty() {
                       </div>
                     </div>
 
-                    <div className="flex flex-row flex-wrap gap-2 overflow-hidden">
+                    <div className="flex flex-row flex-wrap gap-1 overflow-hidden pt-2">
                       {field.features.map((feature, i) => (
                         <span
                           key={i}

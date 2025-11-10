@@ -12,7 +12,7 @@ const BottomNav = () => {
   const navItems = [
     { name: "หน้าหลัก", icon: <FaHome />, path: "/home" },
     { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/field" },
-    { name: "หาปาร์ตี", icon: <FaFutbol />, path: "/team" },
+    { name: "หาปาร์ตี", icon: <FaFutbol />, path: "/FindCreateParty" },
     { name: "การแจ้งเตือน", icon: <FaBell />, path: "/notifications" },
     { name: "โปรไฟล์", icon: <FaUser />, path: "/login" },
   ];
