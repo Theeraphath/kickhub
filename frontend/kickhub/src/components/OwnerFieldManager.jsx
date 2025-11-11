@@ -28,6 +28,9 @@ export default function OwnerFieldManager() {
     image: null,
   });
 
+  const fileInputRef = useRef(null);
+
+  const amenitiesList = ["ห้องน้ำ", "ที่จอดรถ", "ร้านค้า", "wifi free"];
   const [amenitiesState, setAmenitiesState] = useState({
     ห้องน้ำ: false,
     ที่จอดรถ: false,
@@ -35,29 +38,8 @@ export default function OwnerFieldManager() {
     "wifi free": false,
   });
 
-  // 🕒 ฟังก์ชันจัดรูปแบบเวลาให้สวยและสม่ำเสมอ
-  const formatTime = (time) => {
-    if (!time) return "-";
-    if (typeof time === "number") {
-      // ถ้าเป็น 1000 หรือ 2300 ให้แปลงเป็น "10:00" "23:00"
-      const str = time.toString().padStart(4, "0");
-      return `${str.slice(0, 2)}:${str.slice(2, 4)}`;
-    }
-    if (typeof time === "string") {
-      // ถ้ามีรูปแบบเช่น "10", "1000", "10:00"
-      const clean = time.replace(/\D/g, "");
-      if (clean.length === 4)
-        return `${clean.slice(0, 2)}:${clean.slice(2, 4)}`;
-      if (clean.length === 2) return `${clean}:00`;
-      return time;
-    }
-    return time;
-  };
+  const token = localStorage.getItem("token");
 
-  const fileInputRef = useRef(null);
-  const amenitiesList = ["ห้องน้ำ", "ที่จอดรถ", "ร้านค้า", "wifi free"];
-
-  const token = localStorage.getItem("token"); // ✅ ต้องมี token จากการ login
   const fetchFields = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/owner-fields`, {
@@ -70,17 +52,9 @@ export default function OwnerFieldManager() {
     }
   };
 
-  // 🧩 โหลดสนามทั้งหมดของเจ้าของเมื่อเปิดหน้า
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    console.log(token);
     if (!token) return;
-    fetch(`${API_BASE}/api/owner-fields`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => setFields(Array.isArray(data) ? data : []))
-      .catch((err) => console.error("Error fetching fields:", err));
+    fetchFields();
   }, [token]);
 
   const resetForm = () => {
@@ -99,16 +73,23 @@ export default function OwnerFieldManager() {
     });
     setIsEditing(false);
     setEditingId(null);
+    setAmenitiesState({
+      ห้องน้ำ: false,
+      ที่จอดรถ: false,
+      ร้านค้า: false,
+      "wifi free": false,
+    });
     if (fileInputRef.current) fileInputRef.current.value = null;
   };
 
   const handleAmenityToggle = (item) => {
-    setFormData((prev) => ({
-      ...prev,
-      amenities: prev.amenities.includes(item)
+    setAmenitiesState((prev) => ({ ...prev, [item]: !prev[item] }));
+    setFormData((prev) => {
+      const updatedAmenities = prev.amenities.includes(item)
         ? prev.amenities.filter((a) => a !== item)
-        : [...prev.amenities, item],
-    }));
+        : [...prev.amenities, item];
+      return { ...prev, amenities: updatedAmenities };
+    });
   };
 
   const handleImageUpload = (e) => {
@@ -118,27 +99,38 @@ export default function OwnerFieldManager() {
     setFormData((prev) => ({ ...prev, image: url }));
   };
 
-  // ➕ เพิ่ม หรือ ✏️ แก้ไข สนาม
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const facilitiesMap = {
+      ห้องน้ำ: "restroom",
+      ที่จอดรถ: "parking",
+      ร้านค้า: "shop",
+      "wifi free": "wifi",
+    };
+
+    const facilitiesObject = {};
+    Object.entries(facilitiesMap).forEach(([thai, eng]) => {
+      facilitiesObject[eng] = formData.amenities.includes(thai);
+    });
 
     const body = {
       field_name: formData.name,
       field_type: formData.fieldType,
       mobile_number: formData.promptPay,
       address: formData.address,
-      price: formData.price,
+      price: Number(formData.price),
       open: formData.openTime,
       close: formData.closeTime,
-      facilities: formData.amenities,
+      facilities: facilitiesObject,
       image: formData.image,
       description: formData.description,
       google_map: formData.mapLink,
+      is_active: true,
     };
 
     try {
       if (isEditing && editingId) {
-        // ✏️ update field
         const res = await fetch(`${API_BASE}/api/update-fields/${editingId}`, {
           method: "PUT",
           headers: {
@@ -148,8 +140,6 @@ export default function OwnerFieldManager() {
           body: JSON.stringify(body),
         });
         const updated = await res.json();
-
-        // ✅ ถ้ามีข้อมูล field กลับมา
         if (updated && updated._id) {
           setFields((prev) =>
             prev.map((f) => (f._id === editingId ? updated : f))
@@ -158,7 +148,6 @@ export default function OwnerFieldManager() {
           await fetchFields();
         }
       } else {
-        // ➕ add field
         const res = await fetch(`${API_BASE}/api/add-fields`, {
           method: "POST",
           headers: {
@@ -183,6 +172,16 @@ export default function OwnerFieldManager() {
   };
 
   const handleEdit = (field) => {
+    const reverseMap = {
+      restroom: "ห้องน้ำ",
+      parking: "ที่จอดรถ",
+      shop: "ร้านค้า",
+      wifi: "wifi free",
+    };
+    const amenitiesArray = Object.entries(field.facilities || {})
+      .filter(([_, v]) => v)
+      .map(([key]) => reverseMap[key]);
+
     setFormData({
       name: field.field_name,
       address: field.address,
@@ -192,19 +191,28 @@ export default function OwnerFieldManager() {
       closeTime: field.close,
       fieldType: field.field_type,
       promptPay: field.mobile_number,
-      amenities: Array.isArray(field.facilities)
-        ? field.facilities
-        : Object.values(field.facilities || {}),
+      amenities: amenitiesArray,
       description: field.description,
       image: field.image,
     });
+
+    const newState = {
+      ห้องน้ำ: false,
+      ที่จอดรถ: false,
+      ร้านค้า: false,
+      "wifi free": false,
+    };
+    amenitiesArray.forEach((item) => {
+      newState[item] = true;
+    });
+    setAmenitiesState(newState);
+
     setIsEditing(true);
     setEditingId(field._id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // ❌ ลบสนาม
   const confirmDeleteNow = async () => {
     try {
       await fetch(`${API_BASE}/api/delete-fields/${confirmDelete.id}`, {
@@ -223,7 +231,17 @@ export default function OwnerFieldManager() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // 🎨 สไตล์ upload box
+  // 🕒 ฟังก์ชัน formatTime
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "-";
+    return timeStr;
+    // หรือปรับเป็น 12 ชั่วโมง:
+    // const [h, m] = timeStr.split(":").map(Number);
+    // const ampm = h >= 12 ? "PM" : "AM";
+    // const hour12 = h % 12 || 12;
+    // return `${hour12}:${m.toString().padStart(2, "0")} ${ampm}`;
+  };
+
   const StyledWrapper = styled.div`
     .custum-file-upload {
       width: 100%;
@@ -278,15 +296,7 @@ export default function OwnerFieldManager() {
           </button>
         </div>
 
-        {/* ไม่มีสนาม */}
-        {fields.length === 0 && !showForm && (
-          <div className="border border-gray-300 rounded-xl text-center text-gray-500 p-8">
-            <p className="mb-1">ยังไม่มีสนามในระบบ</p>
-            <p className="text-sm">เริ่มต้นด้วยการเพิ่มสนามใหม่</p>
-          </div>
-        )}
-
-        {/* ฟอร์มเพิ่ม/แก้ไข */}
+        {/* ฟอร์ม */}
         {showForm && (
           <form onSubmit={handleSubmit} className="space-y-3 mt-3">
             <input
@@ -299,7 +309,6 @@ export default function OwnerFieldManager() {
               className="w-full border rounded-lg p-2"
               required
             />
-
             <input
               type="text"
               placeholder="ที่ตั้ง/สถานที่"
@@ -310,7 +319,6 @@ export default function OwnerFieldManager() {
               className="w-full border rounded-lg p-2"
               required
             />
-
             <input
               type="text"
               placeholder="ลิงก์ Google Map"
@@ -321,7 +329,6 @@ export default function OwnerFieldManager() {
               className="w-full border rounded-lg p-2"
               required
             />
-
             <input
               type="text"
               placeholder="ราคา/ชม."
@@ -387,25 +394,11 @@ export default function OwnerFieldManager() {
                 สิ่งอำนวยความสะดวก
               </p>
               <div className="flex flex-wrap gap-2">
-                {Object.keys(amenitiesState).map((item) => (
+                {amenitiesList.map((item) => (
                   <button
                     type="button"
                     key={item}
-                    onClick={() => {
-                      // toggle true/false ใน amenitiesState
-                      setAmenitiesState((prev) => ({
-                        ...prev,
-                        [item]: !prev[item],
-                      }));
-
-                      // update formData.amenities สำหรับส่ง backend
-                      setFormData((prev) => ({
-                        ...prev,
-                        amenities: prev.amenities.includes(item)
-                          ? prev.amenities.filter((a) => a !== item)
-                          : [...prev.amenities, item],
-                      }));
-                    }}
+                    onClick={() => handleAmenityToggle(item)}
                     className={`px-3 py-1 rounded-full border text-sm ${
                       amenitiesState[item]
                         ? "bg-emerald-500 text-white border-emerald-500"
@@ -433,13 +426,14 @@ export default function OwnerFieldManager() {
               </label>
               <StyledWrapper>
                 <label className="custum-file-upload relative" htmlFor="file">
-                  {formData.image ? (
+                  {formData.image && (
                     <img
                       src={formData.image}
                       alt="preview"
                       className="absolute inset-0 w-full h-full object-cover rounded-lg"
                     />
-                  ) : (
+                  )}
+                  {!formData.image && (
                     <>
                       <div className="icon">
                         <svg
@@ -531,7 +525,7 @@ export default function OwnerFieldManager() {
                     <div className="text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-1 flex items-center gap-1">
                       <FaClock className="text-emerald-500" />
                       <span>
-                        {f.open} - {f.close}
+                        {formatTime(f.open)} - {formatTime(f.close)}
                       </span>
                     </div>
                   </div>
@@ -622,37 +616,27 @@ export default function OwnerFieldManager() {
                   สิ่งอำนวยความสะดวก:
                 </strong>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {Array.isArray(detailField.facilities)
-                    ? detailField.facilities.map((a) => (
+                  {Object.entries(detailField.facilities)
+                    .filter(([_, v]) => v)
+                    .map(([key]) => {
+                      const translate = {
+                        lights: "ไฟส่องสว่าง",
+                        parking: "ที่จอดรถ",
+                        restroom: "ห้องน้ำ",
+                        shop: "ร้านค้า",
+                        wifi: "Wi-Fi ฟรี",
+                        aircon: "ห้องปรับอากาศ",
+                      };
+                      const label = translate[key] || key;
+                      return (
                         <span
-                          key={a}
+                          key={key}
                           className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs border border-emerald-200"
                         >
-                          {a}
+                          {label}
                         </span>
-                      ))
-                    : Object.entries(detailField.facilities)
-                        .filter(([_, v]) => v) // แสดงเฉพาะที่เป็น true
-                        .map(([key]) => {
-                          // ✅ แปลงชื่อ key อังกฤษ -> ไทย
-                          const translate = {
-                            lights: "ไฟส่องสว่าง",
-                            parking: "ที่จอดรถ",
-                            restroom: "ห้องน้ำ",
-                            shop: "ร้านค้า",
-                            wifi: "Wi-Fi ฟรี",
-                            aircon: "ห้องปรับอากาศ",
-                          };
-                          const label = translate[key] || key; // ถ้าไม่มีใน dict ให้ใช้ key เดิม
-                          return (
-                            <span
-                              key={key}
-                              className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs border border-emerald-200"
-                            >
-                              {label}
-                            </span>
-                          );
-                        })}
+                      );
+                    })}
                 </div>
               </div>
             )}
@@ -678,21 +662,21 @@ export default function OwnerFieldManager() {
         </div>
       )}
 
-      {/* Modal ยืนยันลบ */}
+      {/* Confirm Delete */}
       {confirmDelete.show && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg p-4 shadow">
-            <p className="mb-3">ยืนยันการลบสนามนี้หรือไม่?</p>
-            <div className="flex gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-xl p-5 shadow-xl w-full max-w-sm text-center">
+            <p className="mb-4">คุณต้องการลบสนามนี้ใช่หรือไม่?</p>
+            <div className="flex gap-3">
               <button
                 onClick={confirmDeleteNow}
-                className="bg-rose-500 text-white px-3 py-1 rounded"
+                className="flex-1 bg-rose-500 text-white py-2 rounded-lg"
               >
                 ลบ
               </button>
               <button
                 onClick={() => setConfirmDelete({ show: false, id: null })}
-                className="border px-3 py-1 rounded"
+                className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg"
               >
                 ยกเลิก
               </button>
