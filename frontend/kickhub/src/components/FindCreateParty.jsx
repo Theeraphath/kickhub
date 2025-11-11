@@ -19,16 +19,35 @@ export default function FindCreateParty() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        setFields(res.data || []);
-      } catch (error) {
-        console.error("Error fetching fields:", error);
-        setFields([]); // กันกรณี error จะไม่เป็น undefined
-      } finally {
-        setLoading(false); // ✅ ปิดโหลดเมื่อเสร็จ
-      }
-    };
-    fetchFields();
-  }, []);
+  const [fields, setFields] = useState([
+    {
+    id: 1,
+    name: "สนามไรมง",
+    location: "คลองหลวง, ปทุมธานี",
+    price: 700,
+    openingHours: "11:00 - 23:00",
+    image: fieldImg,
+    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
+  },
+    {
+    id: 2,
+    name: "A",
+    location: "คลองหลวง, ปทุมธานี",
+    price: 700,
+    openingHours: "11:00 - 23:00",
+    image: fieldImg,
+    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
+  },
+    {
+    id: 3,
+    name: "B",
+    location: "คลองหลวง, ปทุมธานี",
+    price: 700,
+    openingHours: "11:00 - 23:00",
+    image: fieldImg,
+    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
+  },
+  ]);
 
   // ✅ ฟิลเตอร์ค้นหา
   const filteredFields = fields.filter((field) =>
@@ -151,19 +170,15 @@ export default function FindCreateParty() {
                         </div>
                       </div>
 
-                      {/* Facilities */}
-                      <div className="flex flex-row flex-wrap gap-2 overflow-hidden mt-2">
-                        {(getFacilitiesList(field.facilities) || []).map(
-                          (fac, i) => (
-                            <span
-                              key={i}
-                              className="bg-blue-500 text-white font-medium px-2 py-1 rounded-md text-xs"
-                            >
-                              {fac}
-                            </span>
-                          )
-                        )}
-                      </div>
+                    <div className="flex flex-row flex-wrap gap-1 overflow-hidden pt-2">
+                      {field.features.map((feature, i) => (
+                        <span
+                          key={i}
+                          className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition"
+                        >
+                          {feature}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>

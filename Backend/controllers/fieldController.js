@@ -1,4 +1,5 @@
 const Field = require("../models/Field");
+const Reservation = require("../models/Reservation");
 
 const addField = async (fieldData) => {
   try {
@@ -17,7 +18,7 @@ const getAllFields = async () => {
     return { success: true, data: fields };
   } catch (error) {
     console.error("Error fetching fields:", error);
-    return { success: false, error };
+    return { error };
   }
 };
 
@@ -63,6 +64,28 @@ const deleteField = async (id) => {
   }
 };
 
+const getFieldbyFreetime = async (startdate, enddate) => {
+  try {
+    const start = new Date(startdate);
+    const end = new Date(enddate);
+    const reservedFields = await Reservation.find({
+      $and: [
+        { start_datetime: { $lt: end } },
+        { end_datetime: { $gt: start } },
+      ],
+    }).distinct("field_id");
+
+    const availableFieldsDetails = await Field.find({
+      _id: { $nin: reservedFields },
+    });
+
+    return { success: true, data: availableFieldsDetails };
+  } catch (error) {
+    console.error("Error fetching fields:", error);
+    return { success: false, error };
+  }
+};
+
 module.exports = {
   addField,
   getAllFields,
@@ -70,4 +93,5 @@ module.exports = {
   deleteField,
   getFieldbyownerID,
   getFieldbyID,
+  getFieldbyFreetime,
 };
