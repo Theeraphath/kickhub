@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Modal, Box, Typography, Button, Zoom } from "@mui/material";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
 import { IoLockClosedOutline } from "react-icons/io5";
 import { MdOutlineAlternateEmail } from "react-icons/md";
 import KHlogo from "../../public/KHlogo.png";
 import Googlelogo from "../../public/google-icon-logo-svgrepo-com.svg";
 import Applelogo from "../../public/apple-black-logo-svgrepo-com.svg";
+import { IoIosRemoveCircle } from "react-icons/io";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [checkinput, setCheckinput] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [inputs, setInputs] = useState({ email: "", password: "" });
 
@@ -21,30 +25,44 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const raw = JSON.stringify({
-      email: inputs.email,
-      password: inputs.password,
-    });
+    const { email, password } = inputs;
+
+    // ตรวจสอบข้อมูลก่อนส่ง
+    if (!email || !password) {
+      setCheckinput(true);
+      return;
+    }
 
     try {
-      // แก้เป็นเลขเครื่องตัวเองนะ
-      // const res = await fetch("http://172.20.10.4:3000/login/", {
       const res = await fetch("http://192.168.1.26:3000/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: raw,
+        body: JSON.stringify({ email, password }),
       });
+
       const result = await res.json();
-      if (result.status === "ok") {
+      console.log(result);
+
+      if (result.status === "ok" && result.token) {
         localStorage.setItem("token", result.token);
-        alert("Login Successful!");
-        navigate("/test");
+
+        if (result.role === "owner") {
+          document.body.style.zoom = "100%";
+          navigate("/owner");
+        } else {
+          document.body.style.zoom = "100%";
+          navigate("/home");
+        }
       } else {
-        alert("Login Failed: " + result.message);
+        setOpen(true);
+        setInputs((prev) => ({ ...prev, password: "" }));
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("An error occurred while logging in." + error);
+      alert(
+        "เกิดข้อผิดพลาดในการเข้าสู่ระบบ: " +
+          (error.message || "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์")
+      );
     }
   };
 
@@ -152,6 +170,164 @@ export default function Login() {
                 Forgot Password?
               </span>
             </div>
+
+            <Modal open={open} onClose={() => setOpen(false)}>
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 340,
+                  bgcolor: "white",
+                  borderRadius: 3,
+                  p: 4,
+                  textAlign: "center",
+                  boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+                }}
+              >
+                {/* ไอคอนด้านบน */}
+                {/* red */}
+                <Box
+                  sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: "50%",
+                    backgroundColor: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto",
+                    mb: 2,
+                  }}
+                >
+                  <IoIosRemoveCircle size={100} color="red" />
+                </Box>
+
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    fontFamily: '"Noto Sans Thai", sans-serif',
+                  }}
+                >
+                  อีเมล์หรือรหัสผ่านไม่ถูกต้อง
+                </Typography>
+
+                <Typography
+                  sx={{
+                    mt: 1,
+                    color: "#666666",
+                    fontFamily: '"Noto Sans Thai", sans-serif',
+                  }}
+                >
+                  กรุณาตรวจสอบอีกครั้ง
+                </Typography>
+
+                <Box
+                  sx={{
+                    mt: 4,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 2,
+                  }}
+                >
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      setOpen(false);
+                    }}
+                    variant="contained"
+                    sx={{
+                      fontFamily: '"Noto Sans Thai", sans-serif',
+                      backgroundColor: "#FF0000",
+                      "&:hover": { backgroundColor: "#FF0000" },
+                    }}
+                  >
+                    ยืนยัน
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
+
+            <Modal open={checkinput} onClose={() => setCheckinput(false)}>
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 340,
+                  bgcolor: "white",
+                  borderRadius: 3,
+                  p: 4,
+                  textAlign: "center",
+                  boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+                }}
+              >
+                {/* ไอคอนด้านบน */}
+                {/* red */}
+                <Box
+                  sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: "50%",
+                    backgroundColor: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto",
+                    mb: 2,
+                  }}
+                >
+                  <IoIosRemoveCircle size={100} color="red" />
+                </Box>
+
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    fontFamily: '"Noto Sans Thai", sans-serif',
+                  }}
+                >
+                  กรุณากรอกข้อมูลให้ครบ
+                </Typography>
+
+                <Typography
+                  sx={{
+                    mt: 1,
+                    color: "#666666",
+                    fontFamily: '"Noto Sans Thai", sans-serif',
+                  }}
+                >
+                  กรุณาตรวจสอบอีกครั้ง
+                </Typography>
+
+                <Box
+                  sx={{
+                    mt: 4,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 2,
+                  }}
+                >
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      setCheckinput(false);
+                    }}
+                    variant="contained"
+                    sx={{
+                      fontFamily: '"Noto Sans Thai", sans-serif',
+                      backgroundColor: "#FF0000",
+                      "&:hover": { backgroundColor: "#FF0000" },
+                    }}
+                  >
+                    ยืนยัน
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
 
             {/* Login Button */}
             <motion.button

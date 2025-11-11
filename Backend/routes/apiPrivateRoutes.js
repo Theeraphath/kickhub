@@ -5,6 +5,11 @@ const authorizeOwner = require("../middleware/authorizeOwner");
 const upload = require("../middleware/uploadMiddleware");
 const { MongoClient } = require("mongodb");
 const {
+  getUserById,
+  updateUserProfile,
+  changePassword,
+} = require("../controllers/userController");
+const {
   addField,
   getAllFields,
   updateField,
@@ -31,7 +36,8 @@ const {
   getPostbyID,
   joinParty,
   leaveParty,
-  getPosts,
+  getAllPosts,
+  getPostUpcoming,
 } = require("../controllers/postController");
 
 router.get("/test", authenticateToken, (req, res) => {
@@ -40,6 +46,32 @@ router.get("/test", authenticateToken, (req, res) => {
     data: [1, 2, 3, 4, 5],
   });
 });
+
+router.get("/user/:id", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await getUserById(userId);
+    res.status(200).json({
+      status: "success",
+      data: user,
+    });
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:", error);
+    return res.status(500).json({ message: "เกิดข้อผิดพลาดกับเซิร์ฟเวอร์" });
+  }
+});
+
+router.put(
+  "/user/update/:id",
+  authenticateToken,
+  upload.fields([
+    { name: "profile_photo", maxCount: 1 },
+    { name: "profile_photo_cover", maxCount: 1 },
+  ]),
+  updateUserProfile
+);
+
+router.put("/user/change-password/:id", authenticateToken, changePassword);
 
 router.get("/user", authenticateToken, async (req, res) => {
   const client = new MongoClient("mongodb://localhost:27017");
@@ -514,6 +546,33 @@ router.post("/create-post/:id", authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error("เกิดข้อผิดพลาดในการสร้างโพสต์:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+    });
+  }
+});
+
+router.get("/posts", authenticateToken, async (req, res) => {
+  try {
+    const result = await getPostUpcoming();
+
+    if (result.success) {
+      return res.status(200).json({
+        status: "success",
+        message: "ดึงข้อมูลโพสต์สําเร็จ",
+        data: result.data,
+        count: result.data?.length || 0,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return res.status(400).json({
+      status: "error",
+      message: result.error?.message || "ไม่สามารถดึงข้อมูลโพสต์ได้",
+    });
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการดึงข้อมูลโพสต์:", error);
     return res.status(500).json({
       status: "error",
       message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",

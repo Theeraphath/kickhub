@@ -14,16 +14,26 @@ router.post("/", async (req, res) => {
     const collection = db.collection("users");
     const user = await collection.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "อีเมล์หรือรหัสผ่านไม่ถูกต้อง" });
     }
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "อีเมล์หรือรหัสผ่านไม่ถูกต้อง" });
     }
+    const lastLogin = Date.now();
+    await collection.updateOne(
+      { _id: user._id },
+      { $set: { last_login: lastLogin } }
+    );
     const token = jwt.sign({ _id: user._id, role: user.role }, SECRET_KEY, {
       expiresIn: "1h",
     });
-    res.status(200).json({ status: "ok", message: "Login successful", token });
+    res.status(200).json({
+      status: "ok",
+      message: "Login successful",
+      token,
+      role: user.role,
+    });
   } catch (error) {
     console.error("Error fetching user:", error);
     return res.status(500).json({ message: "Internal server error" });
