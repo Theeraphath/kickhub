@@ -9,12 +9,24 @@ import {
 
 const BottomNav = () => {
   const location = useLocation();
+  const getIdbyToken = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodedToken = JSON.parse(atob(token.split(".")[1]));
+      return decodedToken._id;
+    }
+  };
   const navItems = [
     { name: "หน้าหลัก", icon: <FaHome />, path: "/home" },
     { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/field" },
     { name: "หาปาร์ตี", icon: <FaFutbol />, path: "/FindCreateParty" },
     { name: "การแจ้งเตือน", icon: <FaBell />, path: "/notifications" },
-    { name: "โปรไฟล์", icon: <FaUser />, path: "/login" },
+    {
+      name: "โปรไฟล์",
+      icon: <FaUser />,
+      id: getIdbyToken(),
+      path: `/profile/${getIdbyToken()}`,
+    },
   ];
 
   return (

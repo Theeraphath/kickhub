@@ -34,12 +34,27 @@ const newPost = async (user_id, field_id, postdata) => {
   }
 };
 
-const getPosts = async () => {
+const getAllPosts = async () => {
   try {
     const posts = await Post.find();
     return { success: true, data: posts };
   } catch (error) {
     console.error("Error fetching posts:", error);
+    return { success: false, error };
+  }
+};
+
+const getPostUpcoming = async () => {
+  try {
+    const now = new Date(); // เวลาปัจจุบัน
+
+    const posts = await Post.find({
+      start_datetime: { $gte: now },
+    }).sort({ start_datetime: 1 }); // เรียงจากใกล้สุด → ไกลสุด
+
+    return { success: true, data: posts };
+  } catch (error) {
+    console.error("Error fetching upcoming posts:", error);
     return { success: false, error };
   }
 };
@@ -136,5 +151,6 @@ module.exports = {
   getPostbyID,
   joinParty,
   leaveParty,
-  getPosts,
+  getAllPosts,
+  getPostUpcoming,
 };

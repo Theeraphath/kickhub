@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
 import { FaCircleUser } from "react-icons/fa6";
-import field from "../../public/field.jpg";
+import field from "../../public/แมตของคุณ.png";
 import CountdownTimer from "./CountdownTimer";
 import { useState, useEffect } from "react";
 export default function Notifications() {
@@ -75,7 +75,9 @@ export default function Notifications() {
                 }
               >
                 <img
-                  src={field}
+                  src={
+                    data.image ? `http://localhost:3000/${data.image}` : field
+                  }
                   alt=""
                   className="w-40 h-auto object-cover rounded-md mb-2"
                 />

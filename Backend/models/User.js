@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
     profile_photo: { type: String, default: "" },
+    profile_photo_cover: { type: String, default: "" },
+    mobile_number: { type: String, default: "" },
     status: {
       type: String,
       enum: ["active", "banned"],

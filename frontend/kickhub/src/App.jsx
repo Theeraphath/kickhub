@@ -25,6 +25,8 @@ import CreateParty2 from "./components/CreateParty2";
 import Field from "./components/field";
 import CountdownTimer from "./components/CountdownTimer";
 import Owner from "./components/OwnerFieldManager";
+import Profile from "./components/profile";
+import Profile2 from "./components/profile2";
 
 function AppRoutes() {
   const location = useLocation();
@@ -47,9 +49,10 @@ function AppRoutes() {
   return (
     <>
       <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signUp" element={<SignUp />} />
-        <Route path="/home" element={<Home />} />
         <Route path="/partybuffet/:id" element={<Partybuffet />} />
         <Route path="/partyrole/:id" element={<PartyRole />} />
         <Route path="/FindCreateParty" element={<FindCreateParty />} />
@@ -60,11 +63,13 @@ function AppRoutes() {
         <Route path="/historyrole/:id" element={<PartyRole />} />
         <Route path="/create-party" element={<CreateParty />} />
         <Route path="/create-party2" element={<CreateParty2 />} />
-        <Route path="/field" element={<Field />} /> 
+        <Route path="/field" element={<Field />} />
         <Route path="/countdown" element={<CountdownTimer />} />
-        <Route path="/Owner" element={<Owner />} />
+        <Route path="/owner" element={<Owner />} />
         <Route path="/test" element={<Test1 />} />
-       
+        <Route path="/profile/:id" element={<Profile />} />
+        <Route path="/profile/edit/:id" element={<Profile2 />} />
+
         <Route
           path="/party"
           element={

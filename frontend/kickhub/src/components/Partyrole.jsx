@@ -253,7 +253,13 @@ export default function PartyRole() {
 
       {/* Cover */}
       <div className="relative">
-        <img src={photo} alt="สนาม" className="w-full h-48 object-cover" />
+        <img
+          src={
+            postData.image ? `http://localhost:3000/${postData.image}` : photo
+          }
+          alt="สนาม"
+          className="w-full h-48 object-cover"
+        />
         {status === "ended" && (
           <div className="absolute top-3 left-3 bg-red-500 px-3 py-1 rounded-full text-white text-sm flex items-center shadow-md transition-opacity duration-500 opacity-100">
             <p>การแข่งขันสิ้นสุดแล้ว</p>
