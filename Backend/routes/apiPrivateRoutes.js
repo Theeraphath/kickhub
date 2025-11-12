@@ -100,7 +100,7 @@ router.post(
       const fieldData = {
         ...req.body,
         owner_id: req.user._id,
-        image: req.file.path,
+        image: req.file?.path || null,
       };
 
       const result = await addField(fieldData);

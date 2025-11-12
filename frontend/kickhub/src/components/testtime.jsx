@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { IoMdTime } from "react-icons/io";
+import { FaSearch } from "react-icons/fa";
 
 export default function TimeSelector({ onSubmit }) {
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("10:00");
 
@@ -21,18 +23,19 @@ export default function TimeSelector({ onSubmit }) {
 
   return (
     <div>
-      <h1>search time</h1>
+      <h1>เลือกวันที่และเวลา</h1>
 
-      <p>date</p>
-      <input
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-      />
+      <div className="flex flex-row items-center gap-2">
+        <input
+          type="date"
+          value={date}
+          placeholder="เลือกวันที่"
+          className="bg-green-400 text-white p-2 rounded-xl"
+          onChange={(e) => setDate(e.target.value)}
+        />
 
-      <span className="flex gap-3 mt-2">
-        <span className="flex flex-col">
-          <p>start time</p>
+        <span className="flex flex-row gap-1 bg-green-400 text-white p-2 rounded-xl items-center justify-center">
+          <IoMdTime className="mb-1 text-xl" />
           <select
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
@@ -46,10 +49,6 @@ export default function TimeSelector({ onSubmit }) {
               );
             })}
           </select>
-        </span>
-
-        <span className="flex flex-col">
-          <p>end time</p>
           <select value={endTime} onChange={(e) => setEndTime(e.target.value)}>
             {[...Array(24)].map((_, hour) => {
               const timeString = hour.toString().padStart(2, "0") + ":00";
@@ -61,11 +60,14 @@ export default function TimeSelector({ onSubmit }) {
             })}
           </select>
         </span>
-      </span>
 
-      <button className="mt-4" onClick={handleSubmit}>
-        Submit
-      </button>
+        <button
+          className="bg-green-400 text-white p-3 rounded-xl"
+          onClick={handleSubmit}
+        >
+          <FaSearch className="text-xl" />
+        </button>
+      </div>
     </div>
   );
 }
