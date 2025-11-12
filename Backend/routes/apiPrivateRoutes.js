@@ -38,6 +38,7 @@ const {
   leaveParty,
   getAllPosts,
   getPostUpcoming,
+  getPostUpcomingbyFieldID,
 } = require("../controllers/postController");
 
 router.get("/test", authenticateToken, (req, res) => {
@@ -618,6 +619,35 @@ router.get("/post/:id", authenticateToken, async (req, res) => {
         status: "success",
         message: "ดึงข้อมูลโพสต์สำเร็จ",
         data: result.data,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return res.status(404).json({
+      status: "error",
+      message: result.error?.message || "ไม่พบโพสต์ที่ระบุ",
+    });
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการดึงโพสต์:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+    });
+  }
+});
+
+router.get("/posts-field/:id", authenticateToken, async (req, res) => {
+  try {
+    const field = req.params.id;
+    const date = req.body.date;
+    const result = await getPostUpcomingbyFieldID(field, date);
+
+    if (result.success) {
+      return res.status(200).json({
+        status: "success",
+        message: "ดึงข้อมูลโพสต์สําเร็จ",
+        data: result.data,
+        count: result.data?.length || 0,
         timestamp: new Date().toISOString(),
       });
     }
