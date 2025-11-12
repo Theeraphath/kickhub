@@ -5,7 +5,11 @@ const mongoose = require("mongoose");
 const path = require("path");
 const port = 3000;
 
+
+
+
 const app = express();
+
 
 require("./database"); // Import the database connection
 require("dotenv").config();
@@ -50,10 +54,8 @@ app.use((err, req, res, next) => {
   }
 });
 
-app.use(
-  "/uploads/photos",
-  express.static(path.join(__dirname, "uploads/photos"))
-);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 app.use("/api", apiPrivateRoutes);
 app.use("/register", apiRegisterRoutes);

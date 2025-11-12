@@ -97,32 +97,41 @@ router.post(
   upload.single("image"),
   async (req, res) => {
     try {
+      let facilities = req.body.facilities;
+      if (typeof facilities === "string") {
+        try {
+          facilities = JSON.parse(facilities);
+        } catch (e) {
+          facilities = {};
+        }
+      }
+
       const fieldData = {
         ...req.body,
         owner_id: req.user._id,
-        image: req.file.path,
+        facilities,
+        image: req.file ? `/uploads/${req.file.filename}` : req.body.image,
       };
 
       const result = await addField(fieldData);
-
       if (result.success) {
         return res.status(201).json({
+          status: "success",
           message: "เพิ่มข้อมูลสนามสำเร็จ",
           data: result.data,
         });
       }
-
       return res.status(400).json({
-        error: result.error?.message || "ไม่สามารถเพิ่มข้อมูลสนามได้",
+        status: "error",
+        message: result.error?.message || "ไม่สามารถเพิ่มข้อมูลสนามได้",
       });
     } catch (err) {
-      console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดในการเพิ่มข้อมูลสนาม:", err);
-      return res.status(500).json({
-        error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
-      });
+      console.error("Error adding field:", err);
+      return res.status(500).json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
     }
   }
 );
+
 
 router.get("/fields", authenticateToken, async (req, res) => {
   try {
@@ -264,25 +273,24 @@ router.put(
   "/update-fields/:id",
   authenticateToken,
   authorizeOwner,
+  upload.single("image"),
   async (req, res) => {
     try {
       const fieldId = req.params.id;
-      const fieldData = req.body;
-
-      const existingField = await getFieldbyID(fieldId);
-      if (!existingField.success || !existingField.data) {
-        return res.status(404).json({
-          status: "error",
-          message: "ไม่พบข้อมูลสนามที่ระบุ",
-        });
+      let facilities = req.body.facilities;
+      if (typeof facilities === "string") {
+        try {
+          facilities = JSON.parse(facilities);
+        } catch (e) {
+          facilities = {};
+        }
       }
 
-      if (existingField.data.owner_id.toString() !== req.user._id) {
-        return res.status(403).json({
-          status: "error",
-          message: "คุณไม่มีสิทธิ์แก้ไขสนามนี้",
-        });
-      }
+      const fieldData = {
+        ...req.body,
+        facilities,
+        image: req.file ? `/uploads/${req.file.filename}` : req.body.image,
+      };
 
       const result = await updateField(fieldId, fieldData);
       if (result.success) {
@@ -290,7 +298,6 @@ router.put(
           status: "success",
           message: "อัปเดตข้อมูลสนามสำเร็จ",
           data: result.data,
-          timestamp: new Date().toISOString(),
         });
       }
 
@@ -299,17 +306,15 @@ router.put(
         message: result.error?.message || "ไม่สามารถอัปเดตข้อมูลสนามได้",
       });
     } catch (err) {
-      console.error("เกิดข้อผิดพลาดในการอัปเดตสนาม:", err);
-      return res.status(500).json({
-        status: "error",
-        message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
-      });
+      console.error("Error updating field:", err);
+      return res.status(500).json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
     }
   }
 );
 
+
 router.delete(
-  "/delete-fields",
+  "/delete-fields/:id",
   authenticateToken,
   authorizeOwner,
   async (req, res) => {
@@ -336,7 +341,6 @@ router.delete(
         return res.status(200).json({
           status: "success",
           message: "ลบข้อมูลสนามสำเร็จ",
-          timestamp: new Date().toISOString(),
         });
       }
 
@@ -353,6 +357,7 @@ router.delete(
     }
   }
 );
+
 
 router.post("/new-reservation/:id", authenticateToken, async (req, res) => {
   try {

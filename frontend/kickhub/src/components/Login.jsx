@@ -34,7 +34,7 @@ export default function Login() {
     }
 
     try {
-      const res = await fetch("http://192.168.1.26:3000/login/", {
+      const res = await fetch("http://172.20.10.4:3000/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

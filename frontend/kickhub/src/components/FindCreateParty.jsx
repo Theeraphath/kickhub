@@ -8,53 +8,52 @@ export default function FindCreateParty() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [fields, setFields] = useState([]);
-  const [loading, setLoading] = useState(true); // ✅ เพิ่ม state โหลดข้อมูล
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  // ✅ ดึงข้อมูลสนามจาก backend
   useEffect(() => {
     const fetchFields = async () => {
       try {
         const token = localStorage.getItem("token");
+
+        // ✅ ถ้าไม่มี token ให้แจ้งเตือน
+        if (!token) {
+          setErrorMsg("กรุณาเข้าสู่ระบบก่อนใช้งาน");
+          setLoading(false);
+          return;
+        }
+
         const res = await axios.get("http://localhost:3000/api/fields", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-  const [fields, setFields] = useState([
-    {
-    id: 1,
-    name: "สนามไรมง",
-    location: "คลองหลวง, ปทุมธานี",
-    price: 700,
-    openingHours: "11:00 - 23:00",
-    image: fieldImg,
-    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
-  },
-    {
-    id: 2,
-    name: "A",
-    location: "คลองหลวง, ปทุมธานี",
-    price: 700,
-    openingHours: "11:00 - 23:00",
-    image: fieldImg,
-    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
-  },
-    {
-    id: 3,
-    name: "B",
-    location: "คลองหลวง, ปทุมธานี",
-    price: 700,
-    openingHours: "11:00 - 23:00",
-    image: fieldImg,
-    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
-  },
-  ]);
+        // ✅ แก้ตรงนี้ — ใช้ res.data.data เพราะ backend ห่อข้อมูลไว้ใน data
+        setFields(res.data.data || []);
+        setErrorMsg("");
+      } catch (error) {
+        console.error("Error fetching fields:", error);
 
-  // ✅ ฟิลเตอร์ค้นหา
+        if (error.response?.status === 403) {
+          setErrorMsg("สิทธิ์การเข้าถึงไม่ถูกต้อง หรือ Token หมดอายุ");
+        } else if (error.response?.status === 401) {
+          setErrorMsg("กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
+        } else {
+          setErrorMsg("เกิดข้อผิดพลาดในการดึงข้อมูล");
+        }
+
+        setFields([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFields();
+  }, []);
+
   const filteredFields = fields.filter((field) =>
     field.field_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ✅ ฟังก์ชันแปลง facilities object → array ภาษาไทย
   const getFacilitiesList = (facilities) => {
     if (!facilities || typeof facilities !== "object") return [];
     const facilityNames = {
@@ -116,9 +115,11 @@ export default function FindCreateParty() {
           ค้นหาปาร์ตี้ / สร้างปาร์ตี้
         </h2>
 
-        {/* ✅ แสดงสถานะโหลด */}
+        {/* ✅ แสดงสถานะโหลด / error */}
         {loading ? (
           <p className="text-center text-gray-500 mt-10">กำลังโหลดข้อมูล...</p>
+        ) : errorMsg ? (
+          <p className="text-center text-red-500 mt-10">{errorMsg}</p>
         ) : filteredFields.length === 0 ? (
           <p className="text-center text-gray-500 mt-10">
             ไม่พบสนามที่ตรงกับคำค้นหา
@@ -155,35 +156,33 @@ export default function FindCreateParty() {
                     </div>
 
                     <div className="mt-2 overflow-hidden w-full">
-                      <div className="flex flex-row flex-nowrap items-center gap-2 w-full">
-                        {/* กล่องราคา */}
-                        <p className="text-white bg-green-500 font-semibold py-[2px] px-2 rounded-md text-[11px] shrink-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 w-full">
+                        <p className="text-white bg-green-500 font-semibold py-1 px-2 rounded-lg text-xs mb-2 sm:mb-0">
                           {field.price} บาท/ชม.
                         </p>
 
-                        {/* กล่องเวลา ปรับขนาดเล็กลง */}
-                        <div className="flex items-center justify-center bg-gray-100 shadow-sm rounded-md px-1.5 py-[1px] text-[10px] font-semibold text-gray-700 shrink-0 w-auto max-w-fit">
-                          <FaClock className="mr-1 text-gray-500 text-[9px]" />
-                          <span className="whitespace-nowrap">
-                            {field.open} - {field.close}
-                          </span>
+                        <div className="flex items-center bg-white shadow-sm rounded-lg px-2 py-1 text-xs font-semibold text-gray-700">
+                          <FaClock className="mr-1 text-gray-500" />
+                          {field.open} - {field.close}
                         </div>
                       </div>
 
-                    <div className="flex flex-row flex-wrap gap-1 overflow-hidden pt-2">
-                      {field.features.map((feature, i) => (
-                        <span
-                          key={i}
-                          className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition"
-                        >
-                          {feature}
-                        </span>
-                      ))}
+                      <div className="flex flex-row flex-wrap gap-2 overflow-hidden mt-2">
+                        {(getFacilitiesList(field.facilities) || []).map(
+                          (fac, i) => (
+                            <span
+                              key={i}
+                              className="bg-blue-500 text-white font-medium px-2 py-1 rounded-md text-xs"
+                            >
+                              {fac}
+                            </span>
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* ปุ่มดูรายละเอียด */}
                 <div className="flex justify-end px-4 py-3">
                   <button
                     onClick={() => navigate(`/findandcreate/${field._id}`)}
