@@ -59,6 +59,22 @@ const getPostUpcoming = async () => {
   }
 };
 
+const getPostUpcomingbyFieldID = async (field_id, date) => {
+  try {
+    const now = new Date(date);
+
+    const posts = await Post.find({
+      field_id: field_id,
+      start_datetime: { $gte: now },
+    }).sort({ start_datetime: 1 });
+
+    return { success: true, data: posts };
+  } catch (error) {
+    console.error("Error fetching upcoming posts:", error);
+    return { success: false, error };
+  }
+};
+
 const getPostbyJoinerID = async (user_id) => {
   try {
     const posts = await Post.find({ "participants.user_id": user_id });
@@ -153,4 +169,5 @@ module.exports = {
   leaveParty,
   getAllPosts,
   getPostUpcoming,
+  getPostUpcomingbyFieldID,
 };
