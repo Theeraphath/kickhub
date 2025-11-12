@@ -4,6 +4,7 @@ import { LuScanQrCode } from "react-icons/lu";
 import { FaMapMarkerAlt, FaRegCreditCard, FaMoneyBill } from "react-icons/fa";
 import field from "../../public/field.jpg";
 import googlemap from "../../public/Google_Maps_icon_(2015-2020).svg.png";
+import { IoMdArrowRoundBack } from "react-icons/io";
 
 function getDurationInHours(start, end) {
   const startTime = new Date(start);
@@ -29,14 +30,6 @@ const paymentMethods = [
     border: "border-blue-600",
     active: "bg-blue-400 text-gray-800",
     inactive: "bg-blue-100 hover:bg-blue-300",
-  },
-  {
-    id: "cash",
-    label: "เงินสด",
-    icon: FaMoneyBill,
-    border: "border-green-600",
-    active: "bg-green-400 text-gray-800",
-    inactive: "bg-green-100 hover:bg-green-300",
   },
 ];
 
@@ -122,21 +115,27 @@ export default function Reserve() {
         "ขออภัย การชําระเงินด้วยบัญชีธนาคารยังไม่รองรับ กรุณาเลือกวิธีการชําระเงินอื่น"
       );
     }
-    if (selected === "cash") {
-      alert(
-        "ขออภัย การชําระเงินด้วยเงินสดยังไม่รองรับ กรุณาเลือกวิธีการชําระเงินอื่น"
-      );
-    }
   };
 
   return (
     <div className="flex justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md bg-white shadow-md rounded-t-2xl overflow-hidden">
         <img
-          src={field}
+          src={
+            field.image
+              ? `http://192.168.1.26:3000/uploads/photos/${field.image}`
+              : field
+          }
           alt="สนามฟุตบอล"
           className="w-full h-48 object-cover"
         />
+
+        <button>
+          <IoMdArrowRoundBack
+            className="absolute top-4 left-4 w-8 h-8 bg-green-500 rounded-full p-1 text-white"
+            onClick={() => navigate(-1)}
+          />
+        </button>
 
         <div className="p-4">
           {/* ชื่อสนาม */}
@@ -210,7 +209,7 @@ export default function Reserve() {
             {/* ช่องทางการชำระเงิน */}
             <div className="mt-4 border-t pt-4">
               <p className="font-bold mb-2">ช่องทางการชำระเงิน</p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 {paymentMethods.map((method) => {
                   const Icon = method.icon;
                   const isActive = selected === method.id;

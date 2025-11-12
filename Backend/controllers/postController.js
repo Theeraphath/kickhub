@@ -46,11 +46,11 @@ const getAllPosts = async () => {
 
 const getPostUpcoming = async () => {
   try {
-    const now = new Date(); // เวลาปัจจุบัน
+    const now = new Date();
 
     const posts = await Post.find({
       start_datetime: { $gte: now },
-    }).sort({ start_datetime: 1 }); // เรียงจากใกล้สุด → ไกลสุด
+    }).sort({ start_datetime: 1 });
 
     return { success: true, data: posts };
   } catch (error) {
@@ -61,11 +61,17 @@ const getPostUpcoming = async () => {
 
 const getPostUpcomingbyFieldID = async (field_id, date) => {
   try {
-    const now = new Date(date);
+    const targetDate = new Date(date);
+
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
 
     const posts = await Post.find({
       field_id: field_id,
-      start_datetime: { $gte: now },
+      start_datetime: { $gte: startOfDay, $lte: endOfDay },
     }).sort({ start_datetime: 1 });
 
     return { success: true, data: posts };

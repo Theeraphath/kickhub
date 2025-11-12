@@ -18,36 +18,16 @@ export default function FindCreateParty() {
         const res = await axios.get("http://localhost:3000/api/fields", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setFields(res.data); // ✅ ตั้งค่าจาก backend
+      } catch (error) {
+        console.error("เกิดข้อผิดพลาดในการโหลดสนาม:", error);
+      } finally {
+        setLoading(false); // ✅ หยุดโหลดไม่ว่า success หรือ fail
+      }
+    };
 
-  const [fields, setFields] = useState([
-    {
-    id: 1,
-    name: "สนามไรมง",
-    location: "คลองหลวง, ปทุมธานี",
-    price: 700,
-    openingHours: "11:00 - 23:00",
-    image: fieldImg,
-    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
-  },
-    {
-    id: 2,
-    name: "A",
-    location: "คลองหลวง, ปทุมธานี",
-    price: 700,
-    openingHours: "11:00 - 23:00",
-    image: fieldImg,
-    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
-  },
-    {
-    id: 3,
-    name: "B",
-    location: "คลองหลวง, ปทุมธานี",
-    price: 700,
-    openingHours: "11:00 - 23:00",
-    image: fieldImg,
-    features: ["มีห้องน้ำ", "มีที่จอดรถ", "ห้องอาบน้ำ" ], // ✅ เพิ่ม
-  },
-  ]);
+    fetchFields(); // ✅ ต้องเรียกฟังก์ชัน
+  }, []);
 
   // ✅ ฟิลเตอร์ค้นหา
   const filteredFields = fields.filter((field) =>
@@ -170,27 +150,28 @@ export default function FindCreateParty() {
                         </div>
                       </div>
 
-                    <div className="flex flex-row flex-wrap gap-1 overflow-hidden pt-2">
-                      {field.features.map((feature, i) => (
-                        <span
-                          key={i}
-                          className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition"
-                        >
-                          {feature}
-                        </span>
-                      ))}
+                      <div className="flex flex-row flex-wrap gap-1 overflow-hidden pt-2">
+                        {field.features.map((feature, i) => (
+                          <span
+                            key={i}
+                            className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition"
+                          >
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* ปุ่มดูรายละเอียด */}
-                <div className="flex justify-end px-4 py-3">
-                  <button
-                    onClick={() => navigate(`/findandcreate/${field._id}`)}
-                    className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-full text-sm transition"
-                  >
-                    ดูรายละเอียด →
-                  </button>
+                  {/* ปุ่มดูรายละเอียด */}
+                  <div className="flex justify-end px-4 py-3">
+                    <button
+                      onClick={() => navigate(`/findandcreate/${field._id}`)}
+                      className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-full text-sm transition"
+                    >
+                      ดูรายละเอียด →
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
