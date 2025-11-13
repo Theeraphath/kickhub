@@ -1,16 +1,22 @@
+// src/components/CreateParty.jsx
 import React, { useState } from "react";
-import { FaMapMarkerAlt, FaClock, FaArrowLeft } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 import findparty from "../../public/party2.png";
-import teamImg from "../../public/team.png";
-import BottomNav from "./Navbar";
-import team from "../../public/team.png";
-import LP from "../../public/lockposition.png";
 import Buffetpic from "../../public/buffetpic.png";
+import LP from "../../public/lockposition.png";
+import BottomNav from "./Navbar";
 
 const CreateParty = () => {
   const navigate = useNavigate();
+  const { fieldId } = useParams(); // รับ ID สนามจาก route
+
+  // state ของฟอร์ม
   const [mode, setMode] = useState("บุฟเฟ่ต์");
+  const [date, setDate] = useState(
+    () => new Date().toISOString().split("T")[0]
+  );
   const [time, setTime] = useState("");
   const [hours, setHours] = useState("");
   const [price, setPrice] = useState("");
@@ -18,22 +24,62 @@ const CreateParty = () => {
   const [playername, setPlayername] = useState("");
   const [detail, setDetail] = useState("");
   const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0]; // ดึงไฟล์แรก
-    if (file) setImage(file); // เก็บลง state
-  };
-  const handleCreate = () => {
-    console.log("เวลา:", time);
-    console.log("จำนวนชั่วโมง:", hours);
-    console.log("ราคา:", price);
-    console.log("ชื่อรายทีม:", partyname);
-    console.log("ชื่อผู้เล่น:", playername);
-    console.log("รายละเอียด:", detail);
+  const handleCreate = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return alert("กรุณาเข้าสู่ระบบก่อนสร้างปาร์ตี้");
 
-    alert(
-      `สร้างรายการ:\nเวลา: ${time}\nชั่วโมง: ${hours}\nราคา: ${price} บาท\nชื่อรายทีม: ${partyname}\nชื่อผู้เล่น: ${playername}\nรายละเอียด: ${detail}`
-    );
+      if (!partyname || !time || !hours || !price || !date)
+        return alert("กรุณากรอกข้อมูลให้ครบ");
+
+      const startIso = new Date(`${date}T${time}:00`);
+      if (isNaN(startIso.getTime()))
+        return alert("รูปแบบวันที่/เวลาไม่ถูกต้อง");
+
+      const endIso = new Date(
+        startIso.getTime() + Number(hours) * 60 * 60 * 1000
+      );
+
+      const formData = new FormData();
+      formData.append("party_name", partyname);
+      formData.append("mode", mode === "ล็อคตำแหน่ง" ? "fixed" : "buffet");
+      formData.append("description", detail || "");
+      formData.append("start_datetime", startIso.toISOString());
+      formData.append("end_datetime", endIso.toISOString());
+      formData.append("price", Number(price));
+      formData.append("position", "FW");
+      formData.append(
+        "required_positions",
+        JSON.stringify([
+          { position: "GK", amount: 2 },
+          { position: "FW", amount: 1 },
+          { position: "DF", amount: 2 },
+          { position: "MF", amount: 2 },
+        ])
+      );
+      if (image) formData.append("image", image, image.name);
+
+      setLoading(true);
+      const url = `http://localhost:3000/api/create-post/${fieldId}`;
+      const response = await axios.post(url, formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLoading(false);
+
+      if (response?.data?.status === "success" || response.status === 200) {
+        alert("✅ สร้างปาร์ตี้สำเร็จ!");
+        navigate("/team");
+      } else {
+        alert(
+          "❌ เกิดข้อผิดพลาด: " + (response?.data?.message || "ไม่ทราบสาเหตุ")
+        );
+      }
+    } catch (err) {
+      setLoading(false);
+      alert("เกิดข้อผิดพลาด: " + (err?.response?.data?.message || err.message));
+    }
   };
 
   return (
@@ -41,7 +87,6 @@ const CreateParty = () => {
       <div className="flex flex-col items-center pb-20">
         {/* HEADER */}
         <div className="relative w-[24.5rem] h-[10rem]">
-          {/* ปุ่มย้อนกลับ */}
           <button
             onClick={() => navigate("/team")}
             className="absolute top-4 left-4 bg-white p-2 rounded-full shadow hover:bg-gray-100 transition"
@@ -49,7 +94,6 @@ const CreateParty = () => {
             <FaArrowLeft className="text-green-600 text-lg" />
           </button>
 
-          {/* กล่องค้นหา */}
           <div className="absolute top-5 left-36 z-10">
             <form className="flex items-center bg-white rounded-full shadow-sm px-3 py-2 w-[200px]">
               <button type="button" className="text-gray-400">
@@ -86,11 +130,10 @@ const CreateParty = () => {
 
         {/* BODY */}
         <div className="relative bg-[#F2F2F7] rounded-t-2xl w-[24.5rem] h-[100.5rem] p-5 overflow-y-auto absolute bottom-10">
-          {/* ชื่อสนาม */}
           <h2 className="text-black font-bold text-xl mb-2">สนามฟุตบอล</h2>
           <p className="text-gray-600 mb-3 text-sm">สนามไรมง</p>
 
-          {/* โหมด */}
+          {/* โหมด + วันที่ */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-700">
@@ -105,230 +148,112 @@ const CreateParty = () => {
                 <option value="ล็อคตำแหน่ง">ล็อคตำแหน่ง</option>
               </select>
             </div>
-
             <input
               type="date"
               className="bg-green-100 text-green-700 rounded-lg px-3 py-1 text-sm font-semibold"
-              defaultValue="2025-10-22"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
             />
           </div>
 
-          {/* ปุ่มค้นหา / สร้าง */}
           <div className="flex justify-between mb-4">
             <button
-              onClick={() => navigate("/Findandcreate")}
+              onClick={() => navigate(`/findandcreate/${fieldId}`)}
               className="border border-green-500 text-green-600 px-4 py-2 rounded-full text-sm font-semibold hover:bg-green-100"
             >
               ค้นหาปาร์ตี้
             </button>
-            <button className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow hover:bg-green-600">
-              สร้างปาร์ตี้
+
+            <button
+              onClick={handleCreate}
+              className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow hover:bg-green-600"
+            >
+              {loading ? "กำลังสร้าง..." : "สร้างปาร์ตี้"}
             </button>
           </div>
 
-          {/* สร้างปาร์ตี้ */}
-          <div>
-            <h1 className="text-2xl p-2 ">โหมด</h1>
+          {/* ส่วนฟอร์มเหมือนเดิมเป๊ะ */}
+          {/* เวลา / ชั่วโมง / ราคา / ชื่อปาร์ตี้ / จำนวนผู้เล่น */}
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="border border-gray-300 p-2 rounded-lg w-86 h-10 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 mb-2"
+            placeholder="เวลา"
+          />
+
+          <div className="flex flew-row gap-3 mb-2">
+            <input
+              type="number"
+              value={hours}
+              onChange={(e) => setHours(e.target.value)}
+              className="bg-white border border-gray-300 rounded-lg p-1 pl-2 rounded w-38 h-10 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+              placeholder="ชั่วโมง"
+            />
+            <input
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="bg-white border border-gray-300 rounded-lg p-1 pl-2 rounded w-43 h-10 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+              placeholder="ราคา"
+            />
           </div>
 
-          <div className="flex justify-center gap-4">
-            <div
-              o
-              className="bg-green-100 border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col "
+          <div className="flex flew-row gap-3 mb-2">
+            <input
+              type="text"
+              value={partyname}
+              onChange={(e) => setPartyname(e.target.value)}
+              className="bg-white border border-gray-300 rounded-lg p-1 pl-2 rounded w-38 h-10 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+              placeholder="ชื่อปาร์ตี้"
+            />
+            <input
+              type="number"
+              value={playername}
+              onChange={(e) => setPlayername(e.target.value)}
+              className="bg-white border border-gray-300 rounded-lg p-1 pl-2 rounded w-43 h-10 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+              placeholder="จำนวนผู้เล่น"
+            />
+          </div>
+
+          {/* รายละเอียด */}
+          <textarea
+            value={detail}
+            onChange={(e) => setDetail(e.target.value)}
+            maxLength={200}
+            className="border border-gray-300 p-2 rounded-lg w-86 h-30 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 resize-none mb-2"
+            placeholder="รายละเอียด (ไม่เกิน 200 ตัวอักษร)"
+          />
+
+          {/* รูปภาพ */}
+          <div className="flex flex-col mb-4">
+            <label
+              htmlFor="fileInput"
+              className="bg-white text-green-500 border-green-500 border border-gray-300 rounded-lg p-2 w-43 h-10 text-sm text-gray-400 flex items-center cursor-pointer hover:bg-gray-100"
             >
+              {image ? image.name : "เลือกรูปภาพ"}
+            </label>
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImage(e.target.files[0])}
+              className="hidden"
+            />
+            {image && (
               <img
-                src={Buffetpic}
-                alt=""
-                className="max-w-full max-h-3/4 object-contain"
+                src={URL.createObjectURL(image)}
+                alt="preview"
+                className="h-32 mt-2 rounded"
               />
-              <p className="mt-1 text-center">บุฟเฟ่ต์</p>
-            </div>
-
-            <div>
-              <div
-               onClick={() => navigate("/create-party2")}
-              className="bg-white border border-gray-500 rounded-lg p-1 w-42 h-43 flex flex-col items-center justify-center flex flex-col ">
-                
-                <img
-                  src={LP}
-                  alt=""
-                  className="w-78 max-h-3/4 object-contain absolute mb-4"
-                />
-                <p className="mt-24 text-center">ล็อคตำแหน่ง</p>
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* รายการ */}
-
-          <div className="p-2">
-            <h1 className="l pt-2 pr-2 pb-2 ">เวลา</h1>
-            <div className="w-full h-10">
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="border border-gray-300 p-2 rounded-lg w-86 h-10 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                placeholder="เวลา"
-              />
-            </div>
-
-            <div className="">
-              <div className="flex flew-row gap-17">
-                <h1 className=" pt-2 pr-2 pb-2">จํานวนชั่วโมง</h1>
-                <h1 className=" p-2 ">ราคา (บาท/คน)</h1>
-              </div>
-            </div>
-            <div className="flex flew-row gap-3">
-              <input
-                type="number"
-                value={hours}
-                onChange={(e) => setHours(e.target.value)}
-                className="bg-white border border-gray-300 rounded-lg p-1 pl-2 rounded w-38 h-10 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                placeholder="ชั่วโมง"
-              />
-
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="bg-white border border-gray-300 rounded-lg p-1  pl-2 rounded w-43 h-10 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                placeholder="ราคา"
-              />
-            </div>
-
-            <div>
-              <div className="">
-                <div className="flex flew-row gap-25">
-                  <h1 className=" pt-2 pr-2 pb-2">ชื่อปาร์ตี้</h1>
-                  <h1 className=" p-2 ">จำนวนผู้เล่น</h1>
-                </div>
-              </div>
-              <div className="flex flew-row gap-3">
-                <input
-                  type="text"
-                  value={partyname}
-                  onChange={(e) => setPartyname(e.target.value)}
-                  className="bg-white border border-gray-300 rounded-lg p-1  pl-2 rounded w-38 h-10 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                  placeholder="ชื่อปาร์ตี้"
-                />
-
-                <input
-                  type="number"
-                  value={playername}
-                  onChange={(e) => setPlayername(e.target.value)}
-                  className="bg-white border border-gray-300 rounded-lg p-1  pl-2 rounded w-43 h-10 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                  placeholder="จำนวนผู้เล่น"
-                />
-              </div>
-            </div>
-            <div>
-              <h1 className=" pt-2 pr-2 pb-2">รายละเอียด</h1>
-            </div>
-            <div>
-              <textarea
-                value={detail}
-                onChange={(e) => setDetail(e.target.value)}
-                maxLength={200} // จำกัดไม่เกิน 200 ตัวอักษร
-                className="border border-gray-300 p-2 rounded-lg w-86 h-30 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 resize-none"
-                placeholder="รายละเอียด (ไม่เกิน 200 ตัวอักษร)"
-              />
-            </div>
-            <div>
-              <h1 className=" pt-2 pr-2 pb-2">รูปภาพปก</h1>
-            </div>
-            <div>
-              <div className="flex flex-col">
-                <label
-                  htmlFor="fileInput"
-                  className="bg-white text-green-500 border-green-500 border border-gray-300 rounded-lg p-2 w-43 h-10 text-sm text-gray-400 flex items-center cursor-pointer hover:bg-gray-100"
-                >
-                  {image ? image.name : "เลือกรูปภาพ"} {/* แสดงชื่อไฟล์ถ้ามี */}
-                </label>
-
-                <input
-                  id="fileInput"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImage(e.target.files[0])}
-                  className="hidden" // ซ่อน input จริง
-                />
-
-                {/* preview รูป */}
-                {image && (
-                  <img
-                    src={URL.createObjectURL(image)}
-                    alt="preview"
-                    className="h-32 mt-2 rounded"
-                  />
-                )}
-              </div>
-            </div>
-            <div>
-              <h1 className=" pt-3 pr-2 pb-2">รูปเเบบการเก็บเงิน</h1>
-            </div>
-            <div className="flex flew-row gap-3">
-              <button className="active:bg-green-100 active:text-green-600 bg-white text-green-500 border-green-500 border border-gray-300 rounded-lg p-4 w-20 text-center h-10 text-sm text-gray-400 flex items-center cursor-pointer hover:bg-gray-100">
-                บุฟเฟ่ต์
-              </button>
-              <button className="active:bg-green-100 active:text-green-600 bg-white text-green-500 border-green-500 border border-gray-300 rounded-lg p-4 w-20 text-center h-10 text-sm text-gray-400 flex items-center cursor-pointer hover:bg-gray-100">
-                หารเท่า
-              </button>
-            </div>
-
-            <div className="pt-10">
-              <button
-                onClick={handleCreate}
-                className="bg-green-500 text-white text-xl border-green-500 border rounded-lg p-4 w-86 h-10 flex items-center justify-center cursor-pointer hover:bg-green-600 active:scale-95 transition"
-              >
-                สร้าง
-              </button>
-            </div>
-          </div>
+          <BottomNav />
         </div>
-        <BottomNav />
       </div>
     </div>
   );
 };
 
 export default CreateParty;
-
-{
-  /* <div>
-                    <div className="">
-      <h2 className="text-xl font-bold text-center">สร้างรายการ</h2>
-
-      <input
-        type="time"
-        value={time}
-        onChange={(e) => setTime(e.target.value)}
-        className="border p-2 w-full rounded"
-        placeholder="เวลา"
-      />
-
-      <input
-        type="number"
-        value={hours}
-        onChange={(e) => setHours(e.target.value)}
-        className="border p-2 w-full rounded"
-        placeholder="จำนวนชั่วโมง"
-      />
-
-      <input
-        type="number"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        className="border p-2 w-full rounded"
-        placeholder="ราคา"
-      />
-
-      <button
-        onClick={handleCreate}
-        className="bg-blue-500 text-white w-full p-2 rounded hover:bg-blue-600 transition"
-      >
-        สร้าง
-      </button>
-    </div>
-           </div> */
-}
