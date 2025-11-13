@@ -143,11 +143,15 @@ export default function FindCreateParty() {
                 <div className="flex">
                   {/* ✅ รูปจาก Database */}
                   <img
-                    src={`http://localhost:3000/${field.image.replace(
-                      /\\/g,
-                      "/"
-                    )}`}
-                    alt={field.field_name}
+                    src={
+                      field?.image
+                        ? `http://172.20.10.4:3000/${field.image.replace(
+                            /\\/g,
+                            "/"
+                          )}`
+                        : "/default-field.jpg" // ✅ ถ้าไม่มีรูป ใช้ default
+                    }
+                    alt={field?.field_name || "สนาม"}
                     className="w-[120px] h-[100px] object-cover rounded-xl"
                   />
 
