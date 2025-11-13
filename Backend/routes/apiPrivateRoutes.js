@@ -264,11 +264,12 @@ router.put(
   "/update-fields/:id",
   authenticateToken,
   authorizeOwner,
+  upload.single("image"), // ✅ เพิ่มบรรทัดนี้
   async (req, res) => {
     try {
       const fieldId = req.params.id;
-      const fieldData = req.body;
 
+      // ดึงข้อมูลเดิมจากฐานข้อมูล
       const existingField = await getFieldbyID(fieldId);
       if (!existingField.success || !existingField.data) {
         return res.status(404).json({
@@ -277,6 +278,7 @@ router.put(
         });
       }
 
+      // ตรวจสอบสิทธิ์เจ้าของสนาม
       if (existingField.data.owner_id.toString() !== req.user._id) {
         return res.status(403).json({
           status: "error",
@@ -284,7 +286,18 @@ router.put(
         });
       }
 
+      // ✅ เตรียมข้อมูลที่จะอัปเดต
+      const fieldData = {
+        ...req.body,
+      };
+
+      // ✅ ถ้ามีการอัปโหลดรูปใหม่ ให้แทนที่รูปเดิม
+      if (req.file) {
+        fieldData.image = req.file.path;
+      }
+
       const result = await updateField(fieldId, fieldData);
+
       if (result.success) {
         return res.status(200).json({
           status: "success",

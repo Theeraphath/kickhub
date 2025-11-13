@@ -15,8 +15,8 @@ import Reserve from "./components/reserve";
 import Promptpay from "./components/prompypay";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignUp from "./components/SignUp";
-// import FindCreateParty from "./components/FindCreateParty";
-// import FindandCreate from "./components/FindandCreate";
+import FindCreateParty from "./components/FindCreateParty";
+import FindandCreate from "./components/FindandCreate";
 import Notifications from "./components/Notification";
 import Partybuffet from "./components/Partybuffet";
 import PartyRole from "./components/Partyrole";
@@ -55,8 +55,8 @@ function AppRoutes() {
         <Route path="/signUp" element={<SignUp />} />
         <Route path="/partybuffet/:id" element={<Partybuffet />} />
         <Route path="/partyrole/:id" element={<PartyRole />} />
-        {/* <Route path="/FindCreateParty" element={<FindCreateParty />} /> */}
-        {/* <Route path="/Findandcreate" element={<FindandCreate />} /> */}
+        <Route path="/FindCreateParty" element={<FindCreateParty />} />
+        <Route path="/Findandcreate" element={<FindandCreate />} />
         <Route path="/test/:id" element={<Test2 />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/historybuffet/:id" element={<Partybuffet />} />
