@@ -4,8 +4,8 @@ import { FaSearch } from "react-icons/fa";
 
 export default function TimeSelector({ onSubmit }) {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [startTime, setStartTime] = useState("08:00");
-  const [endTime, setEndTime] = useState("10:00");
+  const [startTime, setStartTime] = useState("15:00");
+  const [endTime, setEndTime] = useState("16:00");
 
   const handleSubmit = () => {
     if (!date || !startTime || !endTime) return;

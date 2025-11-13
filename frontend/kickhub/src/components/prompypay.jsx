@@ -75,9 +75,9 @@ export default function Promptpay() {
 
       <div className="bg-gray-200 p-4 w-full grid grid-cols-2 justify-between">
         <p>เลขที่อ้างอิง</p>
-        <p className="place-self-end">{item?.data._id}</p>
+        <p className="place-self-end">{item?.data?._id}</p>
         <p>จำนวนเงินที่ต้องชำระ</p>
-        <p className="place-self-end">{item?.data.payment_amount}</p>
+        <p className="place-self-end">{item?.data?.payment_amount}</p>
       </div>
 
       <div className="flex flex-col items-center w-68">
@@ -92,9 +92,9 @@ export default function Promptpay() {
 
       <div className="flex flex-col items-center">
         <p>หมายเลขพร้อมเพย์</p>
-        <p className="font-bold">{item?.data.mobile_number}</p>
-        <p>{item?.data.payment_amount} บาท</p>
-        <p>{item?.data.field_name}</p>
+        <p className="font-bold">{item?.data?.mobile_number}</p>
+        <p>{item?.data?.payment_amount} บาท</p>
+        <p>{item?.data?.field_name}</p>
       </div>
 
       <div className="flex flex-col items-center w-40">

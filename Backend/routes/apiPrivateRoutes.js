@@ -293,7 +293,7 @@ router.put(
 
       // ✅ ถ้ามีการอัปโหลดรูปใหม่ ให้แทนที่รูปเดิม
       if (req.file) {
-        fieldData.image = req.file.path;
+        fieldData.image = req.file?.path;
       }
 
       const result = await updateField(fieldId, fieldData);
@@ -322,7 +322,7 @@ router.put(
 );
 
 router.delete(
-  "/delete-fields",
+  "/delete-fields/:id",
   authenticateToken,
   authorizeOwner,
   async (req, res) => {

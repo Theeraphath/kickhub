@@ -52,6 +52,22 @@ export default function FindCreateParty() {
     }
   };
 
+  const getFacilitiesList = (facilities) => {
+    if (!facilities || typeof facilities !== "object") return [];
+
+    const labels = {
+      lights: "ไฟส่องสว่าง",
+      parking: "ที่จอดรถ",
+      restroom: "ห้องน้ำ",
+      shop: "ร้านค้า",
+      wifi: "Wi-Fi ฟรี",
+    };
+
+    return Object.keys(facilities)
+      .filter((key) => facilities[key]) // ✅ เฉพาะที่เป็น true
+      .map((key) => labels[key] || key); // ✅ แปลงเป็นชื่อไทย
+  };
+
   const handleSearch = ({ start_datetime, end_datetime }) => {
     if (!start_datetime || !end_datetime) return;
     setSelectedTime({ start_datetime, end_datetime });
@@ -65,7 +81,7 @@ export default function FindCreateParty() {
   const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
 
   return (
-    <div className="flex flex-col items-center font-noto-thai min-h-screen bg-gray-50">
+    <div className="flex flex-col items-center font-noto-thai min-h-screen bg-gray-50 pb-20">
       {/* HEADER */}
       <div className="relative w-full max-w-md h-40">
         {/* Search bar */}
@@ -120,9 +136,6 @@ export default function FindCreateParty() {
                     <h3 className="text-lg font-bold text-gray-800">
                       {field.field_name}
                     </h3>
-                    <span className="inline-flex items-center bg-red-500 text-white px-2 py-1 rounded-full text-xs">
-                      <FaFire className="mr-1" /> ยอดนิยม
-                    </span>
                   </div>
 
                   <div className="flex items-center text-gray-500 text-sm mt-1">
@@ -136,25 +149,27 @@ export default function FindCreateParty() {
                     </span>
                     <div className="flex items-center bg-white rounded-lg px-2 py-1 text-xs text-gray-700 font-medium">
                       <FaClock className="mr-1 text-gray-600" />
-                      {field.open}
+                      {field.open} - {field.close}
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {field.features?.length > 0 ? (
-                      field.features.map((feature, i) => (
-                        <span
-                          key={i}
-                          className="bg-blue-500 text-white text-xs px-2 py-1 rounded-md"
-                        >
-                          {feature}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {getFacilitiesList(field.facilities).length > 0 ? (
+                        getFacilitiesList(field.facilities).map((item, i) => (
+                          <span
+                            key={i}
+                            className="bg-blue-500 text-white text-xs px-2 py-1 rounded-md"
+                          >
+                            {item}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 text-xs">
+                          ไม่มีข้อมูลเพิ่มเติม
                         </span>
-                      ))
-                    ) : (
-                      <span className="text-gray-400 text-xs">
-                        ไม่มีข้อมูลเพิ่มเติม
-                      </span>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -202,7 +217,7 @@ export default function FindCreateParty() {
                   }}
                   className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded-md text-sm font-medium transition"
                 >
-                  ดูรายละเอียด →
+                  จองเลย →
                 </button>
               </div>
             </div>
