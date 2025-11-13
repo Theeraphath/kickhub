@@ -8,33 +8,61 @@ export default function FindCreateParty() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [fields, setFields] = useState([]);
-  const [loading, setLoading] = useState(true); // ✅ เพิ่ม state โหลดข้อมูล
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  // ✅ ดึงข้อมูลสนามจาก backend
   useEffect(() => {
     const fetchFields = async () => {
       try {
         const token = localStorage.getItem("token");
+
+        if (!token) {
+          setErrorMsg("กรุณาเข้าสู่ระบบก่อนใช้งาน");
+          setLoading(false);
+          return;
+        }
+
         const res = await axios.get("http://localhost:3000/api/fields", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setFields(res.data); // ✅ ตั้งค่าจาก backend
+
+        // ✅ แปลง facilities จาก string → object
+        const fieldsData = (res.data.data || []).map((field) => ({
+          ...field,
+          facilities:
+            typeof field.facilities === "string"
+              ? JSON.parse(field.facilities)
+              : field.facilities,
+        }));
+
+        setFields(fieldsData);
+        setErrorMsg("");
       } catch (error) {
-        console.error("เกิดข้อผิดพลาดในการโหลดสนาม:", error);
+        console.error("Error fetching fields:", error);
+
+        if (error.response?.status === 403) {
+          setErrorMsg("สิทธิ์การเข้าถึงไม่ถูกต้อง หรือ Token หมดอายุ");
+        } else if (error.response?.status === 401) {
+          setErrorMsg("กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
+        } else {
+          setErrorMsg("เกิดข้อผิดพลาดในการดึงข้อมูล");
+        }
+
+        setFields([]);
       } finally {
-        setLoading(false); // ✅ หยุดโหลดไม่ว่า success หรือ fail
+        setLoading(false);
       }
     };
 
-    fetchFields(); // ✅ ต้องเรียกฟังก์ชัน
+    fetchFields();
   }, []);
 
-  // ✅ ฟิลเตอร์ค้นหา
+  // ✅ ฟังก์ชันกรองสนามตามชื่อ
   const filteredFields = fields.filter((field) =>
     field.field_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ✅ ฟังก์ชันแปลง facilities object → array ภาษาไทย
+  // ✅ ฟังก์ชันแปลงสิ่งอำนวยความสะดวก
   const getFacilitiesList = (facilities) => {
     if (!facilities || typeof facilities !== "object") return [];
     const facilityNames = {
@@ -96,9 +124,11 @@ export default function FindCreateParty() {
           ค้นหาปาร์ตี้ / สร้างปาร์ตี้
         </h2>
 
-        {/* ✅ แสดงสถานะโหลด */}
+        {/* ✅ Loading / Error / Empty state */}
         {loading ? (
           <p className="text-center text-gray-500 mt-10">กำลังโหลดข้อมูล...</p>
+        ) : errorMsg ? (
+          <p className="text-center text-red-500 mt-10">{errorMsg}</p>
         ) : filteredFields.length === 0 ? (
           <p className="text-center text-gray-500 mt-10">
             ไม่พบสนามที่ตรงกับคำค้นหา
@@ -111,12 +141,17 @@ export default function FindCreateParty() {
                 className="bg-white shadow-md rounded-2xl p-4 flex flex-col"
               >
                 <div className="flex">
+                  {/* ✅ รูปจาก Database */}
                   <img
-                    src={field.image}
+                    src={`http://localhost:3000/${field.image.replace(
+                      /\\/g,
+                      "/"
+                    )}`}
                     alt={field.field_name}
                     className="w-[120px] h-[100px] object-cover rounded-xl"
                   />
 
+                  {/* รายละเอียดสนาม */}
                   <div className="ml-4 flex flex-col justify-between flex-1 overflow-hidden">
                     <div>
                       <h3 className="text-lg font-bold text-gray-800 truncate">
@@ -141,37 +176,49 @@ export default function FindCreateParty() {
                           {field.price} บาท/ชม.
                         </p>
 
-                        {/* กล่องเวลา ปรับขนาดเล็กลง */}
-                        <div className="flex items-center justify-center bg-gray-100 shadow-sm rounded-md px-1.5 py-[1px] text-[10px] font-semibold text-gray-700 shrink-0 w-auto max-w-fit">
-                          <FaClock className="mr-1 text-gray-500 text-[9px]" />
-                          <span className="whitespace-nowrap">
+                        {/* กล่องเวลา ปรับขนาดให้เล็กสุดพอดี */}
+                        <div className="flex items-center justify-center bg-gray-100 shadow-sm rounded-md px-[5px] py-[0.5px] text-[9.5px] font-semibold text-gray-700 shrink-0 w-auto max-w-fit">
+                          <FaClock className="mr-1 text-gray-500 text-[8px]" />
+                          <span className="whitespace-nowrap leading-none tracking-[0.1px]">
                             {field.open} - {field.close}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex flex-row flex-wrap gap-1 overflow-hidden pt-2">
-                        {field.features.map((feature, i) => (
-                          <span
-                            key={i}
-                            className="bg-blue-500 text-white font-medium px-1 py-1 rounded-md text-xs transition"
-                          >
-                            {feature}
-                          </span>
-                        ))}
+                      {/* Facilities */}
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        {(getFacilitiesList(field.facilities) || [])
+                          // ✅ เรียงลำดับที่ต้องการ
+                          .sort((a, b) => {
+                            const order = [
+                              "ห้องน้ำ",
+                              "ที่จอดรถ",
+                              "ร้านค้า",
+                              "Wi-Fi ฟรี",
+                            ];
+                            return order.indexOf(a) - order.indexOf(b);
+                          })
+                          .map((fac, i) => (
+                            <span
+                              key={i}
+                              className="bg-blue-500 text-white font-medium px-2 py-[2px] rounded-md text-[11px] whitespace-nowrap"
+                            >
+                              {fac}
+                            </span>
+                          ))}
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* ปุ่มดูรายละเอียด */}
-                  <div className="flex justify-end px-4 py-3">
-                    <button
-                      onClick={() => navigate(`/findandcreate/${field._id}`)}
-                      className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-full text-sm transition"
-                    >
-                      ดูรายละเอียด →
-                    </button>
-                  </div>
+                {/* ปุ่มดูรายละเอียด */}
+                <div className="flex justify-end px-4 py-3">
+                  <button
+                    onClick={() => navigate(`/findandcreate/${field._id}`)}
+                    className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-full text-sm transition"
+                  >
+                    ดูรายละเอียด →
+                  </button>
                 </div>
               </div>
             ))}
