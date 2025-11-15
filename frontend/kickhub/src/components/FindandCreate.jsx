@@ -1,4 +1,7 @@
-// src/components/FindandCreate.jsx
+// ========================================
+//   FindandCreate.jsx — FIXED FULL VERSION
+// ========================================
+
 import React, { useEffect, useState, useRef } from "react";
 import { FaClock, FaArrowLeft, FaMapMarkerAlt } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,8 +11,7 @@ import findparty from "../../public/party2.png";
 import teamImg from "../../public/team.png";
 import BottomNav from "./Navbar";
 
-const API = "http://localhost:3000";
-
+const API = "http://172.20.10.4:3000";
 
 export default function FindandCreate() {
   const navigate = useNavigate();
@@ -23,51 +25,57 @@ export default function FindandCreate() {
   const [teams, setTeams] = useState([]);
   const [fieldData, setFieldData] = useState(null);
   const [showModeDropdown, setShowModeDropdown] = useState(false);
-  const [activeButton, setActiveButton] = useState("search");
 
   const dropdownRef = useRef(null);
 
-  // ----------------------- โหลดข้อมูลสนาม -----------------------
+  // ============================
+  // LOAD FIELD
+  // ============================
   useEffect(() => {
     if (!fieldId) return;
 
     const loadField = async () => {
       try {
         const token = localStorage.getItem("token");
+
         const res = await axios.get(`${API}/api/fields/${fieldId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
+
         setFieldData(res.data?.data || null);
       } catch (err) {
-        console.error("load field error:", err);
+        console.error("Load field error:", err);
       }
     };
     loadField();
   }, [fieldId]);
 
-  // ----------------------- โหลดข้อมูลปาร์ตี้ -----------------------
+  // ============================
+  // LOAD POSTS
+  // ============================
   useEffect(() => {
-    if (!fieldId || !selectedDate) return;
+    if (!fieldId) return;
 
-    const loadPosts = async () => {
+    const loadTeams = async () => {
       try {
         const token = localStorage.getItem("token");
+
         const res = await axios.get(
           `${API}/api/posts-field/${fieldId}?date=${selectedDate}`,
-          {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          }
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
         );
+
         setTeams(res.data?.data || []);
       } catch (err) {
-        console.error("load posts error:", err);
-        setTeams([]);
+        console.error("Load posts error:", err);
       }
     };
-    loadPosts();
+    loadTeams();
   }, [fieldId, selectedDate]);
 
-  // close dropdown
+  // ============================
+  // CLOSE MODE DROPDOWN
+  // ============================
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -78,36 +86,99 @@ export default function FindandCreate() {
     return () => document.removeEventListener("click", handler);
   }, []);
 
-  // ----------------------- Utility -----------------------
+  // ============================
+  // UTIL FUNCTIONS
+  // ============================
+
   const convertMode = (th) => (th === "บุฟเฟ่ต์" ? "flexible" : "fixed");
-  const dateOnly = (iso) => (iso ? iso.split("T")[0] : "");
 
-  const filteredTeams = teams.filter((team) => {
-  const matchMode = team.mode === convertMode(mode);
+  const formatFieldOpenClose = (open, close) =>
+    open && close ? `${open} - ${close}` : "";
 
-  // convert to local date (timezone +7)
-  const startLocal = new Date(team.start_datetime);
-  const endLocal = new Date(team.end_datetime);
+  const formatTimeRange = (startIso, endIso) => {
+    if (!startIso || !endIso) return "";
+    const start = new Date(startIso);
+    const end = new Date(endIso);
 
-  // Local date only (without time)
-  const startDateLocal = startLocal.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
-  const endDateLocal = endLocal.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+    const s = start.toLocaleTimeString("th-TH", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Bangkok",
+    });
 
-  const targetDate = new Date(selectedDate).toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+    const e = end.toLocaleTimeString("th-TH", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Bangkok",
+    });
 
-  // targetDate ตกในช่วงวันของปาร์ตี้ตาม timezone ไทย
-  const matchDate =
-    targetDate >= startDateLocal && targetDate <= endDateLocal;
+    return `${s} - ${e}`;
+  };
 
-  return matchMode && matchDate;
-});
+  const formatThaiDate = (iso) => {
+    if (!iso) return "";
+    return new Date(iso).toLocaleDateString("th-TH", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
 
-  // ----------------------- ดึงรูปจาก backend -----------------------
-  // backend เก็บ filename เท่านั้น → ดึงแบบ /upload/{filename}
+  // ============================
+  // PLAYER COUNT LOGIC
+  // ============================
+
+  const getCurrentPlayers = (team) => {
+    if (!team.participants) return 1;
+    return team.participants.length;
+  };
+
+  const getTotalPlayers = (team) => {
+    if (team.mode === "flexible") {
+      return (team.total_required_players || 0) + 1; // + host
+    }
+
+    if (team.mode === "fixed") {
+      const requiredPositions = team.required_positions || [];
+
+      const requiredTotal = requiredPositions.reduce(
+        (sum, p) => sum + Number(p.amount || 0),
+        0
+      );
+
+      return requiredTotal + 1; // + host
+    }
+
+    return 11;
+  };
+
+  const getMissing = (team) => {
+    const current = getCurrentPlayers(team);
+    const total = getTotalPlayers(team);
+
+    return {
+      current,
+      total,
+      missing: Math.max(total - current, 0),
+    };
+  };
+
+  // ============================
+  // IMAGE PATH
+  // ============================
   const getPostImage = (filename) =>
-  filename ? `${API}/uploads/photos/${filename}` : teamImg;
+    filename ? `${API}/uploads/photos/${filename}` : teamImg;
 
+  const getProfileImage = (filename) =>
+    filename ? `${API}/uploads/photos/${filename}` : teamImg;
 
+  const filteredTeams = teams.filter((t) => t.mode === convertMode(mode));
+
+  // ============================
+  // UI
+  // ============================
   return (
     <div className="flex flex-col items-center pb-20 font-noto-thai">
       {/* HEADER */}
@@ -123,17 +194,13 @@ export default function FindandCreate() {
       </div>
 
       {/* BODY */}
-      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
-        
-        {/* NAME */}
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4">
         <h2 className="text-black font-bold text-2xl">
           {fieldData?.field_name || "สนามฟุตบอล"}
         </h2>
 
-        {/* ADDRESS + MODE */}
-        <div className="flex items-center justify-between text-gray-600 text-sm mb-2 mt-1">
-          
-          {/* ADDRESS */}
+        {/* Address + Mode */}
+        <div className="flex items-center justify-between text-gray-600 text-sm mt-1">
           <div
             className="flex items-center cursor-pointer"
             onClick={() =>
@@ -147,21 +214,18 @@ export default function FindandCreate() {
             </span>
           </div>
 
-          {/* MODE DROPDOWN */}
-          <div className="relative" ref={dropdownRef}>
+          <div ref={dropdownRef} className="relative">
             <button
-              onClick={() => setShowModeDropdown((s) => !s)}
+              onClick={() => setShowModeDropdown(!showModeDropdown)}
               className="bg-green-100 text-green-700 border border-green-300 rounded-full px-3 py-1 text-sm font-semibold"
             >
               โหมด: {mode} ▾
             </button>
 
             {showModeDropdown && (
-              <div className="absolute right-0 mt-2 w-36 bg-white border rounded-lg shadow z-30">
+              <div className="absolute right-0 mt-2 w-36 bg-white rounded-xl shadow-lg">
                 <button
-                  className={`block w-full text-left px-3 py-2 ${
-                    mode === "บุฟเฟ่ต์" ? "bg-green-50" : "hover:bg-gray-100"
-                  }`}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100"
                   onClick={() => {
                     setMode("บุฟเฟ่ต์");
                     setShowModeDropdown(false);
@@ -169,11 +233,8 @@ export default function FindandCreate() {
                 >
                   บุฟเฟ่ต์
                 </button>
-
                 <button
-                  className={`block w-full text-left px-3 py-2 ${
-                    mode === "ล็อคตำแหน่ง" ? "bg-green-50" : "hover:bg-gray-100"
-                  }`}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100"
                   onClick={() => {
                     setMode("ล็อคตำแหน่ง");
                     setShowModeDropdown(false);
@@ -186,88 +247,119 @@ export default function FindandCreate() {
           </div>
         </div>
 
-        {/* DATE BAR */}
-        <div className="w-full bg-green-500 text-white rounded-xl px-4 py-3 flex items-center gap-3 my-4">
-          <span className="text-white text-lg">📅</span>
-
+        {/* DATE */}
+        <div className="w-full bg-green-500 text-white rounded-xl px-4 py-3 mt-4 flex items-center gap-3">
+          <span className="text-xl">📅</span>
           <input
             type="date"
+            className="bg-transparent text-white font-semibold text-sm w-full outline-none"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="bg-transparent text-white font-semibold text-sm w-full outline-none"
           />
         </div>
 
-        {/* Buttons */}
-        <div className="flex gap-3 mb-6">
-          <button
-            onClick={() => setActiveButton("search")}
-            className={`flex-1 px-4 py-2 rounded-xl text-sm font-bold border 
-              ${
-                activeButton === "search"
-                  ? "bg-green-500 text-white border-green-500"
-                  : "bg-white text-green-600 border-green-500"
-              }`}
-          >
+        {/* BUTTONS */}
+        <div className="flex gap-3 my-5">
+          <button className="flex-1 bg-green-500 text-white font-bold py-2 rounded-xl">
             ค้นหาปาร์ตี้
           </button>
 
           <button
-            onClick={() => navigate(`/create-party/${fieldId}?date=${selectedDate}`)}
-            className="flex-1 px-4 py-2 rounded-xl text-sm font-bold border bg-white text-green-600 border-green-500"
+            onClick={() =>
+              navigate(`/create-party/${fieldId}?date=${selectedDate}`)
+            }
+            className="flex-1 bg-white text-green-600 border border-green-500 font-bold py-2 rounded-xl"
           >
             สร้างปาร์ตี้
           </button>
         </div>
 
-        {/* Party List */}
+        {/* PARTY LIST */}
         {filteredTeams.length > 0 ? (
-          filteredTeams.map((team) => (
-            <div
-              key={team._id}
-              className="bg-white shadow-md rounded-2xl p-4 mb-4 cursor-pointer"
-              onClick={() => navigate(`/post-detail/${team._id}`)}
-            >
-              <div className="flex items-center gap-4 mb-2">
-                <img
-                  src={getPostImage(team.image)}
-                  className="w-[80px] h-[80px] rounded-xl object-cover"
-                />
+          filteredTeams.map((team) => {
+            const { current, total, missing } = getMissing(team);
 
-                <div className="flex-1">
-                  <h3 className="font-bold text-gray-800">{team.party_name}</h3>
-                  <p className="text-sm text-gray-500">{fieldData?.address}</p>
-                  <p className="text-xs text-green-600 font-semibold mt-1">
-                    โหมด: {team.mode === "flexible" ? "บุฟเฟ่ต์" : "ล็อคตำแหน่ง"}
-                  </p>
+            return (
+              <div
+                key={team._id}
+                className="bg-white shadow-md rounded-2xl p-4 mb-4 cursor-pointer"
+                onClick={() => navigate(`/post-detail/${team._id}`)}
+              >
+                <div className="flex items-center gap-4">
+                  <img
+                    src={getPostImage(team.image)}
+                    className="w-[80px] h-[80px] rounded-xl object-cover"
+                  />
+
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-800">
+                      {team.party_name}
+                    </h3>
+
+                    {/* Host Profile */}
+                    <div className="flex items-center gap-2 mt-1">
+                      <img
+                        src={
+                          team.host_image
+                            ? getProfileImage(team.host_image)
+                            : team.participants?.[0]?.profile_image
+                            ? getProfileImage(
+                                team.participants[0].profile_image
+                              )
+                            : teamImg
+                        }
+                        className="w-6 h-6 rounded-full object-cover border"
+                      />
+
+                      <span className="text-xs text-gray-700 font-semibold">
+                        {team.host_name || "ไม่ทราบชื่อผู้สร้าง"}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-green-600 font-semibold mt-1">
+                      โหมด:{" "}
+                      {team.mode === "flexible" ? "บุฟเฟ่ต์" : "ล็อคตำแหน่ง"} •{" "}
+                      {current}/{total}
+                    </p>
+                  </div>
+                </div>
+
+                {/* TIME + DATE + MISSING */}
+                <div className="flex justify-between items-center mt-3">
+                  <div className="flex items-center gap-2">
+                    {/* open-close */}
+                    <div className="flex items-center bg-gray-100 px-3 py-1 rounded-lg text-xs">
+                      <FaClock className="mr-1" />
+                      {formatFieldOpenClose(fieldData?.open, fieldData?.close)}
+                    </div>
+
+                    {/* time */}
+                    <div className="flex items-center bg-gray-100 px-3 py-1 rounded-lg text-xs">
+                      <FaClock className="mr-1" />
+                      {formatTimeRange(team.start_datetime, team.end_datetime)}
+                    </div>
+
+                    {/* date */}
+                    <span className="text-xs text-gray-500">
+                      {formatThaiDate(team.start_datetime)}
+                    </span>
+                  </div>
+
+                  <div
+                    className={`text-sm font-bold ${
+                      missing > 0 ? "text-red-500" : "text-green-600"
+                    }`}
+                  >
+                    {missing > 0
+                      ? `ขาดผู้เล่น ${missing} คน`
+                      : "ครบผู้เล่นแล้ว"}
+                  </div>
                 </div>
               </div>
-
-              {/* Time */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center bg-gray-100 rounded-lg px-3 py-1 text-xs">
-                  <FaClock className="mr-1 text-gray-600" />
-                  <span>
-                    {new Date(team.start_datetime).toLocaleTimeString("th-TH", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                    {" - "}
-                    {new Date(team.end_datetime).toLocaleTimeString("th-TH", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
-
-                <p className="text-sm font-semibold text-gray-600">
-                  {dateOnly(team.start_datetime)}
-                </p>
-              </div>
-            </div>
-          ))
+            );
+          })
         ) : (
-          <p className="text-gray-500 text-center font-semibold mt-5">
+          <p className="text-center text-gray-500 font-semibold mt-5">
             ไม่พบปาร์ตี้ในโหมดนี้
           </p>
         )}
