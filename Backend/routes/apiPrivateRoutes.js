@@ -48,6 +48,26 @@ router.get("/test", authenticateToken, (req, res) => {
   });
 });
 
+router.get("/user/profile", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await getUserById(userId);
+
+    return res.status(200).json({
+      status: "success",
+      data: user,
+    });
+
+  } catch (error) {
+    console.error("Error loading profile:", error);
+    return res.status(500).json({ 
+      status: "error",
+      message: "ไม่สามารถดึงข้อมูลผู้ใช้ได้" 
+    });
+  }
+});
+
+
 router.get("/user/:id", authenticateToken, async (req, res) => {
   try {
     const userId = req.params.id;
@@ -61,6 +81,37 @@ router.get("/user/:id", authenticateToken, async (req, res) => {
     return res.status(500).json({ message: "เกิดข้อผิดพลาดกับเซิร์ฟเวอร์" });
   }
 });
+
+router.get("/user/profile", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await getUserById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "ไม่พบข้อมูลผู้ใช้",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: "ดึงข้อมูลผู้ใช้สำเร็จ",
+      data: user,
+    });
+
+  } catch (err) {
+    console.error("❌ Error in /user/profile:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์",
+    });
+  }
+});
+
+
+
 
 router.put(
   "/user/update/:id",

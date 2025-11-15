@@ -14,6 +14,9 @@ export default function FindCreateParty() {
 
   const API = "http://172.20.10.4:3000";
 
+  // ===========================
+  //  LOAD FIELDS
+  // ===========================
   useEffect(() => {
     const fetchFields = async () => {
       try {
@@ -39,6 +42,7 @@ export default function FindCreateParty() {
 
         setFields(fieldsData);
         setErrorMsg("");
+
       } catch (error) {
         console.error("Error fetching fields:", error);
 
@@ -63,6 +67,9 @@ export default function FindCreateParty() {
     field.field_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // ===========================
+  //  FACILITIES CONVERT
+  // ===========================
   const getFacilitiesList = (facilities) => {
     if (!facilities || typeof facilities !== "object") return [];
     const facilityNames = {
@@ -76,17 +83,23 @@ export default function FindCreateParty() {
       .map((key) => facilityNames[key] || key);
   };
 
-  // ✅ ฟังก์ชันแก้ path รูปภาพให้ถูกต้อง
+  // ===========================
+  //  FIELD IMAGE HANDLER
+  // ===========================
   const getFieldImage = (img) => {
-    if (!img) return "/default-field.jpg";
+    if (!img) return null; // ← no image = return null (we will show “ไม่มีรูป”)
 
-    // ถ้า img เป็น "uploads/photos/xxxx.jpg" → ให้ต่อ API ตรง ๆ
-    if (img.startsWith("uploads/")) {
-      return `${API}/${img}`;
+    if (typeof img === "object") {
+      if (img.path) return `${API}/${img.path}`;
+      if (img.filename) return `${API}/uploads/photos/${img.filename}`;
     }
 
-    // ถ้า img เป็นเฉพาะชื่อไฟล์ เช่น "xxxx.jpg"
-    return `${API}/uploads/photos/${img}`;
+    if (typeof img === "string") {
+      if (img.startsWith("uploads/")) return `${API}/${img}`;
+      return `${API}/uploads/photos/${img}`;
+    }
+
+    return null;
   };
 
   return (
@@ -111,10 +124,10 @@ export default function FindCreateParty() {
                 />
               </svg>
             </button>
+
             <input
               className="flex-1 px-2 py-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400"
               placeholder="ค้นหาสนามบอล"
-              required
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -122,11 +135,7 @@ export default function FindCreateParty() {
           </form>
         </div>
 
-        <img
-          src={findparty}
-          alt="findparty"
-          className="w-full h-full object-cover"
-        />
+        <img src={findparty} className="w-full h-full object-cover" />
       </div>
 
       {/* BODY */}
@@ -145,89 +154,98 @@ export default function FindCreateParty() {
           </p>
         ) : (
           <div className="flex flex-col gap-4">
-            {filteredFields.map((field) => (
-              <div
-                key={field._id}
-                className="bg-white shadow-md rounded-2xl p-4 flex flex-col"
-              >
-                {/* FIELD CARD */}
-                <div className="flex">
-                  {/* รูปสนาม */}
-                  <img
-                    src={getFieldImage(field.image)}
-                    alt={field?.field_name || "สนาม"}
-                    className="w-[120px] h-[100px] object-cover rounded-xl"
-                  />
+            {filteredFields.map((field) => {
+              const imgUrl = getFieldImage(field.image);
 
-                  {/* DETAILS */}
-                  <div className="ml-4 flex flex-col justify-between flex-1 overflow-hidden">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-800 truncate">
-                        {field.field_name}
-                      </h3>
+              return (
+                <div
+                  key={field._id}
+                  className="bg-white shadow-md rounded-2xl p-4 flex flex-col"
+                >
+                  {/* FIELD ROW */}
+                  <div className="flex">
 
-                      <div
-                        onClick={() =>
-                          window.open(field.google_map, "_blank")
-                        }
-                        className="flex items-center mt-1 text-gray-500 text-sm cursor-pointer hover:text-green-600 truncate"
-                      >
-                        <FaMapMarkerAlt className="text-green-500 mr-1" />
-                        <span className="truncate underline">
-                          {field.address}
-                        </span>
+                    {/* FIELD IMAGE (with fallback “ไม่มีรูป”) */}
+                    {imgUrl ? (
+                      <img
+                        src={imgUrl}
+                        className="w-[120px] h-[100px] object-cover rounded-xl bg-gray-100"
+                      />
+                    ) : (
+                      <div className="w-[120px] h-[100px] rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+                        ไม่มีรูป
                       </div>
-                    </div>
+                    )}
 
-                    <div className="mt-2 overflow-hidden w-full">
-                      <div className="flex flex-row flex-nowrap items-center gap-2 w-full">
-                        <p className="text-white bg-green-500 font-semibold py-[2px] px-2 rounded-md text-[11px] shrink-0">
-                          {field.price} บาท/ชม.
-                        </p>
+                    {/* DETAILS */}
+                    <div className="ml-4 flex flex-col justify-between flex-1 overflow-hidden">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-800 truncate">
+                          {field.field_name}
+                        </h3>
 
-                        <div className="flex items-center bg-gray-100 shadow-sm rounded-md px-[5px] py-[0.5px] text-[9.5px] font-semibold text-gray-700 shrink-0 w-auto max-w-fit">
-                          <FaClock className="mr-1 text-gray-500 text-[8px]" />
-                          <span className="whitespace-nowrap leading-none">
-                            {field.open} - {field.close}
+                        <div
+                          onClick={() => window.open(field.google_map, "_blank")}
+                          className="flex items-center mt-1 text-gray-500 text-sm cursor-pointer hover:text-green-600 truncate"
+                        >
+                          <FaMapMarkerAlt className="text-green-500 mr-1" />
+                          <span className="truncate underline">
+                            {field.address}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 mt-2">
-                        {(getFacilitiesList(field.facilities) || [])
-                          .sort((a, b) => {
-                            const order = [
-                              "ห้องน้ำ",
-                              "ที่จอดรถ",
-                              "ร้านค้า",
-                              "Wi-Fi ฟรี",
-                            ];
-                            return order.indexOf(a) - order.indexOf(b);
-                          })
-                          .map((fac, i) => (
-                            <span
-                              key={i}
-                              className="bg-blue-500 text-white font-medium px-2 py-[2px] rounded-md text-[11px]"
-                            >
-                              {fac}
+                      <div className="mt-2 overflow-hidden w-full">
+                        <div className="flex flex-row flex-nowrap items-center gap-2 w-full">
+                          <p className="text-white bg-green-500 font-semibold py-[2px] px-2 rounded-md text-[11px] shrink-0">
+                            {field.price} บาท/ชม.
+                          </p>
+
+                          <div className="flex items-center bg-gray-100 shadow-sm rounded-md px-[5px] py-[0.5px] text-[9.5px] font-semibold text-gray-700">
+                            <FaClock className="mr-1 text-gray-500 text-[8px]" />
+                            <span>
+                              {field.open} - {field.close}
                             </span>
-                          ))}
+                          </div>
+                        </div>
+
+                        {/* Facilities */}
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          {getFacilitiesList(field.facilities)
+                            .sort((a, b) => {
+                              const order = [
+                                "ห้องน้ำ",
+                                "ที่จอดรถ",
+                                "ร้านค้า",
+                                "Wi-Fi ฟรี",
+                              ];
+                              return order.indexOf(a) - order.indexOf(b);
+                            })
+                            .map((fac, i) => (
+                              <span
+                                key={i}
+                                className="bg-blue-500 text-white font-medium px-2 py-[2px] rounded-md text-[11px]"
+                              >
+                                {fac}
+                              </span>
+                            ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* BUTTON */}
-                <div className="flex justify-end px-4 py-3">
-                  <button
-                    onClick={() => navigate(`/findandcreate/${field._id}`)}
-                    className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-full text-sm transition"
-                  >
-                    ดูรายละเอียด →
-                  </button>
+                  {/* BUTTON */}
+                  <div className="flex justify-end px-4 py-3">
+                    <button
+                      onClick={() => navigate(`/findandcreate/${field._id}`)}
+                      className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-full text-sm transition"
+                    >
+                      ดูรายละเอียด →
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

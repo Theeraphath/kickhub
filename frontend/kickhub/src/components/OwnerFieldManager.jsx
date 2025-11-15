@@ -26,6 +26,7 @@ export default function OwnerFieldManager() {
     promptPay: "",
     amenities: [],
     description: "",
+    // image can be File (new upload) OR string (existing filename/path)
     image: null,
   });
 
@@ -115,6 +116,7 @@ export default function OwnerFieldManager() {
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // new file chosen -> replace preview (File object)
     setFormData((prev) => ({ ...prev, image: file }));
   };
 
@@ -145,8 +147,24 @@ export default function OwnerFieldManager() {
     form.append("google_map", formData.mapLink);
     form.append("is_active", true);
     form.append("facilities", JSON.stringify(facilitiesObject));
-    if (formData.image && formData.image instanceof File) {
+
+    // IMPORTANT: if user selected new File -> send it as `image`
+    // otherwise send `old_image` so backend can keep the old filename
+    if (formData.image instanceof File) {
       form.append("image", formData.image);
+    } else if (formData.image) {
+      // existing image filename/path (string or object)
+      // we send as old_image so backend won't remove it
+      // backend should check old_image when no new file uploaded
+      if (typeof formData.image === "string") {
+        form.append("old_image", formData.image);
+      } else if (typeof formData.image === "object") {
+        // if backend stored object, try to extract filename/path
+        if (formData.image.filename)
+          form.append("old_image", formData.image.filename);
+        else if (formData.image.path)
+          form.append("old_image", formData.image.path);
+      }
     }
 
     try {
@@ -176,6 +194,7 @@ export default function OwnerFieldManager() {
     }
   };
 
+  // When user clicks edit: prefill form and keep existing image (do not set to null)
   const handleEdit = (field) => {
     let facilities = field.facilities;
     if (typeof facilities === "string") {
@@ -206,7 +225,8 @@ export default function OwnerFieldManager() {
       promptPay: field.mobile_number || "",
       amenities: amenitiesArray,
       description: field.description || "",
-      image: null,
+      // keep existing image filename/path/object so we don't lose it
+      image: field.image || null,
     });
 
     const state = {
@@ -246,9 +266,26 @@ export default function OwnerFieldManager() {
 
   const formatTime = (t) => (t ? t : "-");
 
-  const getImageUrl = (filename) =>
-  filename ? `${API_BASE}/uploads/photos/${filename}` : null;
+  // robust getImageUrl - supports:
+  // - null -> null
+  // - "filename.jpg" -> /uploads/photos/filename.jpg
+  // - "uploads/photos/xxx.jpg" -> /uploads/photos/xxx.jpg (use as-is)
+  // - { filename, path } object -> use path if available else filename
+  const getImageUrl = (img) => {
+    if (!img) return null;
 
+    if (typeof img === "object") {
+      if (img.path) return `${API_BASE}/${img.path}`;
+      if (img.filename) return `${API_BASE}/uploads/photos/${img.filename}`;
+    }
+
+    if (typeof img === "string") {
+      if (img.startsWith("uploads/")) return `${API_BASE}/${img}`;
+      return `${API_BASE}/uploads/photos/${img}`;
+    }
+
+    return null;
+  };
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-50 pb-10">
@@ -406,11 +443,28 @@ export default function OwnerFieldManager() {
               <StyledWrapper>
                 <label className="custum-file-upload relative" htmlFor="file">
                   {formData.image ? (
-                    <img
-                      src={URL.createObjectURL(formData.image)}
-                      alt="preview"
-                      className="absolute inset-0 w-full h-full object-cover rounded-lg"
-                    />
+                    // if image is File => use URL.createObjectURL
+                    // if image is string/path/object => use getImageUrl
+                    typeof formData.image === "object" &&
+                    !(formData.image instanceof File) ? (
+                      <img
+                        src={getImageUrl(formData.image)}
+                        alt="preview"
+                        className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                      />
+                    ) : formData.image instanceof File ? (
+                      <img
+                        src={URL.createObjectURL(formData.image)}
+                        alt="preview"
+                        className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <img
+                        src={getImageUrl(formData.image)}
+                        alt="preview"
+                        className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                      />
+                    )
                   ) : (
                     <div className="text-gray-500 text-center">
                       Click to upload image
@@ -605,7 +659,9 @@ export default function OwnerFieldManager() {
 
               {detailField.description && (
                 <div className="mb-3">
-                  <strong className="text-sm text-slate-700">รายละเอียด:</strong>
+                  <strong className="text-sm text-slate-700">
+                    รายละเอียด:
+                  </strong>
                   <p className="text-sm text-slate-600 mt-2 whitespace-pre-line">
                     {detailField.description}
                   </p>

@@ -6,7 +6,7 @@ const postSchema = new mongoose.Schema(
 
     mode: {
       type: String,
-      enum: ["fixed", "flexible"], // fixed = ล็อคตำแหน่ง, flexible = ไม่ล็อคตำแหน่ง
+      enum: ["fixed", "flexible"],
       required: true,
     },
 
@@ -17,7 +17,6 @@ const postSchema = new mongoose.Schema(
     },
 
     field_name: { type: String, required: true },
-
     address: { type: String, required: true },
 
     user_id: {
@@ -28,28 +27,35 @@ const postSchema = new mongoose.Schema(
 
     host_name: { type: String, required: true },
 
+    // ⭐ รูปโปรไฟล์ของ host (คนสร้างปาร์ตี้)
+    host_image: { type: String, default: null },
+
     description: { type: String },
     image: { type: String },
 
     start_datetime: { type: Date, required: true },
     end_datetime: { type: Date, required: true },
 
-    // ✅ แบบล็อคตำแหน่ง
+    // ล็อคตำแหน่ง
     required_positions: [
       {
-        position: { type: String, enum: ["GK", "FW", "DF", "MF"] }, // "GK", "FW", "DF", "MF", etc.
+        position: { type: String, enum: ["GK", "FW", "DF", "MF"] },
         amount: { type: Number, default: 0 },
       },
     ],
 
-    // ✅ แบบไม่ล็อคตำแหน่ง
-    total_required_players: { type: Number }, // เช่น 14 คนทั้งหมด
+    // บุฟเฟ่ต์
+    total_required_players: { type: Number },
 
-    // ✅ รายชื่อผู้เข้าร่วม
+    // ⭐ ผู้เข้าร่วม + รูปโปรไฟล์
     participants: [
       {
         user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         name: { type: String },
+
+        // ⭐ เพิ่มรูปโปรไฟล์ผู้เล่น
+        profile_image: { type: String, default: null },
+
         position: {
           type: String,
           enum: ["GK", "FW", "DF", "MF", null],
@@ -59,6 +65,7 @@ const postSchema = new mongoose.Schema(
         joined_at: { type: Date, default: Date.now },
       },
     ],
+
     price: { type: Number, required: true },
     google_map: { type: String, required: true },
   },
