@@ -14,6 +14,7 @@ const newPost = async (user_id, field_id, postdata) => {
       address: field.address,
       host_name: user.name,
       google_map: field.google_map,
+      image: postdata.image || null,
       ...postdata,
       participants: [
         {
@@ -80,6 +81,7 @@ const getPostUpcomingbyFieldID = async (field_id, date) => {
     return { success: false, error };
   }
 };
+
 
 const getPostbyJoinerID = async (user_id) => {
   try {

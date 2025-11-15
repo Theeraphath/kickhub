@@ -61,8 +61,8 @@ function AppRoutes() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/historybuffet/:id" element={<Partybuffet />} />
         <Route path="/historyrole/:id" element={<PartyRole />} />
-        <Route path="/create-party/" element={<CreateParty />} />
-        <Route path="/create-party2" element={<CreateParty2 />} />
+        <Route path="/create-party/:fieldId" element={<CreateParty />} />
+        <Route path="/create-party2/:fieldId" element={<CreateParty2 />} />
         <Route path="/field" element={<Field />} />
         <Route path="/countdown" element={<CountdownTimer />} />
         <Route path="/owner" element={<Owner />} />

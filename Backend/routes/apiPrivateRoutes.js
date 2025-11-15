@@ -501,35 +501,73 @@ router.put("/update-reservation/:id", authenticateToken, async (req, res) => {
   }
 });
 
-router.post("/create-post/:id", authenticateToken, async (req, res) => {
-  try {
-    const field_id = req.params.id;
-    const user_id = req.user._id;
-    const postdata = req.body;
+router.post(
+  "/create-post/:id",
+  authenticateToken,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const field_id = req.params.id;
+      const user_id = req.user._id;
 
-    const result = await newPost(user_id, field_id, postdata);
+      let postdata = {};
 
-    if (result.success) {
-      return res.status(201).json({
-        status: "success",
-        message: "สร้างโพสต์สำเร็จ",
-        data: result.data,
-        timestamp: new Date().toISOString(),
+      // -----------------------
+      // JSON MODE
+      // -----------------------
+      if (req.headers["content-type"]?.includes("application/json")) {
+        console.log("📌 JSON MODE ACTIVE");
+        postdata = req.body;
+        postdata.image = null; // JSON ไม่มีรูป
+      }
+
+      // -----------------------
+      // FORM-DATA MODE
+      // -----------------------
+      else {
+        console.log("📌 FORM-DATA MODE ACTIVE");
+        postdata = {
+          ...req.body,
+          image: req.file ? req.file.path : null,
+        };
+
+        if (postdata.required_positions) {
+          try {
+            postdata.required_positions = JSON.parse(postdata.required_positions);
+          } catch (err) {
+            console.log("❌ required_positions parse error");
+          }
+        }
+      }
+
+      // ส่งให้ newPost
+      const result = await newPost(user_id, field_id, postdata);
+
+      if (result.success) {
+        return res.status(201).json({
+          status: "success",
+          message: "สร้างโพสต์สำเร็จ",
+          data: result.data,
+        });
+      }
+
+      return res.status(400).json({
+        status: "error",
+        message: result.error?.message || "ไม่สามารถสร้างโพสต์ได้",
+      });
+
+    } catch (error) {
+      console.error("❌ create-post error:", error);
+      return res.status(500).json({
+        status: "error",
+        message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
       });
     }
-
-    return res.status(400).json({
-      status: "error",
-      message: result.error?.message || "ไม่สามารถสร้างโพสต์ได้",
-    });
-  } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการสร้างโพสต์:", error);
-    return res.status(500).json({
-      status: "error",
-      message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
-    });
   }
-});
+);
+
+
+
 
 router.get("/posts", authenticateToken, async (req, res) => {
   try {
@@ -615,14 +653,24 @@ router.get("/post/:id", authenticateToken, async (req, res) => {
 
 router.get("/posts-field/:id", authenticateToken, async (req, res) => {
   try {
-    const field = req.params.id;
-    const date = req.body.date;
-    const result = await getPostUpcomingbyFieldID(field, date);
+    const fieldId = req.params.id;
+    const date = req.query.date;
+
+    console.log("📌 GET posts-field", { fieldId, date });
+
+    if (!date) {
+      return res.status(400).json({
+        status: "error",
+        message: "กรุณาส่งวันที่ เช่น ?date=2025-11-09",
+      });
+    }
+
+    const result = await getPostUpcomingbyFieldID(fieldId, date);
 
     if (result.success) {
       return res.status(200).json({
         status: "success",
-        message: "ดึงข้อมูลโพสต์สําเร็จ",
+        message: "ดึงข้อมูลโพสต์สำเร็จ",
         data: result.data,
         count: result.data?.length || 0,
         timestamp: new Date().toISOString(),
@@ -641,6 +689,7 @@ router.get("/posts-field/:id", authenticateToken, async (req, res) => {
     });
   }
 });
+
 
 router.delete("/delete-post/:id", authenticateToken, async (req, res) => {
   try {
