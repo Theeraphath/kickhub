@@ -1,10 +1,11 @@
 // src/components/CreateParty2.jsx
+
 import React, { useState, useEffect } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 
-import defaultHeader from "../../public/party2.png";
+import findparty from "../../public/party2.png";
 import buffetImg from "../../public/buffetpic.png";
 import lockImg from "../../public/lockposition.png";
 
@@ -15,66 +16,61 @@ import DF from "../../public/กองหลัง.png";
 
 import BottomNav from "./Navbar";
 
-const API = "http://172.20.10.4:3000";
-
+import { API } from "../config";
 
 export default function CreateParty2() {
   const { fieldId } = useParams();
   const navigate = useNavigate();
   const [query] = useSearchParams();
 
-  // ------------------ STATE ------------------
+  // --------------------- STATE ---------------------
   const [fieldData, setFieldData] = useState(null);
 
-  const [mode, setMode] = useState("ล็อคตำแหน่ง");
+  const [mode] = useState("ล็อคตำแหน่ง");
   const [selectedDate, setSelectedDate] = useState(
     query.get("date") || new Date().toISOString().split("T")[0]
   );
 
   const [previewImage, setPreviewImage] = useState(null);
+  const [image, setImage] = useState(null);
 
   const [time, setTime] = useState("");
   const [hours, setHours] = useState("");
   const [price, setPrice] = useState("");
   const [partyname, setPartyname] = useState("");
-  const [playerCount, setPlayerCount] = useState("");
   const [detail, setDetail] = useState("");
-  const [image, setImage] = useState(null);
-
   const [myPosition, setMyPosition] = useState("ผู้รักษาประตู");
 
+  // required positions (เป็น string เพื่อให้ลบได้)
   const [positions, setPositions] = useState({
-    goalkeeper: 0,
-    forward: 0,
-    midfielder: 0,
-    defender: 0,
+    goalkeeper: "",
+    forward: "",
+    midfielder: "",
+    defender: "",
   });
 
   const [loading, setLoading] = useState(false);
 
-  // ------------------ LOAD FIELD DATA ------------------
+  // --------------------- โหลดข้อมูลสนาม ---------------------
   useEffect(() => {
     const loadField = async () => {
       try {
         const token = localStorage.getItem("token");
+
         const res = await axios.get(`${API}/api/fields/${fieldId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
+
         setFieldData(res.data?.data || null);
       } catch (err) {
-        console.error("โหลดข้อมูลสนามล้มเหลว:", err);
+        console.error("❌ โหลดข้อมูลสนามล้มเหลว:", err);
       }
     };
 
     if (fieldId) loadField();
   }, [fieldId]);
 
-  const getHeaderImage = () => {
-    if (!fieldData?.image) return defaultHeader;
-    return `${API}/${fieldData.image.replace(/\\/g, "/")}`;
-  };
-
-  // ------------------ IMAGE UPLOAD ------------------
+  // --------------------- Preview รูป ---------------------
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -85,14 +81,22 @@ export default function CreateParty2() {
     setPreviewImage(URL.createObjectURL(file));
   };
 
-  // ------------------ POSITION CHANGES ------------------
+  // --------------------- ป้องกันเลข 0, 00, 05 ---------------------
   const handlePositionChange = (key, value) => {
-    setPositions((prev) => ({
-      ...prev,
-      [key]: Math.max(0, Number(value) || 0),
-    }));
+    // ล้างค่า
+    if (value === "") {
+      setPositions((prev) => ({ ...prev, [key]: "" }));
+      return;
+    }
+
+    // ป้องกันตัวอักษร
+    if (!/^\d+$/.test(value)) return;
+
+    // รับค่าเป็นตัวเลขธรรมดา
+    setPositions((prev) => ({ ...prev, [key]: value }));
   };
 
+  // --------------------- แปลงตำแหน่งส่ง backend ---------------------
   const convertPositionsToRequired = () => {
     const map = {
       goalkeeper: "GK",
@@ -102,27 +106,30 @@ export default function CreateParty2() {
     };
 
     return Object.entries(positions)
-      .filter(([k, v]) => v > 0)
-      .map(([k, v]) => ({ position: map[k], amount: v }));
+      .filter(([_, v]) => v !== "" && Number(v) > 0)
+      .map(([k, v]) => ({ position: map[k], amount: Number(v) }));
   };
 
-  // ------------------ VALIDATION ------------------
+  // --------------------- Validate ---------------------
   const validate = () => {
     if (!partyname.trim()) return alert("กรุณากรอกชื่อปาร์ตี้"), false;
-    if (!time) return alert("กรุณาเลือกเวลาเริ่ม"), false;
+    if (!time) return alert("กรุณาเลือกเวลา"), false;
     if (!hours || Number(hours) <= 0)
       return alert("กรุณาระบุจำนวนชั่วโมง"), false;
     if (!price || Number(price) <= 0) return alert("กรุณาระบุราคา"), false;
 
-    if (mode === "ล็อคตำแหน่ง") {
-      const sum = Object.values(positions).reduce((a, b) => a + b, 0);
-      if (sum === 0) return alert("กรุณาระบุตำแหน่งอย่างน้อย 1 ตำแหน่ง"), false;
-    }
+    const sum =
+      Number(positions.goalkeeper || 0) +
+      Number(positions.forward || 0) +
+      Number(positions.midfielder || 0) +
+      Number(positions.defender || 0);
+
+    if (sum === 0) return alert("กรุณาเลือกตำแหน่งอย่างน้อย 1 ตำแหน่ง"), false;
 
     return true;
   };
 
-  // ------------------ CREATE PARTY (POST) ------------------
+  // --------------------- ส่งข้อมูลสร้างปาร์ตี้ ---------------------
   const handleCreate = async () => {
     try {
       if (!validate()) return;
@@ -135,6 +142,12 @@ export default function CreateParty2() {
       const start = new Date(`${selectedDate}T${time}`);
       const end = new Date(start.getTime() + Number(hours) * 3600 * 1000);
 
+      const totalPlayers =
+        Number(positions.goalkeeper || 0) +
+        Number(positions.forward || 0) +
+        Number(positions.midfielder || 0) +
+        Number(positions.defender || 0);
+
       const form = new FormData();
       form.append("party_name", partyname);
       form.append("mode", "fixed");
@@ -143,6 +156,9 @@ export default function CreateParty2() {
       form.append("price", Number(price));
       form.append("description", detail || "");
 
+      form.append("total_required_players", totalPlayers);
+
+      form.append("field_id", fieldId);
       form.append("field_name", fieldData?.field_name || "");
       form.append("address", fieldData?.address || "");
       form.append("google_map", fieldData?.google_map || "");
@@ -154,24 +170,25 @@ export default function CreateParty2() {
         JSON.stringify(convertPositionsToRequired())
       );
 
-      const res = await axios.post(`${API}/api/create-post/${fieldId}`, form, {
+      await axios.post(`${API}/api/create-post/${fieldId}`, form, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       setLoading(false);
-
       alert("สร้างปาร์ตี้สำเร็จ!");
+
       navigate(`/findandcreate/${fieldId}?date=${selectedDate}`);
     } catch (err) {
       setLoading(false);
-      console.error(err);
+      console.error("❌ ERROR:", err);
       alert("เกิดข้อผิดพลาด");
     }
   };
 
-  // ------------------ UI ------------------
+  // --------------------- UI ---------------------
   return (
     <div className="font-noto-thai flex flex-col items-center pb-24">
+
       {/* HEADER */}
       <div className="relative w-[24.5rem] h-[10rem] mb-2">
         <button
@@ -181,14 +198,13 @@ export default function CreateParty2() {
           <FaArrowLeft className="text-green-600 text-lg" />
         </button>
 
-        <img src={getHeaderImage()} className="w-full h-full object-cover" />
+        <img src={findparty} className="w-full h-full object-cover" />
       </div>
 
       {/* BODY */}
       <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4">
-        <h2 className="text-black font-bold text-2xl">
-          {fieldData?.field_name}
-        </h2>
+
+        <h2 className="text-black font-bold text-2xl">{fieldData?.field_name}</h2>
         <p className="text-gray-600 text-sm mb-2 mt-1">{fieldData?.address}</p>
 
         {/* DATE */}
@@ -202,7 +218,7 @@ export default function CreateParty2() {
           />
         </div>
 
-        {/* SEARCH + CREATE */}
+        {/* BUTTONS */}
         <div className="flex gap-3 mb-6">
           <button
             onClick={() =>
@@ -222,26 +238,23 @@ export default function CreateParty2() {
         <h2 className="font-semibold text-lg mb-2">โหมด</h2>
 
         <div className="flex gap-4 justify-center mb-6">
-          {/* บุฟเฟ่ต์ */}
           <div
-            onClick={() =>
-              navigate(`/create-party/${fieldId}?date=${selectedDate}`)
-            }
+            onClick={() => navigate(`/create-party/${fieldId}?date=${selectedDate}`)}
             className="w-40 h-40 rounded-xl p-2 cursor-pointer flex flex-col items-center justify-center border border-gray-300 bg-white"
           >
-            <img src={buffetImg} className="max-h-28" alt="buffet" />
+            <img src={buffetImg} className="max-h-28" />
             <p className="mt-1">บุฟเฟ่ต์</p>
           </div>
 
-          {/* ล็อคตำแหน่ง */}
           <div className="w-40 h-40 rounded-xl p-2 cursor-pointer flex flex-col items-center justify-center border border-green-500 bg-green-100">
-            <img src={lockImg} className="max-h-28" alt="lock mode" />
+            <img src={lockImg} className="max-h-28" />
             <p className="mt-1">ล็อคตำแหน่ง</p>
           </div>
         </div>
 
-        <p className="text-gray-700 font-semibold mb-1">เวลาเริ่มเตะหรือจอง</p>
-        <div className="border rounded-xl px-3 py-3 mb-4 bg-white flex items-center">
+        {/* TIME */}
+        <p className="text-gray-700 font-semibold mb-1">เวลาเริ่มแข่ง</p>
+        <div className="border rounded-xl px-3 py-3 mb-4 bg-white">
           <input
             type="time"
             value={time}
@@ -250,6 +263,7 @@ export default function CreateParty2() {
           />
         </div>
 
+        {/* HOURS + PRICE */}
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
             <p className="font-semibold text-gray-700">จำนวนชั่วโมง</p>
@@ -257,7 +271,7 @@ export default function CreateParty2() {
               type="number"
               value={hours}
               onChange={(e) => setHours(e.target.value)}
-              className="w-full border rounded-xl p-3 bg-white mt-1 outline-none"
+              className="w-full border rounded-xl p-3 bg-white mt-1"
               placeholder="1 ชั่วโมง"
             />
           </div>
@@ -268,8 +282,8 @@ export default function CreateParty2() {
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="w-full border rounded-xl p-3 bg-white mt-1 outline-none"
-              placeholder="เช่น 100 บาท"
+              className="w-full border rounded-xl p-3 bg-white mt-1"
+              placeholder="เช่น 100"
             />
           </div>
         </div>
@@ -284,6 +298,7 @@ export default function CreateParty2() {
           placeholder="Young Nai Party"
         />
 
+        {/* DETAIL */}
         <p className="font-semibold">รายละเอียด</p>
         <textarea
           value={detail}
@@ -297,7 +312,8 @@ export default function CreateParty2() {
         <div className="grid grid-cols-2 gap-4 my-6">
           <div>
             <p className="font-semibold">รูปภาพปก</p>
-            <label className="block border border-green-500 p-2 rounded-xl cursor-pointer text-green-600 text-center mt-1">
+
+            <label className="bg-white block border border-green-500 p-2 rounded-xl cursor-pointer text-green-600 text-center mt-1 hover:bg-green-50">
               เลือกรูปภาพ
               <input
                 type="file"
@@ -316,7 +332,7 @@ export default function CreateParty2() {
           </div>
 
           <div>
-            <p className="font-semibold">ตำแหน่งตัวเอง</p>
+            <p className="font-semibold">ตำแหน่งของคุณ</p>
             <select
               value={myPosition}
               onChange={(e) => setMyPosition(e.target.value)}
@@ -332,6 +348,7 @@ export default function CreateParty2() {
 
         {/* REQUIRED POSITIONS */}
         <h2 className="font-semibold text-lg mb-2">ตำแหน่งที่ต้องการ</h2>
+
         <div className="grid grid-cols-2 gap-4">
           <PositionBox
             title="ผู้รักษาประตู"
@@ -339,18 +356,21 @@ export default function CreateParty2() {
             value={positions.goalkeeper}
             onChange={(v) => handlePositionChange("goalkeeper", v)}
           />
+
           <PositionBox
             title="กองหน้า"
             img={FW}
             value={positions.forward}
             onChange={(v) => handlePositionChange("forward", v)}
           />
+
           <PositionBox
             title="กองกลาง"
             img={MF}
             value={positions.midfielder}
             onChange={(v) => handlePositionChange("midfielder", v)}
           />
+
           <PositionBox
             title="กองหลัง"
             img={DF}
@@ -374,7 +394,7 @@ export default function CreateParty2() {
   );
 }
 
-// POSITION BOX COMPONENT
+// --------------------- Component Box ---------------------
 function PositionBox({ title, img, value, onChange }) {
   return (
     <div className="bg-white p-4 rounded-2xl shadow-sm border flex flex-col items-center">
@@ -382,12 +402,12 @@ function PositionBox({ title, img, value, onChange }) {
       <p className="font-semibold">{title}</p>
 
       <input
-        type="number"
-        min="0"
+        type="text"
         className="border border-green-500 rounded-full text-center w-20 py-1 mt-2"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        value={value === "" ? "" : value}
+        onChange={(e) => onChange(e.target.value)}
       />
+
       <p className="text-gray-500 text-sm mt-1">คน</p>
     </div>
   );
