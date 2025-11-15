@@ -246,8 +246,9 @@ export default function OwnerFieldManager() {
 
   const formatTime = (t) => (t ? t : "-");
 
-  const getImageUrl = (imgPath) =>
-    imgPath ? `${API_BASE}/${imgPath.replace(/^\/?/, "")}` : null;
+  const getImageUrl = (filename) =>
+  filename ? `${API_BASE}/uploads/photos/${filename}` : null;
+
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-50 pb-10">

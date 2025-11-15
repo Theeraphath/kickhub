@@ -100,29 +100,34 @@ router.post(
       const fieldData = {
         ...req.body,
         owner_id: req.user._id,
-        image: req.file?.path || null,
+        // ❗ เก็บเฉพาะชื่อไฟล์เท่านั้น
+        image: req.file ? req.file.filename : null,
       };
 
       const result = await addField(fieldData);
 
       if (result.success) {
         return res.status(201).json({
+          status: "success",
           message: "เพิ่มข้อมูลสนามสำเร็จ",
           data: result.data,
         });
       }
 
       return res.status(400).json({
-        error: result.error?.message || "ไม่สามารถเพิ่มข้อมูลสนามได้",
+        status: "error",
+        message: result.error?.message || "ไม่สามารถเพิ่มข้อมูลสนามได้",
       });
     } catch (err) {
-      console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดในการเพิ่มข้อมูลสนาม:", err);
+      console.error("เกิดข้อผิดพลาดในการเพิ่มสนาม:", err);
       return res.status(500).json({
-        error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+        status: "error",
+        message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
       });
     }
   }
 );
+
 
 router.get("/fields", authenticateToken, async (req, res) => {
   try {
@@ -253,36 +258,36 @@ router.put(
   "/update-fields/:id",
   authenticateToken,
   authorizeOwner,
-  upload.single("image"), // ✅ เพิ่มบรรทัดนี้
+  upload.single("image"),
   async (req, res) => {
     try {
       const fieldId = req.params.id;
 
-      // ดึงข้อมูลเดิมจากฐานข้อมูล
+      // ดึงข้อมูลเดิม
       const existingField = await getFieldbyID(fieldId);
       if (!existingField.success || !existingField.data) {
         return res.status(404).json({
           status: "error",
-          message: "ไม่พบข้อมูลสนามที่ระบุ",
+          message: "ไม่พบข้อมูลสนาม",
         });
       }
 
-      // ตรวจสอบสิทธิ์เจ้าของสนาม
+      // ตรวจสอบสิทธิ์เจ้าของ
       if (existingField.data.owner_id.toString() !== req.user._id) {
         return res.status(403).json({
           status: "error",
-          message: "คุณไม่มีสิทธิ์แก้ไขสนามนี้",
+          message: "ไม่มีสิทธิ์แก้ไขสนามนี้",
         });
       }
 
-      // ✅ เตรียมข้อมูลที่จะอัปเดต
+      // ❗ เตรียมข้อมูลใหม่
       const fieldData = {
         ...req.body,
       };
 
-      // ✅ ถ้ามีการอัปโหลดรูปใหม่ ให้แทนที่รูปเดิม
+      // ❗ ถ้ามีรูปใหม่ → เก็บชื่อไฟล์ใหม่ (ไม่เอา path)
       if (req.file) {
-        fieldData.image = req.file.path;
+        fieldData.image = req.file.filename;
       }
 
       const result = await updateField(fieldId, fieldData);
@@ -292,7 +297,6 @@ router.put(
           status: "success",
           message: "อัปเดตข้อมูลสนามสำเร็จ",
           data: result.data,
-          timestamp: new Date().toISOString(),
         });
       }
 
@@ -309,6 +313,7 @@ router.put(
     }
   }
 );
+
 
 router.delete("/delete-fields/:id", authenticateToken, authorizeOwner, async (req, res) => {
   try {
@@ -528,9 +533,11 @@ router.post(
         console.log("📌 FORM-DATA MODE ACTIVE");
         postdata = {
           ...req.body,
-          image: req.file ? req.file.path : null,
+          // ❗ เก็บเฉพาะชื่อไฟล์ ไม่เอา path
+          image: req.file ? req.file.filename : null,
         };
 
+        // แปลง JSON string → array
         if (postdata.required_positions) {
           try {
             postdata.required_positions = JSON.parse(postdata.required_positions);
@@ -565,6 +572,7 @@ router.post(
     }
   }
 );
+
 
 
 
