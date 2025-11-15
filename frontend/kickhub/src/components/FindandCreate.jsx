@@ -8,7 +8,8 @@ import findparty from "../../public/party2.png";
 import teamImg from "../../public/team.png";
 import BottomNav from "./Navbar";
 
-const API = "http://172.20.10.4:3000";
+const API = "http://localhost:3000";
+
 
 export default function FindandCreate() {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export default function FindandCreate() {
     loadPosts();
   }, [fieldId, selectedDate]);
 
-  // close dropdown when clicking outside
+  // close dropdown
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -82,17 +83,34 @@ export default function FindandCreate() {
   const dateOnly = (iso) => (iso ? iso.split("T")[0] : "");
 
   const filteredTeams = teams.filter((team) => {
-    const matchMode = team.mode === convertMode(mode);
-    const matchDate = dateOnly(team.start_datetime) === selectedDate;
-    return matchMode && matchDate;
-  });
+  const matchMode = team.mode === convertMode(mode);
 
-  const getFieldImage = (img) =>
-    img ? `${API}/${img.replace(/\\/g, "/")}` : findparty;
+  // convert to local date (timezone +7)
+  const startLocal = new Date(team.start_datetime);
+  const endLocal = new Date(team.end_datetime);
+
+  // Local date only (without time)
+  const startDateLocal = startLocal.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+  const endDateLocal = endLocal.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+
+  const targetDate = new Date(selectedDate).toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+
+  // targetDate ตกในช่วงวันของปาร์ตี้ตาม timezone ไทย
+  const matchDate =
+    targetDate >= startDateLocal && targetDate <= endDateLocal;
+
+  return matchMode && matchDate;
+});
+
+  // ----------------------- ดึงรูปจาก backend -----------------------
+  // backend เก็บ filename เท่านั้น → ดึงแบบ /upload/{filename}
+  const getPostImage = (filename) =>
+  filename ? `${API}/uploads/photos/${filename}` : teamImg;
+
 
   return (
     <div className="flex flex-col items-center pb-20 font-noto-thai">
-      {/* HEADER image */}
+      {/* HEADER */}
       <div className="relative w-[24.5rem] h-[10rem]">
         <button
           onClick={() => navigate("/FindCreateParty")}
@@ -101,24 +119,21 @@ export default function FindandCreate() {
           <FaArrowLeft className="text-green-600 text-lg" />
         </button>
 
-        <img
-  src={findparty}
-  alt="header"
-  className="w-full h-full object-cover"
-/>
-
+        <img src={findparty} className="w-full h-full object-cover" />
       </div>
 
       {/* BODY */}
       <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
-        {/* Field Name + Google Map */}
+        
+        {/* NAME */}
         <h2 className="text-black font-bold text-2xl">
           {fieldData?.field_name || "สนามฟุตบอล"}
         </h2>
 
-        {/* ROW: address left + dropdown right */}
+        {/* ADDRESS + MODE */}
         <div className="flex items-center justify-between text-gray-600 text-sm mb-2 mt-1">
-          {/* ADDRESS (left) */}
+          
+          {/* ADDRESS */}
           <div
             className="flex items-center cursor-pointer"
             onClick={() =>
@@ -132,7 +147,7 @@ export default function FindandCreate() {
             </span>
           </div>
 
-          {/* MODE DROPDOWN (right) */}
+          {/* MODE DROPDOWN */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowModeDropdown((s) => !s)}
@@ -183,7 +198,7 @@ export default function FindandCreate() {
           />
         </div>
 
-        {/* Search + Create buttons */}
+        {/* Buttons */}
         <div className="flex gap-3 mb-6">
           <button
             onClick={() => setActiveButton("search")}
@@ -198,28 +213,24 @@ export default function FindandCreate() {
           </button>
 
           <button
-            onClick={() => navigate(`/create-party/${fieldId}`)}
-            className={`flex-1 px-4 py-2 rounded-xl text-sm font-bold border 
-              bg-white text-green-600 border-green-500`}
+            onClick={() => navigate(`/create-party/${fieldId}?date=${selectedDate}`)}
+            className="flex-1 px-4 py-2 rounded-xl text-sm font-bold border bg-white text-green-600 border-green-500"
           >
             สร้างปาร์ตี้
           </button>
         </div>
 
-        {/* Party list */}
+        {/* Party List */}
         {filteredTeams.length > 0 ? (
           filteredTeams.map((team) => (
             <div
               key={team._id}
-              className="bg-white shadow-md rounded-2xl p-4 mb-4"
+              className="bg-white shadow-md rounded-2xl p-4 mb-4 cursor-pointer"
+              onClick={() => navigate(`/post-detail/${team._id}`)}
             >
               <div className="flex items-center gap-4 mb-2">
                 <img
-                  src={
-                    team.image
-                      ? `${API}/${team.image.replace(/\\/g, "/")}`
-                      : teamImg
-                  }
+                  src={getPostImage(team.image)}
                   className="w-[80px] h-[80px] rounded-xl object-cover"
                 />
 
@@ -227,12 +238,12 @@ export default function FindandCreate() {
                   <h3 className="font-bold text-gray-800">{team.party_name}</h3>
                   <p className="text-sm text-gray-500">{fieldData?.address}</p>
                   <p className="text-xs text-green-600 font-semibold mt-1">
-                    โหมด:{" "}
-                    {team.mode === "flexible" ? "บุฟเฟ่ต์" : "ล็อคตำแหน่ง"}
+                    โหมด: {team.mode === "flexible" ? "บุฟเฟ่ต์" : "ล็อคตำแหน่ง"}
                   </p>
                 </div>
               </div>
 
+              {/* Time */}
               <div className="flex justify-between items-center">
                 <div className="flex items-center bg-gray-100 rounded-lg px-3 py-1 text-xs">
                   <FaClock className="mr-1 text-gray-600" />
