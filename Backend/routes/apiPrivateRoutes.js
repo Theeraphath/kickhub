@@ -4,7 +4,6 @@ const authenticateToken = require("../middleware/authMiddleware");
 const authorizeOwner = require("../middleware/authorizeOwner");
 const upload = require("../middleware/uploadMiddleware");
 const { MongoClient } = require("mongodb");
-const Post = require("../models/Post");
 
 const {
   getUserById,
@@ -225,25 +224,12 @@ router.get("/fields/:id", authenticateToken, async (req, res) => {
     const result = await getFieldbyID(fieldId);
 
     if (result.success) {
-      return res
-        .status(200)
-        .json({
-          status: "success",
-          message: "ดึงข้อมูลสนามสำเร็จ",
-          data: result.data,
-        });
+      return res.status(200).json({ status: "success", message: "ดึงข้อมูลสนามสำเร็จ", data: result.data });
     }
-    return res
-      .status(404)
-      .json({
-        status: "error",
-        message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ",
-      });
+    return res.status(404).json({ status: "error", message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ" });
   } catch (err) {
     console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดในการดึงข้อมูลสนามด้วย ID:", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 // fields available in time range
@@ -381,7 +367,6 @@ router.put(
 );
 
 
-
 router.delete("/delete-fields/:id", authenticateToken, authorizeOwner, async (req, res) => {
   try {
     const fieldId = req.params.id;
@@ -396,8 +381,12 @@ router.delete("/delete-fields/:id", authenticateToken, authorizeOwner, async (re
     if (result.success) {
       return res.status(200).json({ status: "success", message: "ลบข้อมูลสนามสำเร็จ", timestamp: new Date().toISOString() });
     }
+    return res.status(400).json({ status: "error", message: result.error?.message || "ไม่สามารถลบข้อมูลสนามได้" });
+  } catch (err) {
+    console.error("เกิดข้อผิดพลาดในการลบสนาม:", err);
+    return res.status(500).json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
-);
+});
 
 router.post("/new-reservation/:id", authenticateToken, async (req, res) => {
   try {
@@ -569,71 +558,51 @@ router.put("/update-reservation/:id", authenticateToken, async (req, res) => {
   }
 });
 
-router.post("/create-post/:fieldId", authenticateToken, upload.single("image"), async (req, res) => {
+router.post("/create-post/:fieldId", upload.single("image"), async (req, res) => {
   try {
-    console.log("📌 CREATE POST Called");
-    console.log("Body:", req.body);
-    console.log("File:", req.file);
-    console.log("User:", req.user);
+    const user_id = req.body.user_id;             // เพิ่ม user_id จาก frontend
+    const field_id = req.params.fieldId;
 
-      // -----------------------
-      // FORM-DATA MODE
-      // -----------------------
-      else {
-        console.log("📌 FORM-DATA MODE ACTIVE");
-        postdata = {
-          ...req.body,
-          // ❗ เก็บเฉพาะชื่อไฟล์ ไม่เอา path
-          image: req.file ? req.file.filename : null,
-        };
-
-        // แปลง JSON string → array
-        if (postdata.required_positions) {
-          try {
-            postdata.required_positions = JSON.parse(postdata.required_positions);
-          } catch (err) {
-            console.log("❌ required_positions parse error");
-          }
-        }
-      }
-
-    const filename = req.file ? req.file.filename : null;
-
-    const newPost = await Post.create({
+    const postdata = {
       party_name: req.body.party_name,
       mode: req.body.mode,
       description: req.body.description,
-
       start_datetime: req.body.start_datetime,
       end_datetime: req.body.end_datetime,
-
-      price: req.body.price,
       total_required_players: req.body.total_required_players,
-
-      field_id: req.body.field_id,
-      field_name: req.body.field_name,
-      address: req.body.address,
+      price: req.body.price,
       google_map: req.body.google_map,
+      required_positions: JSON.parse(req.body.required_positions || "[]"),
+      host_position: req.body.position,            // ⭐ ตำแหน่งคนสร้างโพสต์
+      image: req.file ? req.file.filename : null,  // ⭐ ไฟล์รูป
+    };
 
-      image: filename,
+    const result = await newPost(user_id, field_id, postdata);
 
-      // ⭐ FIX: ใช้ค่า user จริง ๆ ที่มีใน token
-      user_id: req.user._id || req.user.id,
-      host_name: req.user.username || req.user.name || "Unknown",
-    });
+    if (!result.success) {
+      return res.status(500).json({
+        status: "error",
+        message: "สร้างโพสต์ล้มเหลว",
+        error: result.error,
+      });
+    }
 
-    return res.json({
+    return res.status(200).json({
       status: "success",
-      data: newPost
+      message: "สร้างโพสต์สำเร็จ",
+      data: result.data,
     });
 
   } catch (err) {
-    console.log("❌ ERROR create-post MESSAGE:", err.message);
-    console.log("❌ ERROR STACK:", err.stack);
-    console.log("❌ ERROR OBJ:", err);
-    return res.status(500).json({ status: "error", message: err.message });
+    console.error("❌ ERROR POST:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์",
+    });
   }
 });
+
+
 
 
 
@@ -759,6 +728,7 @@ router.get("/posts-field/:id", authenticateToken, async (req, res) => {
     });
   }
 });
+
 
 router.delete("/delete-post/:id", authenticateToken, async (req, res) => {
   try {
