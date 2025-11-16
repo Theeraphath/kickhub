@@ -381,6 +381,7 @@ router.put(
 );
 
 
+
 router.delete("/delete-fields/:id", authenticateToken, authorizeOwner, async (req, res) => {
   try {
     const fieldId = req.params.id;
