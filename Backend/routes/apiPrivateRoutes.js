@@ -4,6 +4,8 @@ const authenticateToken = require("../middleware/authMiddleware");
 const authorizeOwner = require("../middleware/authorizeOwner");
 const upload = require("../middleware/uploadMiddleware");
 const { MongoClient } = require("mongodb");
+const Post = require("../models/Post");
+
 const {
   getUserById,
   updateUserProfile,
@@ -48,6 +50,26 @@ router.get("/test", authenticateToken, (req, res) => {
   });
 });
 
+router.get("/user/profile", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await getUserById(userId);
+
+    return res.status(200).json({
+      status: "success",
+      data: user,
+    });
+
+  } catch (error) {
+    console.error("Error loading profile:", error);
+    return res.status(500).json({ 
+      status: "error",
+      message: "ไม่สามารถดึงข้อมูลผู้ใช้ได้" 
+    });
+  }
+});
+
+
 router.get("/user/:id", authenticateToken, async (req, res) => {
   try {
     const userId = req.params.id;
@@ -61,6 +83,37 @@ router.get("/user/:id", authenticateToken, async (req, res) => {
     return res.status(500).json({ message: "เกิดข้อผิดพลาดกับเซิร์ฟเวอร์" });
   }
 });
+
+router.get("/user/profile", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await getUserById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "ไม่พบข้อมูลผู้ใช้",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: "ดึงข้อมูลผู้ใช้สำเร็จ",
+      data: user,
+    });
+
+  } catch (err) {
+    console.error("❌ Error in /user/profile:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์",
+    });
+  }
+});
+
+
+
 
 router.put(
   "/user/update/:id",
@@ -100,29 +153,34 @@ router.post(
       const fieldData = {
         ...req.body,
         owner_id: req.user._id,
-        image: req.file?.path || null,
+        // ❗ เก็บเฉพาะชื่อไฟล์เท่านั้น
+        image: req.file ? req.file.filename : null,
       };
 
       const result = await addField(fieldData);
 
       if (result.success) {
         return res.status(201).json({
+          status: "success",
           message: "เพิ่มข้อมูลสนามสำเร็จ",
           data: result.data,
         });
       }
 
       return res.status(400).json({
-        error: result.error?.message || "ไม่สามารถเพิ่มข้อมูลสนามได้",
+        status: "error",
+        message: result.error?.message || "ไม่สามารถเพิ่มข้อมูลสนามได้",
       });
     } catch (err) {
-      console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดในการเพิ่มข้อมูลสนาม:", err);
+      console.error("เกิดข้อผิดพลาดในการเพิ่มสนาม:", err);
       return res.status(500).json({
-        error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+        status: "error",
+        message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
       });
     }
   }
 );
+
 
 router.get("/fields", authenticateToken, async (req, res) => {
   try {
@@ -167,23 +225,25 @@ router.get("/fields/:id", authenticateToken, async (req, res) => {
     const result = await getFieldbyID(fieldId);
 
     if (result.success) {
-      return res.status(200).json({
-        status: "success",
-        message: "ดึงข้อมูลสนามสำเร็จ",
-        data: result.data,
-      });
+      return res
+        .status(200)
+        .json({
+          status: "success",
+          message: "ดึงข้อมูลสนามสำเร็จ",
+          data: result.data,
+        });
     }
-
-    return res.status(404).json({
-      status: "error",
-      message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ",
-    });
+    return res
+      .status(404)
+      .json({
+        status: "error",
+        message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ",
+      });
   } catch (err) {
     console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดในการดึงข้อมูลสนามด้วย ID:", err);
-    return res.status(500).json({
-      status: "error",
-      message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
-    });
+    return res
+      .status(500)
+      .json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 // fields available in time range
@@ -264,36 +324,36 @@ router.put(
   "/update-fields/:id",
   authenticateToken,
   authorizeOwner,
-  upload.single("image"), // ✅ เพิ่มบรรทัดนี้
+  upload.single("image"),
   async (req, res) => {
     try {
       const fieldId = req.params.id;
 
-      // ดึงข้อมูลเดิมจากฐานข้อมูล
+      // ดึงข้อมูลเดิม
       const existingField = await getFieldbyID(fieldId);
       if (!existingField.success || !existingField.data) {
         return res.status(404).json({
           status: "error",
-          message: "ไม่พบข้อมูลสนามที่ระบุ",
+          message: "ไม่พบข้อมูลสนาม",
         });
       }
 
-      // ตรวจสอบสิทธิ์เจ้าของสนาม
+      // ตรวจสอบสิทธิ์เจ้าของ
       if (existingField.data.owner_id.toString() !== req.user._id) {
         return res.status(403).json({
           status: "error",
-          message: "คุณไม่มีสิทธิ์แก้ไขสนามนี้",
+          message: "ไม่มีสิทธิ์แก้ไขสนามนี้",
         });
       }
 
-      // ✅ เตรียมข้อมูลที่จะอัปเดต
+      // ❗ เตรียมข้อมูลใหม่
       const fieldData = {
         ...req.body,
       };
 
-      // ✅ ถ้ามีการอัปโหลดรูปใหม่ ให้แทนที่รูปเดิม
+      // ❗ ถ้ามีรูปใหม่ → เก็บชื่อไฟล์ใหม่ (ไม่เอา path)
       if (req.file) {
-        fieldData.image = req.file?.path;
+        fieldData.image = req.file.filename;
       }
 
       const result = await updateField(fieldId, fieldData);
@@ -303,7 +363,6 @@ router.put(
           status: "success",
           message: "อัปเดตข้อมูลสนามสำเร็จ",
           data: result.data,
-          timestamp: new Date().toISOString(),
         });
       }
 
@@ -321,48 +380,21 @@ router.put(
   }
 );
 
-router.delete(
-  "/delete-fields/:id",
-  authenticateToken,
-  authorizeOwner,
-  async (req, res) => {
-    try {
-      const fieldId = req.params.id;
 
-      const existingField = await getFieldbyID(fieldId);
-      if (!existingField.success || !existingField.data) {
-        return res.status(404).json({
-          status: "error",
-          message: "ไม่พบข้อมูลสนามที่ต้องการลบ",
-        });
-      }
 
-      if (existingField.data.owner_id.toString() !== req.user._id) {
-        return res.status(403).json({
-          status: "error",
-          message: "คุณไม่มีสิทธิ์ลบสนามนี้ (ไม่ใช่เจ้าของ)",
-        });
-      }
-
-      const result = await deleteField(fieldId);
-      if (result.success) {
-        return res.status(200).json({
-          status: "success",
-          message: "ลบข้อมูลสนามสำเร็จ",
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      return res.status(400).json({
-        status: "error",
-        message: result.error?.message || "ไม่สามารถลบข้อมูลสนามได้",
-      });
-    } catch (err) {
-      console.error("เกิดข้อผิดพลาดในการลบสนาม:", err);
-      return res.status(500).json({
-        status: "error",
-        message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
-      });
+router.delete("/delete-fields/:id", authenticateToken, authorizeOwner, async (req, res) => {
+  try {
+    const fieldId = req.params.id;
+    const existingField = await getFieldbyID(fieldId);
+    if (!existingField.success || !existingField.data) {
+      return res.status(404).json({ status: "error", message: "ไม่พบข้อมูลสนามที่ต้องการลบ" });
+    }
+    if (existingField.data.owner_id.toString() !== req.user._id) {
+      return res.status(403).json({ status: "error", message: "คุณไม่มีสิทธิ์ลบสนามนี้ (ไม่ใช่เจ้าของ)" });
+    }
+    const result = await deleteField(fieldId);
+    if (result.success) {
+      return res.status(200).json({ status: "success", message: "ลบข้อมูลสนามสำเร็จ", timestamp: new Date().toISOString() });
     }
   }
 );
@@ -537,35 +569,75 @@ router.put("/update-reservation/:id", authenticateToken, async (req, res) => {
   }
 });
 
-router.post("/create-post/:id", authenticateToken, async (req, res) => {
+router.post("/create-post/:fieldId", authenticateToken, upload.single("image"), async (req, res) => {
   try {
-    const field_id = req.params.id;
-    const user_id = req.user._id;
-    const postdata = req.body;
+    console.log("📌 CREATE POST Called");
+    console.log("Body:", req.body);
+    console.log("File:", req.file);
+    console.log("User:", req.user);
 
-    const result = await newPost(user_id, field_id, postdata);
+      // -----------------------
+      // FORM-DATA MODE
+      // -----------------------
+      else {
+        console.log("📌 FORM-DATA MODE ACTIVE");
+        postdata = {
+          ...req.body,
+          // ❗ เก็บเฉพาะชื่อไฟล์ ไม่เอา path
+          image: req.file ? req.file.filename : null,
+        };
 
-    if (result.success) {
-      return res.status(201).json({
-        status: "success",
-        message: "สร้างโพสต์สำเร็จ",
-        data: result.data,
-        timestamp: new Date().toISOString(),
-      });
-    }
+        // แปลง JSON string → array
+        if (postdata.required_positions) {
+          try {
+            postdata.required_positions = JSON.parse(postdata.required_positions);
+          } catch (err) {
+            console.log("❌ required_positions parse error");
+          }
+        }
+      }
 
-    return res.status(400).json({
-      status: "error",
-      message: result.error?.message || "ไม่สามารถสร้างโพสต์ได้",
+    const filename = req.file ? req.file.filename : null;
+
+    const newPost = await Post.create({
+      party_name: req.body.party_name,
+      mode: req.body.mode,
+      description: req.body.description,
+
+      start_datetime: req.body.start_datetime,
+      end_datetime: req.body.end_datetime,
+
+      price: req.body.price,
+      total_required_players: req.body.total_required_players,
+
+      field_id: req.body.field_id,
+      field_name: req.body.field_name,
+      address: req.body.address,
+      google_map: req.body.google_map,
+
+      image: filename,
+
+      // ⭐ FIX: ใช้ค่า user จริง ๆ ที่มีใน token
+      user_id: req.user._id || req.user.id,
+      host_name: req.user.username || req.user.name || "Unknown",
     });
-  } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการสร้างโพสต์:", error);
-    return res.status(500).json({
-      status: "error",
-      message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+
+    return res.json({
+      status: "success",
+      data: newPost
     });
+
+  } catch (err) {
+    console.log("❌ ERROR create-post MESSAGE:", err.message);
+    console.log("❌ ERROR STACK:", err.stack);
+    console.log("❌ ERROR OBJ:", err);
+    return res.status(500).json({ status: "error", message: err.message });
   }
 });
+
+
+
+
 
 router.get("/posts", authenticateToken, async (req, res) => {
   try {
@@ -651,14 +723,24 @@ router.get("/post/:id", authenticateToken, async (req, res) => {
 
 router.get("/posts-field/:id", authenticateToken, async (req, res) => {
   try {
-    const field = req.params.id;
-    const date = req.body.date;
-    const result = await getPostUpcomingbyFieldID(field, date);
+    const fieldId = req.params.id;
+    const date = req.query.date;
+
+    console.log("📌 GET posts-field", { fieldId, date });
+
+    if (!date) {
+      return res.status(400).json({
+        status: "error",
+        message: "กรุณาส่งวันที่ เช่น ?date=2025-11-09",
+      });
+    }
+
+    const result = await getPostUpcomingbyFieldID(fieldId, date);
 
     if (result.success) {
       return res.status(200).json({
         status: "success",
-        message: "ดึงข้อมูลโพสต์สําเร็จ",
+        message: "ดึงข้อมูลโพสต์สำเร็จ",
         data: result.data,
         count: result.data?.length || 0,
         timestamp: new Date().toISOString(),

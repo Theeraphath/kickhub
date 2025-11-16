@@ -6,6 +6,31 @@ import OwnerField from "../../public/สนามของเรา.png";
 
 const API_BASE = "http://localhost:3000";
 
+/* ------------------------------ Styled Component ----------------------------- */
+
+const StyledWrapper = styled.div`
+  .custum-file-upload {
+    width: 100%;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #e2e8f0;
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .custum-file-upload input {
+    display: none;
+  }
+`;
+/* ---------------------------------------------------------------------------- */
+
 export default function OwnerFieldManager() {
   const [fields, setFields] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -13,6 +38,7 @@ export default function OwnerFieldManager() {
   const [editingId, setEditingId] = useState(null);
   const [detailField, setDetailField] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
+
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -26,10 +52,12 @@ export default function OwnerFieldManager() {
     promptPay: "",
     amenities: [],
     description: "",
+    // image can be File (new upload) OR string (existing filename/path)
     image: null,
   });
 
   const amenitiesList = ["ห้องน้ำ", "ที่จอดรถ", "ร้านค้า", "wifi free"];
+
   const [amenitiesState, setAmenitiesState] = useState({
     ห้องน้ำ: false,
     ที่จอดรถ: false,
@@ -39,28 +67,7 @@ export default function OwnerFieldManager() {
 
   const token = localStorage.getItem("token");
 
-  const StyledWrapper = styled.div`
-    .custum-file-upload {
-      width: 100%;
-      height: 200px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-      border: 2px dashed #e2e8f0;
-      background-color: #ffffff;
-      padding: 1rem;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .custum-file-upload input {
-      display: none;
-    }
-  `;
-
-  // fetch owner fields
+  /* ------------------------------ Load Fields ------------------------------ */
   const fetchFields = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/owner-fields`, {
@@ -77,6 +84,7 @@ export default function OwnerFieldManager() {
     if (token) fetchFields();
   }, [token]);
 
+  /* ------------------------------ Reset Form ------------------------------ */
   const resetForm = () => {
     setFormData({
       name: "",
@@ -91,19 +99,24 @@ export default function OwnerFieldManager() {
       description: "",
       image: null,
     });
+
     setIsEditing(false);
     setEditingId(null);
+
     setAmenitiesState({
       ห้องน้ำ: false,
       ที่จอดรถ: false,
       ร้านค้า: false,
       "wifi free": false,
     });
+
     if (fileInputRef.current) fileInputRef.current.value = null;
   };
 
+  /* ------------------------------ Toggle Amenity ------------------------------ */
   const handleAmenityToggle = (item) => {
     setAmenitiesState((prev) => ({ ...prev, [item]: !prev[item] }));
+
     setFormData((prev) => {
       const updated = prev.amenities.includes(item)
         ? prev.amenities.filter((a) => a !== item)
@@ -112,12 +125,15 @@ export default function OwnerFieldManager() {
     });
   };
 
+  /* ------------------------------ Upload Image ------------------------------ */
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // new file chosen -> replace preview (File object)
     setFormData((prev) => ({ ...prev, image: file }));
   };
 
+  /* ------------------------------ Submit Form ------------------------------ */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -145,14 +161,29 @@ export default function OwnerFieldManager() {
     form.append("google_map", formData.mapLink);
     form.append("is_active", true);
     form.append("facilities", JSON.stringify(facilitiesObject));
-    if (formData.image && formData.image instanceof File) {
+
+    if (formData.image instanceof File) {
       form.append("image", formData.image);
+    } else if (formData.image) {
+      // existing image filename/path (string or object)
+      // we send as old_image so backend won't remove it
+      // backend should check old_image when no new file uploaded
+      if (typeof formData.image === "string") {
+        form.append("old_image", formData.image);
+      } else if (typeof formData.image === "object") {
+        // if backend stored object, try to extract filename/path
+        if (formData.image.filename)
+          form.append("old_image", formData.image.filename);
+        else if (formData.image.path)
+          form.append("old_image", formData.image.path);
+      }
     }
 
     try {
       const url = isEditing
         ? `${API_BASE}/api/update-fields/${editingId}`
         : `${API_BASE}/api/add-fields`;
+
       const method = isEditing ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -162,22 +193,24 @@ export default function OwnerFieldManager() {
       });
 
       const result = await res.json();
-      if (result.status === "success" || result.message?.includes("สำเร็จ")) {
+
+      if (result.status === "success") {
         await fetchFields();
         resetForm();
         setShowForm(false);
       } else {
-        console.error("save field error:", result);
         alert("เกิดข้อผิดพลาดในการบันทึกสนาม");
       }
     } catch (err) {
-      console.error("Error saving field:", err);
-      alert("เกิดข้อผิดพลาดในการบันทึกสนาม");
+      console.error(err);
+      alert("เกิดข้อผิดพลาด");
     }
   };
 
+  /* ------------------------------ Edit Field ------------------------------ */
   const handleEdit = (field) => {
     let facilities = field.facilities;
+
     if (typeof facilities === "string") {
       try {
         facilities = JSON.parse(facilities);
@@ -185,101 +218,118 @@ export default function OwnerFieldManager() {
         facilities = {};
       }
     }
+
     const reverseMap = {
       restroom: "ห้องน้ำ",
       parking: "ที่จอดรถ",
       shop: "ร้านค้า",
       wifi: "wifi free",
     };
+
     const amenitiesArray = Object.entries(facilities || {})
       .filter(([_, v]) => v)
       .map(([key]) => reverseMap[key]);
 
     setFormData({
-      name: field.field_name || "",
-      address: field.address || "",
-      mapLink: field.google_map || "",
-      price: field.price || 0,
-      openTime: field.open || "",
-      closeTime: field.close || "",
-      fieldType: field.field_type || "หญ้าเทียม",
-      promptPay: field.mobile_number || "",
+      name: field.field_name,
+      address: field.address,
+      mapLink: field.google_map,
+      price: field.price,
+      openTime: field.open,
+      closeTime: field.close,
+      fieldType: field.field_type,
+      promptPay: field.mobile_number,
       amenities: amenitiesArray,
-      description: field.description || "",
+      description: field.description,
       image: null,
     });
 
-    const state = {
-      ห้องน้ำ: false,
-      ที่จอดรถ: false,
-      ร้านค้า: false,
-      "wifi free": false,
-    };
-    amenitiesArray.forEach((a) => (state[a] = true));
-    setAmenitiesState(state);
+    setAmenitiesState({
+      ห้องน้ำ: amenitiesArray.includes("ห้องน้ำ"),
+      ที่จอดรถ: amenitiesArray.includes("ที่จอดรถ"),
+      ร้านค้า: amenitiesArray.includes("ร้านค้า"),
+      "wifi free": amenitiesArray.includes("wifi free"),
+    });
 
     setIsEditing(true);
     setEditingId(field._id);
     setShowForm(true);
     setDetailField(null);
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  /* ------------------------------ Delete Field ------------------------------ */
   const confirmDeleteNow = async () => {
     try {
       await fetch(`${API_BASE}/api/delete-fields/${confirmDelete.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setFields((prev) => prev.filter((f) => f._id !== confirmDelete.id));
     } catch (err) {
-      console.error("Error deleting field:", err);
       alert("ไม่สามารถลบสนามได้");
     }
-    setConfirmDelete({ show: false, id: null });
-  };
 
-  const openDetail = (field) => {
-    setDetailField(field);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setConfirmDelete({ show: false, id: null });
   };
 
   const formatTime = (t) => (t ? t : "-");
 
-  const getImageUrl = (imgPath) =>
-    imgPath ? `${API_BASE}/${imgPath.replace(/^\/?/, "")}` : null;
+  // robust getImageUrl - supports:
+  // - null -> null
+  // - "filename.jpg" -> /uploads/photos/filename.jpg
+  // - "uploads/photos/xxx.jpg" -> /uploads/photos/xxx.jpg (use as-is)
+  // - { filename, path } object -> use path if available else filename
+  const getImageUrl = (img) => {
+    if (!img) return null;
+
+    if (typeof img === "object") {
+      if (img.path) return `${API_BASE}/${img.path}`;
+      if (img.filename) return `${API_BASE}/uploads/photos/${img.filename}`;
+    }
+
+    if (typeof img === "string") {
+      if (img.startsWith("uploads/")) return `${API_BASE}/${img}`;
+      return `${API_BASE}/uploads/photos/${img}`;
+    }
+
+    return null;
+  };
+
+  /* ------------------------------ UI ------------------------------ */
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-50 pb-10">
-      {/* header image */}
+      {/* Header Image */}
       <div className="relative w-[24.5rem] h-[10rem]">
-        <img
-          src={OwnerField}
-          alt="OwnerField"
-          className="w-full h-full object-cover"
-        />
+        <img src={OwnerField} className="w-full h-full object-cover" />
       </div>
 
-      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
-        {/* header & add button */}
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4">
+        {/* Header */}
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-bold text-gray-800">
+          <h1 className="text-xl font-bold">
             {isEditing ? "แก้ไขข้อมูลสนาม" : "จัดการสนาม"}
           </h1>
+
           <button
             onClick={() => {
               resetForm();
               setShowForm(true);
             }}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-semibold rounded-lg px-4 py-2 shadow transition"
+            className="bg-emerald-500 px-4 py-2 text-white rounded-lg"
           >
             + เพิ่มสนามใหม่
           </button>
         </div>
 
-        {/* form */}
+        {/* Form */}
         {showForm && (
-          <form onSubmit={handleSubmit} className="space-y-3 mt-3">
+          <form onSubmit={handleSubmit} className="space-y-4">
+
+            {/* ชื่อ */}
             <input
               type="text"
               placeholder="ชื่อสนาม"
@@ -290,6 +340,8 @@ export default function OwnerFieldManager() {
               className="w-full border rounded-lg p-2"
               required
             />
+
+            {/* Address */}
             <input
               type="text"
               placeholder="ที่ตั้ง/สถานที่"
@@ -300,6 +352,8 @@ export default function OwnerFieldManager() {
               className="w-full border rounded-lg p-2"
               required
             />
+
+            {/* Map */}
             <input
               type="text"
               placeholder="ลิงก์ Google Map"
@@ -309,52 +363,61 @@ export default function OwnerFieldManager() {
               }
               className="w-full border rounded-lg p-2"
             />
+
+            {/* Price */}
             <input
               type="text"
               placeholder="ราคา/ชม."
               value={formData.price}
               onChange={(e) => {
-                const value = e.target.value;
-                if (/^\d*$/.test(value))
-                  setFormData({ ...formData, price: value });
+                const v = e.target.value;
+                if (/^\d*$/.test(v))
+                  setFormData({ ...formData, price: v });
               }}
               className="w-full border rounded-lg p-2"
               required
             />
-            <div className="flex gap-2">
+
+            {/* เวลาเปิด / ปิด */}
+            <div className="flex gap-3">
               <div className="flex items-center border rounded-lg p-2 w-1/2">
-                <FaClock className="text-gray-500 mr-2" />
+                <FaClock className="mr-2" />
                 <input
                   type="time"
+                  className="w-full outline-none"
                   value={formData.openTime}
                   onChange={(e) =>
                     setFormData({ ...formData, openTime: e.target.value })
                   }
-                  className="w-full bg-transparent outline-none"
                 />
               </div>
+
               <div className="flex items-center border rounded-lg p-2 w-1/2">
-                <FaClock className="text-gray-500 mr-2" />
+                <FaClock className="mr-2" />
                 <input
                   type="time"
+                  className="w-full outline-none"
                   value={formData.closeTime}
                   onChange={(e) =>
                     setFormData({ ...formData, closeTime: e.target.value })
                   }
-                  className="w-full bg-transparent outline-none"
                 />
               </div>
             </div>
+
+            {/* ประเภทสนาม */}
             <select
+              className="w-full border rounded-lg p-2"
               value={formData.fieldType}
               onChange={(e) =>
                 setFormData({ ...formData, fieldType: e.target.value })
               }
-              className="w-full border rounded-lg p-2"
             >
               <option value="หญ้าเทียม">หญ้าเทียม</option>
               <option value="หญ้าแท้">หญ้าแท้</option>
             </select>
+
+            {/* PromptPay */}
             <input
               type="text"
               placeholder="หมายเลขพร้อมเพย์"
@@ -365,21 +428,19 @@ export default function OwnerFieldManager() {
               className="w-full border rounded-lg p-2"
             />
 
-            {/* amenities */}
+            {/* Facilities */}
             <div>
-              <p className="text-gray-700 font-medium mb-2">
-                สิ่งอำนวยความสะดวก
-              </p>
+              <p className="font-medium mb-2">สิ่งอำนวยความสะดวก</p>
               <div className="flex flex-wrap gap-2">
                 {amenitiesList.map((item) => (
                   <button
                     type="button"
                     key={item}
                     onClick={() => handleAmenityToggle(item)}
-                    className={`px-3 py-1 rounded-full border text-sm ${
+                    className={`px-3 py-1 rounded-full border ${
                       amenitiesState[item]
                         ? "bg-emerald-500 text-white border-emerald-500"
-                        : "border-gray-300 text-gray-600"
+                        : "border-gray-300"
                     }`}
                   >
                     {item}
@@ -388,58 +449,51 @@ export default function OwnerFieldManager() {
               </div>
             </div>
 
+            {/* Description */}
             <textarea
               placeholder="รายละเอียดเพิ่มเติม"
+              className="w-full border rounded-lg p-2"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="w-full border rounded-lg p-2 min-h-[100px]"
             />
 
-            {/* upload image */}
-            <div className="mt-1">
-              <label className="block text-xs text-gray-600 mb-2">
-                รูปสนาม
-              </label>
-              <StyledWrapper>
-                <label className="custum-file-upload relative" htmlFor="file">
-                  {formData.image ? (
-                    <img
-                      src={URL.createObjectURL(formData.image)}
-                      alt="preview"
-                      className="absolute inset-0 w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="text-gray-500 text-center">
-                      Click to upload image
-                    </div>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    id="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
+            {/* Upload */}
+            <StyledWrapper>
+              <label className="custum-file-upload" htmlFor="file">
+                {formData.image ? (
+                  <img
+                    src={URL.createObjectURL(formData.image)}
+                    className="w-full h-full object-cover rounded-lg"
                   />
-                </label>
-              </StyledWrapper>
-            </div>
+                ) : (
+                  <span className="text-gray-500">คลิกเพื่ออัปโหลดรูปภาพ</span>
+                )}
 
-            <div className="flex gap-3 mt-4 pb-6">
-              <button
-                type="submit"
-                className="flex-1 bg-emerald-500 text-white py-2 rounded-lg font-semibold"
-              >
+                <input
+                  id="file"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+              </label>
+            </StyledWrapper>
+
+            {/* Buttons */}
+            <div className="flex gap-3 mt-3">
+              <button className="w-full bg-emerald-500 text-white py-2 rounded-lg">
                 {isEditing ? "บันทึกการแก้ไข" : "เพิ่มสนาม"}
               </button>
+
               <button
                 type="button"
                 onClick={() => {
                   resetForm();
                   setShowForm(false);
                 }}
-                className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold"
+                className="w-full bg-gray-200 py-2 rounded-lg"
               >
                 ยกเลิก
               </button>
@@ -447,73 +501,61 @@ export default function OwnerFieldManager() {
           </form>
         )}
 
-        {/* fields list */}
-        {fields.length > 0 && !showForm && (
-          <div className="mt-4 space-y-4">
+        {/* แสดงรายการสนาม */}
+        {!showForm && fields.length > 0 && (
+          <div className="mt-5 space-y-4">
             {fields.map((f) => (
               <div
                 key={f._id}
-                className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
+                className="bg-white rounded-xl shadow border"
               >
-                <div className="w-full h-36 bg-gray-100">
+                <div className="w-full h-36">
                   {f.image ? (
                     <img
                       src={getImageUrl(f.image)}
-                      alt={f.field_name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                    <div className="flex items-center justify-center h-full text-gray-400">
                       ไม่มีรูป
                     </div>
                   )}
                 </div>
 
                 <div className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {f.field_name}
-                      </h3>
-                      <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
-                        <FaMapMarkerAlt className="text-emerald-500" />{" "}
-                        {f.address || "-"}
-                      </p>
-                      <p className="text-sm text-emerald-600 font-semibold mt-1">
-                        ฿{f.price}/ชม.
-                      </p>
-                    </div>
+                  <h3 className="text-lg font-bold">{f.field_name}</h3>
 
-                    <div className="text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-1 flex items-center gap-1">
-                      <FaClock className="text-emerald-500" />
-                      <span>
-                        {formatTime(f.open)} - {formatTime(f.close)}
-                      </span>
-                    </div>
-                  </div>
+                  <p className="flex items-center gap-1 text-gray-600 mt-1">
+                    <FaMapMarkerAlt className="text-emerald-500" />
+                    {f.address}
+                  </p>
 
-                  <div className="flex justify-between items-center mt-4">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(f)}
-                        className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium rounded-lg transition"
-                      >
-                        แก้ไข
-                      </button>
-                      <button
-                        onClick={() =>
-                          setConfirmDelete({ show: true, id: f._id })
-                        }
-                        className="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-600 text-sm font-medium rounded-lg transition"
-                      >
-                        ลบ
-                      </button>
-                    </div>
+                  <p className="text-emerald-600 font-semibold mt-1">
+                    ฿{f.price}/ชม.
+                  </p>
+
+                  <div className="flex justify-between items-center mt-3">
                     <button
-                      onClick={() => openDetail(f)}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition"
+                      onClick={() => handleEdit(f)}
+                      className="px-4 py-1 bg-gray-200 rounded-lg"
                     >
-                      <FaInfoCircle className="text-sm" /> รายละเอียด
+                      แก้ไข
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setConfirmDelete({ show: true, id: f._id })
+                      }
+                      className="px-4 py-1 bg-red-200 rounded-lg"
+                    >
+                      ลบ
+                    </button>
+
+                    <button
+                      onClick={() => setDetailField(f)}
+                      className="px-4 py-1 bg-emerald-500 text-white rounded-lg"
+                    >
+                      รายละเอียด
                     </button>
                   </div>
                 </div>
@@ -522,126 +564,87 @@ export default function OwnerFieldManager() {
           </div>
         )}
 
-        {/* detail modal */}
-        {detailField && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md p-5 shadow-xl overflow-auto max-h-[90vh]">
-              {detailField.image ? (
-                <img
-                  src={getImageUrl(detailField.image)}
-                  alt={detailField.field_name}
-                  className="w-full h-36 object-cover rounded-lg mb-3"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-36 bg-gray-100 text-gray-400 text-sm rounded-lg mb-3">
-                  ไม่มีรูป
-                </div>
-              )}
+        {/* Modal Confirm Delete */}
+        {confirmDelete.show && (
+          <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+            <div className="bg-white rounded-xl p-5 w-[20rem] text-center">
+              <p className="mb-3">คุณต้องการลบสนามนี้หรือไม่?</p>
 
-              <div className="mb-3 flex justify-between items-start">
-                <h2 className="text-lg font-semibold">
-                  {detailField.field_name}
-                </h2>
-              </div>
-
-              <p className="text-sm text-slate-600 mb-2">
-                <strong>ประเภท:</strong> {detailField.field_type}
-              </p>
-              <p className="text-sm text-slate-600 mb-2">
-                <strong>ราคา:</strong> ฿{detailField.price}/ชม.
-              </p>
-              <p className="text-sm text-slate-600 mb-2 flex items-center gap-2">
-                <FaClock /> {formatTime(detailField.open)} -{" "}
-                {formatTime(detailField.close)}
-              </p>
-              <p className="text-sm text-slate-600 mb-2">
-                <strong>พร้อมเพย์:</strong> {detailField.mobile_number || "-"}
-              </p>
-
-              <p className="text-sm text-emerald-600 mb-2">
-                <a
-                  href={detailField.google_map}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline flex items-center gap-2"
-                >
-                  <FaMapMarkerAlt /> เปิดใน Google Maps
-                </a>
-              </p>
-
-              {detailField.facilities && (
-                <div className="mb-3">
-                  <strong className="text-sm text-slate-700">
-                    สิ่งอำนวยความสะดวก:
-                  </strong>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {Object.entries(
-                      typeof detailField.facilities === "string"
-                        ? JSON.parse(detailField.facilities || "{}")
-                        : detailField.facilities || {}
-                    )
-                      .filter(([_, v]) => v)
-                      .map(([key]) => {
-                        const translate = {
-                          parking: "ที่จอดรถ",
-                          restroom: "ห้องน้ำ",
-                          shop: "ร้านค้า",
-                          wifi: "Wi-Fi ฟรี",
-                        };
-                        const label = translate[key] || key;
-                        return (
-                          <span
-                            key={key}
-                            className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs border border-emerald-200"
-                          >
-                            {label}
-                          </span>
-                        );
-                      })}
-                  </div>
-                </div>
-              )}
-
-              {detailField.description && (
-                <div className="mb-3">
-                  <strong className="text-sm text-slate-700">รายละเอียด:</strong>
-                  <p className="text-sm text-slate-600 mt-2 whitespace-pre-line">
-                    {detailField.description}
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-4">
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setDetailField(null)}
-                  className="w-full bg-emerald-500 text-white py-2 rounded-lg"
+                  onClick={confirmDeleteNow}
+                  className="w-full bg-red-500 text-white py-2 rounded-lg"
                 >
-                  ปิด
+                  ลบ
+                </button>
+
+                <button
+                  onClick={() => setConfirmDelete({ show: false, id: null })}
+                  className="w-full bg-gray-200 py-2 rounded-lg"
+                >
+                  ยกเลิก
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* confirm delete */}
-        {confirmDelete.show && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="bg-white rounded-xl p-5 shadow-xl w-full max-w-sm text-center">
-              <p className="mb-4">คุณต้องการลบสนามนี้ใช่หรือไม่?</p>
-              <div className="flex gap-3">
-                <button
-                  onClick={confirmDeleteNow}
-                  className="flex-1 bg-rose-500 text-white py-2 rounded-lg"
+        {/* Modal Detail */}
+        {detailField && (
+          <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-xl p-5 max-w-[22rem] max-h-[90vh] overflow-auto">
+              <h2 className="text-xl font-bold mb-2">
+                {detailField.field_name}
+              </h2>
+
+              <p className="text-gray-600">{detailField.address}</p>
+
+              <p className="text-emerald-600 font-semibold mt-2">
+                ราคา {detailField.price}/ชม.
+              </p>
+
+              <p className="mt-1">
+                <FaClock className="inline-block mr-1" />
+                {formatTime(detailField.open)} - {formatTime(detailField.close)}
+              </p>
+
+              <p className="mt-2">
+                <a
+                  href={detailField.google_map}
+                  target="_blank"
+                  className="text-blue-600 underline"
                 >
-                  ลบ
-                </button>
-                <button
-                  onClick={() => setConfirmDelete({ show: false, id: null })}
-                  className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg"
-                >
-                  ยกเลิก
-                </button>
+                  เปิดใน Google Maps
+                </a>
+              </p>
+
+              <div className="mt-3">
+                <p className="font-semibold">สิ่งอำนวยความสะดวก</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {detailField.facilities &&
+                    Object.entries(
+                      typeof detailField.facilities === "string"
+                        ? JSON.parse(detailField.facilities)
+                        : detailField.facilities
+                    )
+                      .filter(([_, v]) => v)
+                      .map(([key]) => (
+                        <span
+                          key={key}
+                          className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-xs"
+                        >
+                          {key}
+                        </span>
+                      ))}
+                </div>
               </div>
+
+              <button
+                onClick={() => setDetailField(null)}
+                className="w-full mt-4 bg-emerald-500 text-white py-2 rounded-lg"
+              >
+                ปิด
+              </button>
             </div>
           </div>
         )}

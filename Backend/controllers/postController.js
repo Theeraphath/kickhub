@@ -6,20 +6,33 @@ const newPost = async (user_id, field_id, postdata) => {
   try {
     const field = await Field.findById(field_id);
     const user = await User.findById(user_id);
+
     if (!field) throw new Error("Field not found");
+    if (!user) throw new Error("User not found");
+
     const newPost = new Post({
       user_id,
       field_id,
       field_name: field.field_name,
       address: field.address,
-      host_name: user.name,
       google_map: field.google_map,
+
+      // --- Host Info ---
+      host_name: user.name,
+      host_image: user.profile_image || null,   // ⭐ Add This ⭐
+
+      // --- Post Image ---
+      image: postdata.image || null,
+
       ...postdata,
+
+      // --- Participants (creator auto join) ---
       participants: [
         {
           user_id: user_id,
           name: user.name,
-          position: postdata.position || null,
+          profile_image: user.profile_image || null,  // ⭐ Add This ⭐
+          position: postdata.host_position || null,
           status: "Joined",
           joined_at: new Date(),
         },
@@ -28,11 +41,13 @@ const newPost = async (user_id, field_id, postdata) => {
 
     const savedPost = await newPost.save();
     return { success: true, data: savedPost };
+
   } catch (error) {
     console.error("Error creating post:", error);
     return { success: false, error };
   }
 };
+
 
 const getAllPosts = async () => {
   try {
@@ -80,6 +95,7 @@ const getPostUpcomingbyFieldID = async (field_id, date) => {
     return { success: false, error };
   }
 };
+
 
 const getPostbyJoinerID = async (user_id) => {
   try {
