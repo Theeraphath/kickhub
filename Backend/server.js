@@ -12,6 +12,7 @@ require("dotenv").config();
 const apiPrivateRoutes = require("./routes/apiPrivateRoutes");
 const apiRegisterRoutes = require("./routes/apiRegister");
 const apiAuthRoutes = require("./routes/apiAuthRoutes");
+const apiGoogleRoutes = require("./routes/authGoogle");
 
 const allowedDomains = [
   "http://localhost:5500",
@@ -58,6 +59,7 @@ app.use(
 app.use("/api", apiPrivateRoutes);
 app.use("/register", apiRegisterRoutes);
 app.use("/login", apiAuthRoutes);
+app.use("/login/google", apiGoogleRoutes);
 
 app.listen(port, "0.0.0.0", () => {
   console.log(`Backend running on port ${port}`);

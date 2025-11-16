@@ -156,7 +156,7 @@ export default function SignUp() {
             </p>
 
             {/* Social Login */}
-            <div className="flex flex-col gap-2 mt-3">
+            {/* <div className="flex flex-col gap-2 mt-3">
               <button
                 type="button"
                 className="flex items-center bg-black gap-2 text-[0.8rem] justify-center py-2 rounded-full hover:bg-gray-700 cursor-pointer transition"
@@ -172,7 +172,7 @@ export default function SignUp() {
                 <img src={Googlelogo} alt="Google" className="w-4 h-4" />
                 <span className="text-black">Sign up with Google</span>
               </button>
-            </div>
+            </div> */}
           </form>
         </motion.div>
       </motion.div>
