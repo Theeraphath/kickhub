@@ -21,6 +21,8 @@ export default function Profile2() {
     newPassword: "",
   });
 
+  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
+
   useEffect(() => {
     if (!item?.user) return;
     setFormData({
@@ -51,7 +53,7 @@ export default function Profile2() {
 
     if (formData.password && formData.newPassword) {
       const resPass = await fetch(
-        `http://localhost:3000/api/user/change-password/${item.user._id}`,
+        `${apiUrl}/api/user/change-password/${item.user._id}`,
         {
           method: "PUT",
           headers: {
@@ -83,16 +85,13 @@ export default function Profile2() {
     if (profileImage) formDataToSend.append("profile_photo", profileImage);
     if (coverImage) formDataToSend.append("profile_photo_cover", coverImage);
 
-    const res = await fetch(
-      `http://localhost:3000/api/user/update/${item.user._id}`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formDataToSend,
-      }
-    );
+    const res = await fetch(`${apiUrl}/api/user/update/${item.user._id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formDataToSend,
+    });
 
     const result = await res.json();
     if (result.status === "success") {
@@ -116,7 +115,7 @@ export default function Profile2() {
                 <img
                   src={
                     coverPreview ||
-                    `http://localhost:3000/uploads/photos/${item.user.profile_photo_cover}`
+                    `${apiUrl}/uploads/photos/${item.user.profile_photo_cover}`
                   }
                   className="w-full h-full object-cover"
                 />
@@ -145,7 +144,7 @@ export default function Profile2() {
                   <img
                     src={
                       profilePreview ||
-                      `http://localhost:3000/uploads/photos/${item.user.profile_photo}`
+                      `${apiUrl}/uploads/photos/${item.user.profile_photo}`
                     }
                     className="w-28 h-28 rounded-full border-4 border-white object-cover"
                   />

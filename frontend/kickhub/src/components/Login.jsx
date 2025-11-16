@@ -17,6 +17,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [inputs, setInputs] = useState({ email: "", password: "" });
 
+  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
@@ -32,15 +34,9 @@ export default function Login() {
       setCheckinput(true);
       return;
     }
-    // try {
-    //   const res = await fetch(" http://172.20.10.4:3000/login/", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({ email, password }),
-    //   });
 
     try {
-      const res = await fetch(" http://172.20.10.4:3000/login/", {
+      const res = await fetch(`${apiUrl}/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

@@ -12,7 +12,7 @@ import Buffetpic from "../../public/buffetpic.png";
 import LP from "../../public/lockposition.png";
 import BottomNav from "./Navbar";
 
-const API = "http://172.20.10.4:3000";
+const API = "http://192.168.1.26:3000";
 
 export default function CreateParty() {
   const navigate = useNavigate();
@@ -206,7 +206,7 @@ export default function CreateParty() {
         <div className="flex gap-3 my-4">
           <button
             onClick={() => navigate(`/findandcreate/${fieldId}?date=${date}`)}
-            className="bg-white flex-1 border border-green-500 text-green-600 py-2 rounded-xl font-bold"
+            className="flex-1 border border-green-500 text-green-600 py-2 rounded-xl font-bold"
           >
             ค้นหาปาร์ตี้
           </button>

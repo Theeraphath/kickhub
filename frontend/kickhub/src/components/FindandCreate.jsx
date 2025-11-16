@@ -11,7 +11,7 @@ import findparty from "../../public/party2.png";
 import teamImg from "../../public/team.png";
 import BottomNav from "./Navbar";
 
-const API = "http://172.20.10.4:3000";
+const API = "http://192.168.1.26:3000";
 
 export default function FindandCreate() {
   const navigate = useNavigate();
@@ -276,109 +276,97 @@ export default function FindandCreate() {
 
         {/* PARTY LIST */}
         {filteredTeams.length > 0 ? (
-  filteredTeams.map((team) => {
-    const { current, total, missing } = getMissing(team);
+          filteredTeams.map((team) => {
+            const { current, total, missing } = getMissing(team);
 
-    return (
-      <div
-        key={team._id}
-        className="bg-white shadow-lg rounded-2xl p-4 mb-4 cursor-pointer"
-        onClick={() => navigate(`/post-detail/${team._id}`)}
-      >
-        {/* =============== TOP SECTION =============== */}
-        <div className="flex items-start justify-between">
-          {/* team image */}
-          <img
-            src={getPostImage(team.image)}
-            className="w-20 h-20 rounded-xl object-cover mr-3"
-          />
+            return (
+              <div
+                key={team._id}
+                className="bg-white shadow-md rounded-2xl p-4 mb-4 cursor-pointer"
+                onClick={
+                  team.mode === "flexible"
+                    ? () => navigate(`/partybuffet/${team._id}`)
+                    : () => navigate(`/partyrole/${team._id}`)
+                }
+              >
+                <div className="flex items-center gap-4">
+                  <img
+                    src={getPostImage(team.image)}
+                    className="w-[80px] h-[80px] rounded-xl object-cover"
+                  />
 
-          {/* center text */}
-          <div className="flex-1">
-            <div className="flex justify-between items-start">
-              <h3 className="font-bold text-lg text-gray-800">
-                {team.party_name}
-              </h3>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-800">
+                      {team.party_name}
+                    </h3>
 
-              <span className="text-sm text-green-600 font-semibold">
-                โหมด: {team.mode === "flexible" ? "บุฟเฟ่ต์" : "ล็อคตำแหน่ง"}
-              </span>
-            </div>
+                    {/* Host Profile */}
+                    <div className="flex items-center gap-2 mt-1">
+                      <img
+                        src={
+                          team.host_image
+                            ? getProfileImage(team.host_image)
+                            : team.participants?.[0]?.profile_image
+                            ? getProfileImage(
+                                team.participants[0].profile_image
+                              )
+                            : teamImg
+                        }
+                        className="w-6 h-6 rounded-full object-cover border"
+                      />
 
-            {/* address */}
-            <p className="text-gray-600 text-sm mt-1">
-              {fieldData?.province || fieldData?.address || "จังหวัดไม่ทราบ"}
-            </p>
+                      <span className="text-xs text-gray-700 font-semibold">
+                        {team.host_name || "ไม่ทราบชื่อผู้สร้าง"}
+                      </span>
+                    </div>
 
-            {/* open / close */}
-            <p className="text-gray-700 text-sm mt-2">
-              เวลาเปิดสนาม:{" "}
-              <span className="font-semibold">
-                {formatFieldOpenClose(fieldData?.open, fieldData?.close)}
-              </span>
-            </p>
+                    <p className="text-xs text-green-600 font-semibold mt-1">
+                      โหมด:{" "}
+                      {team.mode === "flexible" ? "บุฟเฟ่ต์" : "ล็อคตำแหน่ง"} •{" "}
+                      {current}/{total}
+                    </p>
+                  </div>
+                </div>
 
-            {/* missing players */}
-            <p
-              className={`text-sm font-bold mt-1 ${
-                missing > 0 ? "text-red-500" : "text-green-600"
-              }`}
-            >
-              {missing > 0
-                ? `ขาดผู้เล่น ${missing} คน`
-                : "ครบผู้เล่นแล้ว"}
-            </p>
+                {/* TIME + DATE + MISSING */}
+                <div className="flex justify-between items-center mt-3">
+                  <div className="flex items-center gap-2">
+                    {/* open-close */}
+                    <div className="flex items-center bg-gray-100 px-3 py-1 rounded-lg text-xs">
+                      <FaClock className="mr-1" />
+                      {formatFieldOpenClose(fieldData?.open, fieldData?.close)}
+                    </div>
 
-            {/* booked time */}
-            <p className="text-green-600 text-sm font-semibold mt-1">
-              {formatThaiDate(team.start_datetime)} •{" "}
-              {formatTimeRange(team.start_datetime, team.end_datetime)}
-            </p>
-          </div>
-        </div>
+                    {/* time */}
+                    <div className="flex items-center bg-gray-100 px-3 py-1 rounded-lg text-xs">
+                      <FaClock className="mr-1" />
+                      {formatTimeRange(team.start_datetime, team.end_datetime)}
+                    </div>
 
-        {/* =============== DIVIDER =============== */}
-        <hr className="border-gray-200 my-3" />
+                    {/* date */}
+                    <span className="text-xs text-gray-500">
+                      {formatThaiDate(team.start_datetime)}
+                    </span>
+                  </div>
 
-        {/* =============== BOTTOM SECTION =============== */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img
-              src={
-                team.host_image
-                  ? getProfileImage(team.host_image)
-                  : team.participants?.[0]?.profile_image
-                  ? getProfileImage(team.participants[0].profile_image)
-                  : teamImg
-              }
-              className="w-8 h-8 rounded-full object-cover border"
-            />
-
-            <div className="flex flex-col">
-              <p className="text-gray-800 text-sm font-semibold">
-                {team.host_name}
-              </p>
-              <p className="text-xs text-gray-500">หัวตี</p>
-            </div>
-          </div>
-
-          {/* player status */}
-          <div className="text-right">
-            <p className="text-green-600 text-sm font-semibold">ว่าง</p>
-            <p className="text-xs text-gray-500 flex items-center gap-1 justify-end">
-              👤 {current}/{total}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  })
-) : (
-  <p className="text-center text-gray-500 font-semibold mt-5">
-    ไม่พบปาร์ตี้ในโหมดนี้
-  </p>
-)}
-
+                  <div
+                    className={`text-sm font-bold ${
+                      missing > 0 ? "text-red-500" : "text-green-600"
+                    }`}
+                  >
+                    {missing > 0
+                      ? `ขาดผู้เล่น ${missing} คน`
+                      : "ครบผู้เล่นแล้ว"}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <p className="text-center text-gray-500 font-semibold mt-5">
+            ไม่พบปาร์ตี้ในโหมดนี้
+          </p>
+        )}
       </div>
 
       <BottomNav />

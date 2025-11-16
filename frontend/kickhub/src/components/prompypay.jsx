@@ -17,6 +17,8 @@ export default function Promptpay() {
   const location = useLocation();
   const item = location.state;
 
+  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
+
   useEffect(() => {
     if (!item?.data?.mobile_number || !item?.data?.payment_amount) return;
 
@@ -34,7 +36,7 @@ export default function Promptpay() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://192.168.1.26:3000/api/update-reservation/${item?.data._id}`,
+        `${apiUrl}/api/update-reservation/${item?.data._id}`,
         {
           method: "PUT",
           headers: {

@@ -18,7 +18,7 @@ import DF from "../../public/กองหลัง.png";
 
 import BottomNav from "./Navbar";
 
-const API = "http://172.20.10.4:3000";
+const API = "http://192.168.1.26:3000";
 
 export default function CreateParty2() {
   const navigate = useNavigate();
@@ -188,11 +188,10 @@ export default function CreateParty2() {
       form.append("address", fieldData?.address || "");
       form.append("google_map", fieldData?.google_map || "");
 
-      // User Info — FIXED
-      form.append("user_id", userData._id); // ⭐ ต้องส่ง!
+      // User Info
       form.append("username", userData.username || "");
       form.append("user_image", userData.profile_image || "");
-      form.append("position", convertMyPos(myPosition)); // ส่งตำแหน่งถูกแล้ว
+      form.append("position", convertMyPos(myPosition));
 
       // Image
       if (image) form.append("image", image);

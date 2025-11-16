@@ -2,6 +2,9 @@ import { FaArrowLeft, FaRegUser, FaMapMarkerAlt } from "react-icons/fa";
 import { FaCircleUser } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { Modal, Box, Typography, Button } from "@mui/material";
+import { IoIosRemoveCircle } from "react-icons/io";
+import { CiCircleRemove } from "react-icons/ci";
 import googlemap from "../../public/Google_Maps_icon_(2020).png";
 import photo from "../../public/field.jpg";
 import goalkeeper from "../../public/ประตู.png";
@@ -12,6 +15,8 @@ import defender from "../../public/กองหลัง.png";
 export default function PartyRole() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("info");
+  const [open, setOpen] = useState(false);
+  const [openSuccess, setOpenSuccess] = useState(false);
   const [selectedPos, setSelectedPos] = useState(null);
   const [reservedPos, setReservedPos] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -21,6 +26,8 @@ export default function PartyRole() {
   const [status, setStatus] = useState("waiting");
   const { id } = useParams();
   const token = localStorage.getItem("token");
+
+  const API = "http://192.168.1.26:3000";
 
   const getUserIdFromToken = (token) => {
     if (!token) return null;
@@ -35,10 +42,13 @@ export default function PartyRole() {
     }
   };
 
+  const getuserId = getUserIdFromToken(token);
+  const isOwner = String(postData?.user_id) === String(getuserId);
+
   const fetchPost = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://192.168.1.26:3000/api/post/${id}`, {
+      const response = await fetch(`${API}/api/post/${id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -124,7 +134,7 @@ export default function PartyRole() {
     (p) => p.user_id === userId
   );
 
-  const displayedCounts = { ...counts };
+  const displayedCounts = { ...(counts - 1) };
 
   if (!alreadyJoined && reservedPos) {
     displayedCounts[reservedPos] = (displayedCounts[reservedPos] || 0) + 1;
@@ -184,17 +194,14 @@ export default function PartyRole() {
   const joinParty = async (postId, selectedPos) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://192.168.1.26:3000/api/join-party/${postId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ position: selectedPos }), // ✅ ส่งตำแหน่ง
-        }
-      );
+      const response = await fetch(`${API}/api/join-party/${postId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ position: selectedPos }), // ✅ ส่งตำแหน่ง
+      });
 
       const result = await response.json();
       if (result.status === "success") {
@@ -211,16 +218,13 @@ export default function PartyRole() {
   const leaveParty = async (postId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://192.168.1.26:3000/api/leave-party/${postId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API}/api/leave-party/${postId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const result = await response.json();
       if (result.status === "success") {
@@ -231,6 +235,30 @@ export default function PartyRole() {
       }
     } catch (err) {
       console.error("❌ Error leaving party:", err);
+    }
+  };
+
+  const deleteParty = async (postId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API}/api/delete-post/${postId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+      console.log(result);
+      if (result.status === "success") {
+        console.log("✅ ลบปาร์ตี้สำเร็จ:", result);
+        setOpenSuccess(true);
+      } else {
+        console.error("❌ ลบปาร์ตี้ไม่สำเร็จ:", result.error);
+      }
+    } catch (err) {
+      console.error("❌ Error deleting party:", err);
     }
   };
 
@@ -255,7 +283,7 @@ export default function PartyRole() {
       <div className="relative">
         <img
           src={
-            postData.image ? `http://localhost:3000/${postData.image}` : photo
+            postData.image ? `${API}/uploads/photos/${postData.image}` : photo
           }
           alt="สนาม"
           className="w-full h-48 object-cover"
@@ -267,7 +295,7 @@ export default function PartyRole() {
         )}
         <div className="absolute top-3 right-3 bg-green-500 px-3 py-1 rounded-full text-white text-sm flex items-center shadow-md">
           <FaRegUser className="mr-2" />
-          {postData.participants.length}/{total}
+          {postData.participants.length - 1}/{total}
         </div>
       </div>
 
@@ -341,12 +369,15 @@ export default function PartyRole() {
                 <div
                   className="h-2 bg-green-500 rounded-full"
                   style={{
-                    width: `${progress(postData.participants.length, total)}%`,
+                    width: `${progress(
+                      postData.participants.length - 1,
+                      total
+                    )}%`,
                   }}
                 />
               </div>
               <p className="text-xs text-gray-500">
-                {postData.participants.length}/{total} คน
+                {postData.participants.length - 1}/{total} คน
               </p>
 
               <div className="mt-4">
@@ -373,8 +404,11 @@ export default function PartyRole() {
               ].map((pos) => {
                 const isReserved = reservedPos === pos.key;
                 const isLocked = reservedPos && !isReserved;
-
+                const disableCancel = status === "ended";
+                const disableReserve =
+                  isOwner || isLocked || status === "ended";
                 const isFull = displayedCounts[pos.key] >= need[pos.key];
+
                 return (
                   <div
                     key={pos.key}
@@ -389,14 +423,13 @@ export default function PartyRole() {
                     <p className="text-gray-600 text-sm mb-2">
                       {displayedCounts[pos.key] || 0}/{need[pos.key]} คน
                     </p>
+
                     {isReserved ? (
                       <button
-                        onClick={() => {
-                          leaveParty(postData._id);
-                        }}
-                        disabled={status === "ended"}
+                        onClick={() => leaveParty(postData._id)}
+                        disabled={disableCancel}
                         className={`font-bold py-1.5 px-4 rounded-full w-full transition ${
-                          status === "ended"
+                          disableCancel
                             ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                             : "bg-red-500 hover:bg-red-600 text-white"
                         }`}
@@ -404,7 +437,10 @@ export default function PartyRole() {
                         ยกเลิก
                       </button>
                     ) : isFull ? (
-                      <button className="py-1.5 px-4 rounded-full w-full transition font-bold bg-gray-300 text-gray-600 cursor-not-allowed">
+                      <button
+                        disabled
+                        className="py-1.5 px-4 rounded-full w-full transition font-bold bg-gray-300 text-gray-600 cursor-not-allowed"
+                      >
                         เต็มแล้ว
                       </button>
                     ) : (
@@ -413,9 +449,9 @@ export default function PartyRole() {
                           setSelectedPos(pos.key);
                           setShowConfirm(true);
                         }}
-                        disabled={isLocked || status === "ended"}
+                        disabled={disableReserve}
                         className={`font-bold py-1.5 px-4 rounded-full w-full transition ${
-                          isLocked || status === "ended"
+                          disableReserve
                             ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                             : "bg-green-600 hover:bg-green-700 text-white"
                         }`}
@@ -444,7 +480,18 @@ export default function PartyRole() {
             </a>
           </>
         )}
-
+        {status === "waiting" && (
+          <div className="fixed bottom-0 left-0 w-full flex justify-center p-4 bg-white shadow-md">
+            {isOwner && (
+              <button
+                className="bg-red-500 text-white font-bold text-[1.2rem] px-4 py-2 w-full rounded-full"
+                onClick={() => setOpen(true)}
+              >
+                ลบโพสต์
+              </button>
+            )}
+          </div>
+        )}
         {tab === "participants" && (
           <div>
             <h3 className="font-bold mb-3">
@@ -518,6 +565,168 @@ export default function PartyRole() {
           </div>
         </div>
       )}
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 340,
+            bgcolor: "white",
+            borderRadius: 3,
+            p: 4,
+            textAlign: "center",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+          }}
+        >
+          {/* ไอคอนด้านบน */}
+          {/* red */}
+          <Box
+            sx={{
+              width: 60,
+              height: 60,
+              borderRadius: "50%",
+              backgroundColor: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto",
+              mb: 2,
+            }}
+          >
+            <IoIosRemoveCircle size={100} color="red" />
+          </Box>
+
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              fontFamily: '"Noto Sans Thai", sans-serif',
+            }}
+          >
+            ยืนยันการลบโพสต์
+          </Typography>
+
+          <Typography
+            sx={{
+              mt: 1,
+              color: "#666666",
+              fontFamily: '"Noto Sans Thai", sans-serif',
+            }}
+          >
+            คุณต้องการยืนยันการลบโพสต์นี้หรือไม่?
+          </Typography>
+
+          <Box
+            sx={{
+              mt: 4,
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 2,
+            }}
+          >
+            <Button
+              fullWidth
+              onClick={() => setOpen(false)}
+              variant="outlined"
+              sx={{
+                fontFamily: '"Noto Sans Thai", sans-serif',
+                // need color: red,
+                color: "#FF0000",
+                borderColor: "#FF0000",
+                "&:hover": { borderColor: "#FF0000", color: "#FF0000" },
+              }}
+            >
+              ยกเลิก
+            </Button>
+
+            <Button
+              fullWidth
+              onClick={() => {
+                setOpen(false);
+                deleteParty(postData._id);
+              }}
+              variant="contained"
+              sx={{
+                fontFamily: '"Noto Sans Thai", sans-serif',
+                backgroundColor: "#FF0000",
+                "&:hover": { backgroundColor: "#FF0000" },
+              }}
+            >
+              ยืนยัน
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      <Modal open={openSuccess} onClose={() => navigate("/")}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 340,
+            bgcolor: "white",
+            borderRadius: 3,
+            p: 4,
+            textAlign: "center",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+          }}
+        >
+          <Box
+            sx={{
+              width: 70,
+              height: 70,
+              borderRadius: "50%",
+              backgroundColor: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto",
+              mb: 2,
+            }}
+          >
+            {/* <FiCheckCircle size={38} color="#16A34A" /> */}
+            <CiCircleRemove size={100} color="#ff0000" />
+          </Box>
+
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              fontFamily: '"Noto Sans Thai", sans-serif',
+            }}
+          >
+            การลบโพสต์สำเร็จ
+          </Typography>
+
+          <Typography
+            sx={{
+              mt: 1,
+              color: "#4b5563",
+              fontFamily: '"Noto Sans Thai", sans-serif',
+            }}
+          >
+            ระบบได้ลบโพสต์ของท่านเรียบร้อยแล้ว
+          </Typography>
+
+          <Button
+            fullWidth
+            onClick={() => navigate("/home")}
+            variant="contained"
+            sx={{
+              mt: 4,
+              backgroundColor: "#16A34A",
+              fontFamily: '"Noto Sans Thai", sans-serif',
+              "&:hover": { backgroundColor: "#15803d" },
+            }}
+          >
+            กลับหน้าหลัก
+          </Button>
+        </Box>
+      </Modal>
     </div>
   );
 }
