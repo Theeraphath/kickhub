@@ -15,7 +15,8 @@ export default function SignUp() {
     password: "",
   });
 
-  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://172.20.10.4:3000";
+  // const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
 
   const handleChange = (e) => {
     const { name, value } = e.target;

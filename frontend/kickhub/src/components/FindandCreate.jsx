@@ -266,7 +266,7 @@ export default function FindandCreate() {
             selected={new Date(selectedDate)}
             onChange={(d) => {
               const formatted = d.toISOString().split("T")[0];
-              setSelectedDate(formatted); 
+              setSelectedDate(formatted);
             }}
             dateFormat="yyyy-MM-dd"
             className="bg-transparent text-white font-semibold text-sm outline-none w-full"
@@ -277,7 +277,7 @@ export default function FindandCreate() {
 
         {/* BUTTONS */}
         <div className="mt-3 flex gap-3 my-5">
-          <button className=" flex-1 bg-green-500 text-white font-bold py-2 rounded-xl">
+          <button className="flex-1 bg-green-500 border  text-white px-4 py-2 rounded-xl text-sm font-bold">
             ค้นหาปาร์ตี้
           </button>
 
@@ -285,7 +285,7 @@ export default function FindandCreate() {
             onClick={() =>
               navigate(`/create-party/${fieldId}?date=${selectedDate}`)
             }
-            className="flex-1 bg-white text-green-600 border border-green-500 font-bold py-2 rounded-xl"
+            className="flex-1 bg-white border border-green-500 text-green-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-50"
           >
             สร้างปาร์ตี้
           </button>
@@ -300,7 +300,11 @@ export default function FindandCreate() {
               <div
                 key={team._id}
                 className="bg-white shadow-lg rounded-2xl p-4 mb-4 cursor-pointer"
-                onClick={() => navigate(`/post-detail/${team._id}`)}
+                onClick={
+                  team.mode === "flexible"
+                    ? () => navigate(`/partybuffet/${team._id}`)
+                    : () => navigate(`/partyrole/${team._id}`)
+                }
               >
                 {/* TOP SECTION */}
                 <div className="flex items-start justify-between gap-3">

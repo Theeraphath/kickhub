@@ -22,6 +22,7 @@ export default function CreateParty() {
   const navigate = useNavigate();
   const { fieldId } = useParams();
   const [query] = useSearchParams();
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   // STATE
   const [date, setDate] = useState(
@@ -113,6 +114,10 @@ export default function CreateParty() {
   const handleCreate = async () => {
     try {
       if (!userData) return alert("โหลดข้อมูลผู้ใช้ล้มเหลว");
+      // ⭐⭐ พิมพ์ดูค่าที่ใช้ยิง API ⭐⭐
+      console.log("fieldId from URL =", fieldId);
+      console.log("userData =", userData);
+      console.log("fieldData =", fieldData);
 
       const token = localStorage.getItem("token");
       if (!token) return alert("กรุณาเข้าสู่ระบบ");
@@ -136,7 +141,6 @@ export default function CreateParty() {
       formData.append("end_datetime", end.toISOString());
       formData.append("price", Number(price));
       formData.append("total_required_players", Number(playerCount));
-
       // ===========================
       // Field Info
       // ===========================
@@ -149,9 +153,7 @@ export default function CreateParty() {
       // ⭐⭐ USER INFO (สำคัญมาก) ⭐⭐
       // ===========================
       formData.append("user_id", userData._id);
-      formData.append("username", userData.username || "");
-      formData.append("user_image", userData.profile_image || "");
-
+      formData.append("host_image", userData.profile_photo || "");
       // Image
       if (image) formData.append("image", image);
 
@@ -161,7 +163,6 @@ export default function CreateParty() {
         {
           headers: {
             Authorization: "Bearer " + token,
-            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -169,8 +170,7 @@ export default function CreateParty() {
       setLoading(false);
 
       if (res.data?.status === "success") {
-        alert("สร้างปาร์ตี้สำเร็จ!");
-        navigate(`/findandcreate/${fieldId}?date=${date}`);
+        setShowSuccessPopup(true);
       } else {
         alert("เกิดข้อผิดพลาด");
       }
@@ -213,11 +213,14 @@ export default function CreateParty() {
           <FiCalendar
             className="text-white text-xl cursor-pointer"
             onClick={() => {
-              if (datePickerRef.current && typeof datePickerRef.current.setOpen === "function") {
+              if (
+                datePickerRef.current &&
+                typeof datePickerRef.current.setOpen === "function"
+              ) {
                 datePickerRef.current.setOpen(true);
               } else {
                 // fallback: focus the input inside datepicker
-                const el = document.querySelector('#popupCalendar input');
+                const el = document.querySelector("#popupCalendar input");
                 if (el) el.focus();
               }
             }}
@@ -244,14 +247,14 @@ export default function CreateParty() {
         <div className="flex gap-3 my-4">
           <button
             onClick={() => navigate(`/findandcreate/${fieldId}?date=${date}`)}
-            className="bg-white flex-1 border border-green-500 text-green-600 py-2 rounded-xl font-bold"
+            className="flex-1 bg-white border border-green-500 text-green-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-50"
           >
             ค้นหาปาร์ตี้
           </button>
 
           <button
             onClick={handleCreate}
-            className="flex-1 bg-green-500 text-white py-2 rounded-xl font-bold"
+            className="flex-1 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold"
           >
             สร้างปาร์ตี้
           </button>
@@ -367,6 +370,46 @@ export default function CreateParty() {
           </button>
         </div>
       </div>
+
+{showSuccessPopup && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="w-80 bg-white/90 backdrop-blur-xl rounded-3xl p-6 text-center shadow-2xl animate-fadeScale">
+      
+      {/* Success Icon */}
+      <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pop">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="text-white"
+          width="50"
+          height="50"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      </div>
+
+      <h2 className="text-2xl font-extrabold text-green-600 mb-2">
+        สร้างปาร์ตี้สำเร็จ!
+      </h2>
+
+      <p className="text-gray-600 mb-5">
+        ปาร์ตี้ของคุณถูกสร้างเรียบร้อยแล้ว 🎉
+      </p>
+
+      <button
+        onClick={() => navigate(`/findandcreate/${fieldId}?date=${date}`)}
+        className="w-full bg-green-500 text-white py-3 rounded-xl font-bold text-lg shadow-md active:scale-95 transition"
+      >
+        ตกลง
+      </button>
+    </div>
+  </div>
+)}
 
       <BottomNav />
     </div>

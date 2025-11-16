@@ -10,7 +10,7 @@ import Login from "./components/Login";
 import Test1 from "./components/test";
 import Test2 from "./components/test2";
 import Home from "./components/home";
-import Party from "./components/party";
+
 import Reserve from "./components/reserve";
 import Promptpay from "./components/prompypay";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -70,14 +70,7 @@ function AppRoutes() {
         <Route path="/profile/:id" element={<Profile />} />
         <Route path="/profile/edit/:id" element={<Profile2 />} />
 
-        <Route
-          path="/party"
-          element={
-            <ProtectedRoute>
-              <Party />
-            </ProtectedRoute>
-          }
-        />
+   
         <Route
           path="/reserve/:id"
           element={
