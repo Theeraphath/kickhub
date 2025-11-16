@@ -6,6 +6,10 @@ import React, { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
+import { FiCalendar } from "react-icons/fi";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 
 import findparty from "../../public/party2.png";
 import buffetImg from "../../public/buffetpic.png";
@@ -18,7 +22,7 @@ import DF from "../../public/กองหลัง.png";
 
 import BottomNav from "./Navbar";
 
-const API = "http://192.168.1.26:3000";
+const API = "http://172.20.10.4:3000";
 
 export default function CreateParty2() {
   const navigate = useNavigate();
@@ -188,10 +192,11 @@ export default function CreateParty2() {
       form.append("address", fieldData?.address || "");
       form.append("google_map", fieldData?.google_map || "");
 
-      // User Info
+      // User Info — FIXED
+      form.append("user_id", userData._id); // ⭐ ต้องส่ง!
       form.append("username", userData.username || "");
       form.append("user_image", userData.profile_image || "");
-      form.append("position", convertMyPos(myPosition));
+      form.append("position", convertMyPos(myPosition)); // ส่งตำแหน่งถูกแล้ว
 
       // Image
       if (image) form.append("image", image);
@@ -239,16 +244,32 @@ export default function CreateParty2() {
         </h2>
         <p className="text-gray-600 text-sm mb-2 mt-1">{fieldData?.address}</p>
 
-        {/* DATE */}
-        <div className="w-full bg-green-500 text-white rounded-xl px-4 py-3 flex items-center gap-3 mb-4">
-          <span>📅</span>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="bg-transparent text-white font-semibold text-sm w-full outline-none"
-          />
-        </div>
+        {/* DATE (REACT DATEPICKER POPUP) */}
+<div className="w-full bg-green-500 text-white rounded-xl px-4 py-3 flex items-center gap-3 mb-4">
+
+  {/* Calendar icon */}
+  <FiCalendar
+    className="text-white text-xl cursor-pointer"
+    onClick={() => {
+      const picker = document.getElementById("popupCalendar2");
+      if (picker) picker.setFocus(true);
+    }}
+  />
+
+  <DatePicker
+    id="popupCalendar2"
+    selected={new Date(selectedDate)}
+    onChange={(d) => {
+      const formatted = d.toISOString().split("T")[0];
+      setSelectedDate(formatted);   // ⭐ ส่งไป backend ได้เหมือน input แบบเดิม
+    }}
+    dateFormat="yyyy-MM-dd"
+    className="bg-transparent text-white font-semibold text-sm outline-none w-full"
+    calendarClassName="rounded-xl shadow-lg border bg-white"
+    popperPlacement="bottom"
+  />
+</div>
+
 
         {/* Buttons */}
         <div className="flex gap-3 mb-6">

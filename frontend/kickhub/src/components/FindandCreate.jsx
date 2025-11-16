@@ -6,12 +6,15 @@ import React, { useEffect, useState, useRef } from "react";
 import { FaClock, FaArrowLeft, FaMapMarkerAlt } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { FiCalendar } from "react-icons/fi";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 import findparty from "../../public/party2.png";
 import teamImg from "../../public/team.png";
 import BottomNav from "./Navbar";
 
-const API = "http://192.168.1.26:3000";
+const API = "http://172.20.10.4:3000";
 
 export default function FindandCreate() {
   const navigate = useNavigate();
@@ -89,7 +92,6 @@ export default function FindandCreate() {
   // ============================
   // UTIL FUNCTIONS
   // ============================
-
   const convertMode = (th) => (th === "บุฟเฟ่ต์" ? "flexible" : "fixed");
 
   const formatFieldOpenClose = (open, close) =>
@@ -129,7 +131,6 @@ export default function FindandCreate() {
   // ============================
   // PLAYER COUNT LOGIC
   // ============================
-
   const getCurrentPlayers = (team) => {
     if (!team.participants) return 1;
     return team.participants.length;
@@ -137,7 +138,7 @@ export default function FindandCreate() {
 
   const getTotalPlayers = (team) => {
     if (team.mode === "flexible") {
-      return (team.total_required_players || 0) + 1; // + host
+      return (team.total_required_players || 0) + 1;
     }
 
     if (team.mode === "fixed") {
@@ -148,7 +149,7 @@ export default function FindandCreate() {
         0
       );
 
-      return requiredTotal + 1; // + host
+      return requiredTotal + 1;
     }
 
     return 11;
@@ -181,7 +182,7 @@ export default function FindandCreate() {
   // ============================
   return (
     <div className="flex flex-col items-center pb-20 font-noto-thai">
-      {/* HEADER */}
+      {/* HEADER IMAGE */}
       <div className="relative w-[24.5rem] h-[10rem]">
         <button
           onClick={() => navigate("/FindCreateParty")}
@@ -195,37 +196,25 @@ export default function FindandCreate() {
 
       {/* BODY */}
       <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4">
-        <h2 className="text-black font-bold text-2xl">
-          {fieldData?.field_name || "สนามฟุตบอล"}
-        </h2>
+        {/* FIELD NAME + DROPDOWN */}
+        <div className="flex justify-between items-center">
+          <h2 className="text-black font-bold text-2xl">
+            {fieldData?.field_name || "สนามฟุตบอล"}
+          </h2>
 
-        {/* Address + Mode */}
-        <div className="flex items-center justify-between text-gray-600 text-sm mt-1">
-          <div
-            className="flex items-center cursor-pointer"
-            onClick={() =>
-              fieldData?.google_map &&
-              window.open(fieldData.google_map, "_blank")
-            }
-          >
-            <FaMapMarkerAlt className="text-green-500 mr-1" />
-            <span className="underline">
-              {fieldData?.address || "ที่อยู่สนาม"}
-            </span>
-          </div>
-
+          {/* Dropdown */}
           <div ref={dropdownRef} className="relative">
             <button
               onClick={() => setShowModeDropdown(!showModeDropdown)}
-              className="bg-green-100 text-green-700 border border-green-300 rounded-full px-3 py-1 text-sm font-semibold"
+              className="bg-green-500 text-white rounded-full px-3 py-1 text-sm font-semibold shadow"
             >
-              โหมด: {mode} ▾
+              {mode} ▾
             </button>
 
             {showModeDropdown && (
-              <div className="absolute right-0 mt-2 w-36 bg-white rounded-xl shadow-lg">
+              <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-lg overflow-hidden z-20">
                 <button
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                  className="w-full text-left px-3 py-2 hover:bg-green-50"
                   onClick={() => {
                     setMode("บุฟเฟ่ต์");
                     setShowModeDropdown(false);
@@ -233,8 +222,9 @@ export default function FindandCreate() {
                 >
                   บุฟเฟ่ต์
                 </button>
+
                 <button
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                  className="w-full text-left px-3 py-2 hover:bg-green-50"
                   onClick={() => {
                     setMode("ล็อคตำแหน่ง");
                     setShowModeDropdown(false);
@@ -247,20 +237,47 @@ export default function FindandCreate() {
           </div>
         </div>
 
-        {/* DATE */}
-        <div className="w-full bg-green-500 text-white rounded-xl px-4 py-3 mt-4 flex items-center gap-3">
-          <span className="text-xl">📅</span>
-          <input
-            type="date"
-            className="bg-transparent text-white font-semibold text-sm w-full outline-none"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
+        {/* Address */}
+        <div
+          className="flex items-center text-gray-600 text-sm mt-2 cursor-pointer"
+          onClick={() =>
+            fieldData?.google_map && window.open(fieldData.google_map, "_blank")
+          }
+        >
+          <FaMapMarkerAlt className="text-green-500 mr-1" />
+          <span className="underline">
+            {fieldData?.address || "ที่อยู่สนาม"}
+          </span>
+        </div>
+
+        {/* DATE (REACT DATEPICKER POPUP) */}
+        <div className="w-full bg-green-500 text-white rounded-xl px-4 py-3 flex items-center gap-3 mt-3 ">
+          {/* Calendar icon */}
+          <FiCalendar
+            className="text-white text-xl cursor-pointer"
+            onClick={() => {
+              const picker = document.getElementById("popupCalendar2");
+              if (picker) picker.setFocus(true);
+            }}
+          />
+
+          <DatePicker
+            id="popupCalendar2"
+            selected={new Date(selectedDate)}
+            onChange={(d) => {
+              const formatted = d.toISOString().split("T")[0];
+              setSelectedDate(formatted); 
+            }}
+            dateFormat="yyyy-MM-dd"
+            className="bg-transparent text-white font-semibold text-sm outline-none w-full"
+            calendarClassName="rounded-xl shadow-lg border bg-white"
+            popperPlacement="bottom"
           />
         </div>
 
         {/* BUTTONS */}
-        <div className="flex gap-3 my-5">
-          <button className="flex-1 bg-green-500 text-white font-bold py-2 rounded-xl">
+        <div className="mt-3 flex gap-3 my-5">
+          <button className=" flex-1 bg-green-500 text-white font-bold py-2 rounded-xl">
             ค้นหาปาร์ตี้
           </button>
 
@@ -274,7 +291,7 @@ export default function FindandCreate() {
           </button>
         </div>
 
-        {/* PARTY LIST */}
+        {/* === PARTY LIST === */}
         {filteredTeams.length > 0 ? (
           filteredTeams.map((team) => {
             const { current, total, missing } = getMissing(team);
@@ -282,81 +299,117 @@ export default function FindandCreate() {
             return (
               <div
                 key={team._id}
-                className="bg-white shadow-md rounded-2xl p-4 mb-4 cursor-pointer"
-                onClick={
-                  team.mode === "flexible"
-                    ? () => navigate(`/partybuffet/${team._id}`)
-                    : () => navigate(`/partyrole/${team._id}`)
-                }
+                className="bg-white shadow-lg rounded-2xl p-4 mb-4 cursor-pointer"
+                onClick={() => navigate(`/post-detail/${team._id}`)}
               >
-                <div className="flex items-center gap-4">
+                {/* TOP SECTION */}
+                <div className="flex items-start justify-between gap-3">
+                  {/* Post Image */}
                   <img
                     src={getPostImage(team.image)}
-                    className="w-[80px] h-[80px] rounded-xl object-cover"
+                    className="w-20 h-20 rounded-xl object-cover"
                   />
 
+                  {/* Center Text */}
                   <div className="flex-1">
-                    <h3 className="font-bold text-gray-800">
-                      {team.party_name}
-                    </h3>
+                    {/* Title + Mode Badge */}
+                    <div className="flex justify-between items-center mb-1">
+                      <h3 className="font-bold text-[17px] text-gray-900 leading-tight">
+                        {team.party_name}
+                      </h3>
 
-                    {/* Host Profile */}
-                    <div className="flex items-center gap-2 mt-1">
-                      <img
-                        src={
-                          team.host_image
-                            ? getProfileImage(team.host_image)
-                            : team.participants?.[0]?.profile_image
-                            ? getProfileImage(
-                                team.participants[0].profile_image
-                              )
-                            : teamImg
-                        }
-                        className="w-6 h-6 rounded-full object-cover border"
-                      />
-
-                      <span className="text-xs text-gray-700 font-semibold">
-                        {team.host_name || "ไม่ทราบชื่อผู้สร้าง"}
+                      <span
+                        className={`px-2 py-[2px] text-xs font-semibold rounded-full 
+                        ${
+                          team.mode === "flexible"
+                            ? "bg-green-500 text-white"
+                            : "bg-blue-500 text-white"
+                        }`}
+                      >
+                        {team.mode === "flexible" ? "บุฟเฟ่ต์" : "ล็อคตำแหน่ง"}
                       </span>
                     </div>
 
-                    <p className="text-xs text-green-600 font-semibold mt-1">
-                      โหมด:{" "}
-                      {team.mode === "flexible" ? "บุฟเฟ่ต์" : "ล็อคตำแหน่ง"} •{" "}
-                      {current}/{total}
+                    {/* Address */}
+                    <p className="text-gray-600 text-[13px]">
+                      {fieldData?.province ||
+                        fieldData?.address ||
+                        "จังหวัดไม่ทราบ"}
+                    </p>
+
+                    {/* Time Open + Missing */}
+                    <div className="flex justify-between items-center mt-3">
+                      {/* Capsule Time */}
+                      <div
+                        className="flex items-center gap-1 border border-gray-300 px-3 py-1 
+                        rounded-full text-[12px] text-gray-700 shadow-sm bg-white"
+                      >
+                        <FaClock className="text-gray-500 text-[13px]" />
+                        <span className="font-medium">
+                          {formatFieldOpenClose(
+                            fieldData?.open,
+                            fieldData?.close
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Missing Players */}
+                      <div
+                        className={`text-[14px] font-bold ${
+                          missing > 0 ? "text-red-500" : "text-green-600"
+                        }`}
+                      >
+                        {missing > 0
+                          ? `ขาดผู้เล่น ${missing} คน`
+                          : "ครบผู้เล่นแล้ว"}
+                      </div>
+                    </div>
+
+                    {/* Booked Time */}
+                    <p className="text-green-600 text-sm font-semibold mt-2">
+                      {formatThaiDate(team.start_datetime)} •{" "}
+                      {formatTimeRange(team.start_datetime, team.end_datetime)}
                     </p>
                   </div>
                 </div>
 
-                {/* TIME + DATE + MISSING */}
-                <div className="flex justify-between items-center mt-3">
+                {/* DIVIDER */}
+                <hr className="border-gray-200 my-3" />
+
+                {/* BOTTOM SECTION */}
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {/* open-close */}
-                    <div className="flex items-center bg-gray-100 px-3 py-1 rounded-lg text-xs">
-                      <FaClock className="mr-1" />
-                      {formatFieldOpenClose(fieldData?.open, fieldData?.close)}
-                    </div>
+                    <img
+                      src={
+                        team.host_image
+                          ? getProfileImage(team.host_image)
+                          : team.participants?.[0]?.profile_image
+                          ? getProfileImage(team.participants[0].profile_image)
+                          : teamImg
+                      }
+                      className="w-8 h-8 rounded-full object-cover border"
+                    />
 
-                    {/* time */}
-                    <div className="flex items-center bg-gray-100 px-3 py-1 rounded-lg text-xs">
-                      <FaClock className="mr-1" />
-                      {formatTimeRange(team.start_datetime, team.end_datetime)}
+                    <div className="flex flex-col">
+                      <p className="text-gray-800 text-sm font-semibold">
+                        {team.host_name}
+                      </p>
+                      <p className="text-xs text-blue-500">หัวตี้</p>
                     </div>
-
-                    {/* date */}
-                    <span className="text-xs text-gray-500">
-                      {formatThaiDate(team.start_datetime)}
-                    </span>
                   </div>
 
-                  <div
-                    className={`text-sm font-bold ${
-                      missing > 0 ? "text-red-500" : "text-green-600"
-                    }`}
-                  >
-                    {missing > 0
-                      ? `ขาดผู้เล่น ${missing} คน`
-                      : "ครบผู้เล่นแล้ว"}
+                  <div className="flex items-center gap-2">
+                    <p
+                      className={`text-sm font-semibold ${
+                        current >= total ? "text-gray-600" : "text-red-600"
+                      }`}
+                    >
+                      {current >= total ? "เต็ม" : "ว่าง"}
+                    </p>
+
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      👤 {current}/{total}
+                    </p>
                   </div>
                 </div>
               </div>
