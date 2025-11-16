@@ -233,7 +233,9 @@ export default function Notifications() {
               }
             >
               <img
-                src={data.image ? `${apiUrl}/${data.image}` : field}
+                src={
+                  data.image ? `${apiUrl}/uploads/photos/${data.image}` : field
+                }
                 alt=""
                 className="w-40 h-auto object-cover rounded-md mb-2"
               />

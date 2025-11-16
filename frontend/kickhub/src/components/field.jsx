@@ -13,6 +13,8 @@ export default function FindCreateParty() {
   const [error, setError] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
 
+  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
+
   const fetchAvailableFields = async (start_datetime, end_datetime) => {
     setLoading(true);
     setError(null);
@@ -24,8 +26,6 @@ export default function FindCreateParty() {
         setLoading(false);
         return;
       }
-
-      const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
 
       const res = await fetch(
         `${apiUrl}/api/available-fields?start_time=${start_datetime}&end_time=${end_datetime}`,
@@ -77,8 +77,6 @@ export default function FindCreateParty() {
   const filteredFields = fields.filter((f) =>
     f.field_name?.toLowerCase().includes(search.toLowerCase())
   );
-
-  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
 
   return (
     <div className="flex flex-col items-center font-noto-thai min-h-screen bg-gray-50 pb-20">

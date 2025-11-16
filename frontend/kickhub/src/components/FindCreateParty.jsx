@@ -12,7 +12,7 @@ export default function FindCreateParty() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const API = "http://172.20.10.4:3000";
+  const API = "http://192.168.1.26:3000";
 
   // ===========================
   //  LOAD FIELDS
@@ -42,7 +42,6 @@ export default function FindCreateParty() {
 
         setFields(fieldsData);
         setErrorMsg("");
-
       } catch (error) {
         console.error("Error fetching fields:", error);
 
@@ -164,7 +163,6 @@ export default function FindCreateParty() {
                 >
                   {/* FIELD ROW */}
                   <div className="flex">
-
                     {/* FIELD IMAGE (with fallback “ไม่มีรูป”) */}
                     {imgUrl ? (
                       <img
@@ -185,7 +183,9 @@ export default function FindCreateParty() {
                         </h3>
 
                         <div
-                          onClick={() => window.open(field.google_map, "_blank")}
+                          onClick={() =>
+                            window.open(field.google_map, "_blank")
+                          }
                           className="flex items-center mt-1 text-gray-500 text-sm cursor-pointer hover:text-green-600 truncate"
                         >
                           <FaMapMarkerAlt className="text-green-500 mr-1" />
