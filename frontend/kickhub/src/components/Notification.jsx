@@ -13,7 +13,8 @@ export default function Notifications() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
+  // const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://172.20.10.4:3000";
 
   // ✅ ดึงข้อมูลการจองของผู้ใช้
   const fetchUserReservations = async () => {

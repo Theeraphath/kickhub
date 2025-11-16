@@ -27,7 +27,8 @@ export default function PartyRole() {
   const { id } = useParams();
   const token = localStorage.getItem("token");
 
-  const API = "http://192.168.1.26:3000";
+  const API = "http://172.20.10.4:3000";
+  // const API = "http://192.168.1.26:3000";
 
   const getUserIdFromToken = (token) => {
     if (!token) return null;

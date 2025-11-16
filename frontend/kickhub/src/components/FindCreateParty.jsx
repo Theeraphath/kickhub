@@ -12,7 +12,8 @@ export default function FindCreateParty() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const API = "http://192.168.1.26:3000";
+  const API = "http://172.20.10.4:3000";
+  // const API = "http://192.168.1.26:3000";
 
   // ===========================
   //  LOAD FIELDS
