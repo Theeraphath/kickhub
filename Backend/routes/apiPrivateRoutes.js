@@ -229,9 +229,7 @@ router.get("/fields/:id", authenticateToken, async (req, res) => {
     });
   } catch (err) {
     console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดในการดึงข้อมูลสนามด้วย ID:", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 // fields available in time range
@@ -376,7 +374,7 @@ router.delete(
     try {
       const fieldId = req.params.id;
       const existingField = await getFieldbyID(fieldId);
-      if (!existingField.success || !existingField.data) {
+      if (!existingField.success||  !existingField.data) {
         return res
           .status(404)
           .json({ status: "error", message: "ไม่พบข้อมูลสนามที่ต้องการลบ" });
@@ -627,6 +625,19 @@ router.post(
   upload.single("image"),
   async (req, res) => {
     try {
+      // ================================
+      // ⭐ DEBUG LOG สำคัญ (เพิ่มตรงนี้)
+      // ================================
+      console.log("🔥🔥🔥 CREATE POST REQUEST RECEIVED 🔥🔥🔥");
+      console.log("👉 Headers:", req.headers);
+      console.log("👉 Params:", req.params);
+      console.log("👉 Body:", req.body);
+      console.log("👉 File:", req.file);
+      console.log("👉 User from Token:", req.user);
+      // ================================
+      // END DEBUG LOG
+      // ================================
+
       const field_id = req.params.id;
       const user_id = req.user._id;
 
@@ -638,7 +649,7 @@ router.post(
       if (req.headers["content-type"]?.includes("application/json")) {
         console.log("📌 JSON MODE ACTIVE");
         postdata = req.body;
-        postdata.image = null; // JSON ไม่มีรูป
+        postdata.image = null;
       }
 
       // -----------------------
@@ -646,13 +657,12 @@ router.post(
       // -----------------------
       else {
         console.log("📌 FORM-DATA MODE ACTIVE");
+
         postdata = {
           ...req.body,
-          // ❗ เก็บเฉพาะชื่อไฟล์ ไม่เอา path
           image: req.file ? req.file.filename : null,
         };
 
-        // แปลง JSON string → array
         if (postdata.required_positions) {
           try {
             postdata.required_positions = JSON.parse(
@@ -664,10 +674,14 @@ router.post(
         }
       }
 
+      // ⭐ LOG postdata ที่จะส่งเข้า newPost
+      console.log("👉 Final postdata to newPost:", postdata);
+
       // ส่งให้ newPost
       const result = await newPost(user_id, field_id, postdata);
 
       if (result.success) {
+        console.log("✅ POST CREATED SUCCESSFULLY");
         return res.status(201).json({
           status: "success",
           message: "สร้างโพสต์สำเร็จ",
@@ -675,10 +689,13 @@ router.post(
         });
       }
 
+      console.log("❌ newPost FAILED:", result.error);
+
       return res.status(400).json({
         status: "error",
         message: result.error?.message || "ไม่สามารถสร้างโพสต์ได้",
       });
+
     } catch (error) {
       console.error("❌ create-post error:", error);
       return res.status(500).json({
@@ -688,6 +705,9 @@ router.post(
     }
   }
 );
+
+
+
 
 router.get("/posts", authenticateToken, async (req, res) => {
   try {
@@ -809,6 +829,7 @@ router.get("/posts-field/:id", authenticateToken, async (req, res) => {
     });
   }
 });
+
 
 router.delete("/delete-post/:id", authenticateToken, async (req, res) => {
   try {

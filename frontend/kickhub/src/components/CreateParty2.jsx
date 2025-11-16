@@ -6,6 +6,9 @@ import React, { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
+import { FiCalendar } from "react-icons/fi";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 import findparty from "../../public/party2.png";
 import buffetImg from "../../public/buffetpic.png";
@@ -18,7 +21,7 @@ import DF from "../../public/กองหลัง.png";
 
 import BottomNav from "./Navbar";
 
-const API = "http://192.168.1.26:3000";
+const API = "http://172.20.10.4:3000";
 
 export default function CreateParty2() {
   const navigate = useNavigate();
@@ -28,6 +31,8 @@ export default function CreateParty2() {
   // STATE
   const [fieldData, setFieldData] = useState(null);
   const [userData, setUserData] = useState(null);
+  // สำหรับแสดง popup
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState(
     query.get("date") || new Date().toISOString().split("T")[0]
@@ -188,10 +193,11 @@ export default function CreateParty2() {
       form.append("address", fieldData?.address || "");
       form.append("google_map", fieldData?.google_map || "");
 
-      // User Info
+      // User Info — FIXED
+      form.append("user_id", userData._id); // ⭐ ต้องส่ง!
       form.append("username", userData.username || "");
-      form.append("user_image", userData.profile_image || "");
-      form.append("position", convertMyPos(myPosition));
+      form.append("host_image", userData.profile_photo || "");
+      form.append("position", convertMyPos(myPosition)); // ส่งตำแหน่งถูกแล้ว
 
       // Image
       if (image) form.append("image", image);
@@ -204,8 +210,7 @@ export default function CreateParty2() {
       });
 
       setLoading(false);
-      alert("สร้างปาร์ตี้สำเร็จ!");
-      navigate(`/findandcreate/${fieldId}?date=${selectedDate}`);
+      setShowSuccessPopup(true);
     } catch (err) {
       console.error("❌ ERROR:", err);
       setLoading(false);
@@ -219,7 +224,7 @@ export default function CreateParty2() {
   return (
     <div className="font-noto-thai flex flex-col items-center pb-24">
       {/* Header */}
-      <div className="relative w-[24.5rem] h-[10rem] mb-2">
+      <div className="relative w-[24.5rem] h-[10rem] ">
         <button
           onClick={() =>
             navigate(`/findandcreate/${fieldId}?date=${selectedDate}`)
@@ -239,14 +244,28 @@ export default function CreateParty2() {
         </h2>
         <p className="text-gray-600 text-sm mb-2 mt-1">{fieldData?.address}</p>
 
-        {/* DATE */}
+        {/* DATE (REACT DATEPICKER POPUP) */}
         <div className="w-full bg-green-500 text-white rounded-xl px-4 py-3 flex items-center gap-3 mb-4">
-          <span>📅</span>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="bg-transparent text-white font-semibold text-sm w-full outline-none"
+          {/* Calendar icon */}
+          <FiCalendar
+            className="text-white text-xl cursor-pointer"
+            onClick={() => {
+              const picker = document.getElementById("popupCalendar2");
+              if (picker) picker.setFocus(true);
+            }}
+          />
+
+          <DatePicker
+            id="popupCalendar2"
+            selected={new Date(selectedDate)}
+            onChange={(d) => {
+              const formatted = d.toISOString().split("T")[0];
+              setSelectedDate(formatted); // ⭐ ส่งไป backend ได้เหมือน input แบบเดิม
+            }}
+            dateFormat="yyyy-MM-dd"
+            className="bg-transparent text-white font-semibold text-sm outline-none w-full"
+            calendarClassName="rounded-xl shadow-lg border bg-white"
+            popperPlacement="bottom"
           />
         </div>
 
@@ -256,7 +275,7 @@ export default function CreateParty2() {
             onClick={() =>
               navigate(`/findandcreate/${fieldId}?date=${selectedDate}`)
             }
-            className="flex-1 bg-white border border-green-500 text-green-600 px-4 py-2 rounded-xl text-sm font-bold"
+            className="flex-1 bg-white border border-green-500 text-green-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-50"
           >
             ค้นหาปาร์ตี้
           </button>
@@ -425,6 +444,57 @@ export default function CreateParty2() {
           {loading ? "กำลังสร้าง..." : "สร้างปาร์ตี้"}
         </button>
       </div>
+
+{showSuccessPopup && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="w-80 bg-white/90 backdrop-blur-xl rounded-3xl p-6 text-center shadow-2xl animate-fadeScale border border-white/30">
+      
+      {/* Success Icon */}
+      <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pop">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="text-white"
+          width="44"
+          height="44"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      </div>
+
+      <h2 className="text-2xl font-extrabold text-gray-800 mb-1">
+        สร้างปาร์ตี้สำเร็จ!
+      </h2>
+
+      <p className="text-gray-600 mb-5">
+        ทีมของคุณพร้อมแล้ว — ผู้เล่นสามารถเข้าร่วมได้เลย
+      </p>
+
+      <div className="flex gap-3">
+        <button
+          onClick={() => setShowSuccessPopup(false)}
+          className="flex-1 bg-white border border-gray-200 text-gray-800 py-2 rounded-xl font-medium"
+        >
+          ปิด
+        </button>
+
+        <button
+          onClick={() =>
+            navigate(`/findandcreate/${fieldId}?date=${selectedDate}`)
+          }
+          className="flex-1 bg-green-500 text-white py-2 rounded-xl font-bold"
+        >
+          ไปที่ปาร์ตี้
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       <BottomNav />
     </div>
