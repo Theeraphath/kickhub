@@ -16,6 +16,11 @@ export default function FindCreateParty() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const API = "http://172.20.10.4:3000";
+
+  // ===========================
+  //  LOAD FIELDS
+  // ===========================
   useEffect(() => {
     const fetchFields = async () => {
       try {
@@ -41,6 +46,7 @@ export default function FindCreateParty() {
 
         setFields(data);
         setErrorMsg("");
+
       } catch (error) {
         console.error("Error fetching fields:", error);
 
@@ -78,6 +84,25 @@ export default function FindCreateParty() {
       .map((key) => names[key] || key);
   };
 
+  // ===========================
+  //  FIELD IMAGE HANDLER
+  // ===========================
+  const getFieldImage = (img) => {
+    if (!img) return null; // ← no image = return null (we will show “ไม่มีรูป”)
+
+    if (typeof img === "object") {
+      if (img.path) return `${API}/${img.path}`;
+      if (img.filename) return `${API}/uploads/photos/${img.filename}`;
+    }
+
+    if (typeof img === "string") {
+      if (img.startsWith("uploads/")) return `${API}/${img}`;
+      return `${API}/uploads/photos/${img}`;
+    }
+
+    return null;
+  };
+
   return (
     <div className="flex flex-col items-center">
       {/* HEADER */}
@@ -90,8 +115,6 @@ export default function FindCreateParty() {
                 height={16}
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                role="img"
-                aria-labelledby="search"
               >
                 <path
                   d="M7.667 12.667A5.333 5.333 0 107.667 2a5.333 5.333 0 000 10.667zM14.334 14l-2.9-2.9"
@@ -188,7 +211,6 @@ export default function FindCreateParty() {
                       ))}
                     </div>
                   </div>
-                </div>
 
                 <div className="flex justify-end mt-3">
                   <button
@@ -198,8 +220,8 @@ export default function FindCreateParty() {
                     ดูรายละเอียด →
                   </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

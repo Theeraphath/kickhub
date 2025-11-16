@@ -25,11 +25,12 @@ export default function FindandCreate() {
   const [teams, setTeams] = useState([]);
   const [fieldData, setFieldData] = useState(null);
   const [showModeDropdown, setShowModeDropdown] = useState(false);
-  const [activeButton, setActiveButton] = useState("search");
 
   const dropdownRef = useRef(null);
 
-  // =============== โหลดข้อมูลสนาม ===============
+  // ============================
+  // LOAD FIELD
+  // ============================
   useEffect(() => {
     if (!fieldId) return;
 
@@ -53,9 +54,9 @@ export default function FindandCreate() {
 
   // =============== โหลดปาร์ตี้ ===============
   useEffect(() => {
-    if (!fieldId || !selectedDate) return;
+    if (!fieldId) return;
 
-    const loadPosts = async () => {
+    const loadTeams = async () => {
       try {
         const token = localStorage.getItem("token");
 
@@ -208,6 +209,7 @@ export default function FindandCreate() {
           <span>📅</span>
           <input
             type="date"
+            className="bg-transparent text-white font-semibold text-sm w-full outline-none"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
             className="bg-transparent font-semibold text-sm w-full outline-none"
@@ -325,7 +327,7 @@ export default function FindandCreate() {
             );
           })
         ) : (
-          <p className="text-gray-500 text-center font-semibold mt-5">
+          <p className="text-center text-gray-500 font-semibold mt-5">
             ไม่พบปาร์ตี้ในโหมดนี้
           </p>
         )}

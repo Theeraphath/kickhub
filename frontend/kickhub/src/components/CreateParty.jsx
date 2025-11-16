@@ -1,4 +1,6 @@
-// src/components/CreateParty.jsx
+// =====================
+//  CreateParty.jsx (COMPLETE VERSION)
+// =====================
 
 import React, { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
@@ -17,8 +19,7 @@ export default function CreateParty() {
   const { fieldId } = useParams();
   const [query] = useSearchParams();
 
-  // ---------------- STATE ----------------
-  const [mode] = useState("บุฟเฟ่ต์");
+  // STATE
   const [date, setDate] = useState(
     query.get("date") || new Date().toISOString().split("T")[0]
   );
@@ -33,13 +34,14 @@ export default function CreateParty() {
   const [previewUrl, setPreviewUrl] = useState(null);
 
   const [fieldData, setFieldData] = useState(null);
+  const [userData, setUserData] = useState(null);
+
   const [loading, setLoading] = useState(false);
 
   // ---------------- โหลดข้อมูลสนาม ----------------
   useEffect(() => {
     const fetchField = async () => {
       try {
-        if (!fieldId) return;
         const token = localStorage.getItem("token");
 
         const res = await axios.get(`${API}/api/fields/${fieldId}`, {
@@ -52,10 +54,12 @@ export default function CreateParty() {
       }
     };
 
-    fetchField();
+    if (fieldId) fetchField();
   }, [fieldId]);
 
-  // ---------------- Preview รูป ----------------
+  // ===========================
+  // Preview picture
+  // ===========================
   const handleImageChange = (e) => {
     const f = e.target.files?.[0];
     if (!f) {
@@ -72,9 +76,13 @@ export default function CreateParty() {
     return () => previewUrl && URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
-  // ---------------- สร้างปาร์ตี้ ----------------
+  // ===========================
+  // Create party
+  // ===========================
   const handleCreate = async () => {
     try {
+      if (!userData) return alert("โหลดข้อมูลผู้ใช้ล้มเหลว");
+
       const token = localStorage.getItem("token");
       if (!token) return alert("กรุณาเข้าสู่ระบบ");
 
@@ -123,8 +131,8 @@ export default function CreateParty() {
         alert("เกิดข้อผิดพลาด");
       }
     } catch (err) {
+      console.error("❌ Create party error:", err);
       setLoading(false);
-      console.error("❌ Error creating post:", err);
       alert("เกิดข้อผิดพลาด");
     }
   };
@@ -166,21 +174,21 @@ export default function CreateParty() {
           />
         </div>
 
-        {/* Buttons */}
-        <div className="flex gap-3 mb-6">
+        {/* Top Buttons */}
+        <div className="flex gap-3 my-4">
           <button
             onClick={() => navigate(`/findandcreate/${fieldId}?date=${date}`)}
-            className="flex-1 bg-white border border-green-500 text-green-600 px-4 py-2 rounded-xl text-sm font-bold"
+            className="flex-1 border border-green-500 text-green-600 py-2 rounded-xl font-bold"
           >
             ค้นหาปาร์ตี้
           </button>
 
-          <button className="flex-1 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold">
+          <button className="flex-1 bg-green-500 text-white py-2 rounded-xl font-bold">
             สร้างปาร์ตี้
           </button>
         </div>
 
-        {/* MODE */}
+        {/* Mode */}
         <h2 className="font-semibold text-lg mb-2">โหมด</h2>
         <div className="flex gap-4 justify-center mb-6">
           <div
@@ -203,12 +211,12 @@ export default function CreateParty() {
         <p className="text-gray-700 font-semibold mb-1">เวลาเริ่มแข่ง</p>
         <div className="border rounded-xl px-3 py-3 mb-4 bg-white flex items-center">
           <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-full outline-none"
+            type="number"
+            placeholder="ชั่วโมง"
+            value={hours}
+            onChange={(e) => setHours(e.target.value)}
+            className="border rounded-xl p-3 bg-white"
           />
-        </div>
 
         {/* HOURS & PRICE */}
         <div className="grid grid-cols-2 gap-4 mb-5">
@@ -235,18 +243,15 @@ export default function CreateParty() {
           </div>
         </div>
 
-        {/* PARTY NAME + PLAYER COUNT */}
-        <div className="grid grid-cols-2 gap-4 mb-5">
-          <div>
-            <p className="font-semibold">ชื่อปาร์ตี้</p>
-            <input
-              type="text"
-              value={partyname}
-              onChange={(e) => setPartyname(e.target.value)}
-              className="w-full border rounded-xl p-3 bg-white mt-1 outline-none"
-              placeholder="ชื่อปาร์ตี้"
-            />
-          </div>
+        {/* Party Name + Player Count */}
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <input
+            type="text"
+            placeholder="ชื่อปาร์ตี้"
+            value={partyname}
+            onChange={(e) => setPartyname(e.target.value)}
+            className="border rounded-xl p-3 bg-white"
+          />
 
           <div>
             <p className="font-semibold">จำนวนผู้เล่น</p>
@@ -260,9 +265,11 @@ export default function CreateParty() {
           </div>
         </div>
 
-        {/* DETAIL */}
-        <p className="font-semibold">รายละเอียด</p>
+        {/* Detail */}
         <textarea
+          className="w-full border rounded-xl p-3 bg-white h-28"
+          placeholder="รายละเอียด"
+          maxLength={200}
           value={detail}
           onChange={(e) => setDetail(e.target.value)}
           maxLength={200}
@@ -280,11 +287,11 @@ export default function CreateParty() {
             htmlFor="partyImage"
             className="bg-white border border-green-500 text-green-600 px-5 py-2 rounded-xl cursor-pointer hover:bg-green-50"
           >
-            เลือกรูปภาพ
+            เลือกรูป
           </label>
 
           <input
-            id="partyImage"
+            id="imgInput"
             type="file"
             hidden
             accept="image/*"
@@ -301,11 +308,10 @@ export default function CreateParty() {
           )}
         </div>
 
-        {/* SUBMIT */}
+        {/* Submit */}
         <button
           onClick={handleCreate}
-          disabled={loading}
-          className="bg-green-500 text-white w-full py-3 rounded-lg text-lg font-semibold"
+          className="mt-5 bg-green-500 text-white w-full py-3 rounded-xl font-bold text-lg"
         >
           {loading ? "กำลังสร้าง..." : "สร้างปาร์ตี้"}
         </button>

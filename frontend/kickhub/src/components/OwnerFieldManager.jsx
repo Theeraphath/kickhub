@@ -52,6 +52,7 @@ export default function OwnerFieldManager() {
     promptPay: "",
     amenities: [],
     description: "",
+    // image can be File (new upload) OR string (existing filename/path)
     image: null,
   });
 
@@ -128,6 +129,7 @@ export default function OwnerFieldManager() {
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // new file chosen -> replace preview (File object)
     setFormData((prev) => ({ ...prev, image: file }));
   };
 
@@ -162,6 +164,19 @@ export default function OwnerFieldManager() {
 
     if (formData.image instanceof File) {
       form.append("image", formData.image);
+    } else if (formData.image) {
+      // existing image filename/path (string or object)
+      // we send as old_image so backend won't remove it
+      // backend should check old_image when no new file uploaded
+      if (typeof formData.image === "string") {
+        form.append("old_image", formData.image);
+      } else if (typeof formData.image === "object") {
+        // if backend stored object, try to extract filename/path
+        if (formData.image.filename)
+          form.append("old_image", formData.image.filename);
+        else if (formData.image.path)
+          form.append("old_image", formData.image.path);
+      }
     }
 
     try {
@@ -262,8 +277,26 @@ export default function OwnerFieldManager() {
 
   const formatTime = (t) => (t ? t : "-");
 
-  const getImageUrl = (imgPath) =>
-    imgPath ? `${API_BASE}/${imgPath.replace(/^\/?/, "")}` : null;
+  // robust getImageUrl - supports:
+  // - null -> null
+  // - "filename.jpg" -> /uploads/photos/filename.jpg
+  // - "uploads/photos/xxx.jpg" -> /uploads/photos/xxx.jpg (use as-is)
+  // - { filename, path } object -> use path if available else filename
+  const getImageUrl = (img) => {
+    if (!img) return null;
+
+    if (typeof img === "object") {
+      if (img.path) return `${API_BASE}/${img.path}`;
+      if (img.filename) return `${API_BASE}/uploads/photos/${img.filename}`;
+    }
+
+    if (typeof img === "string") {
+      if (img.startsWith("uploads/")) return `${API_BASE}/${img}`;
+      return `${API_BASE}/uploads/photos/${img}`;
+    }
+
+    return null;
+  };
 
   /* ------------------------------ UI ------------------------------ */
 

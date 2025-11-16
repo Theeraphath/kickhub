@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { FaArrowLeft } from "react-icons/fa";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 
 import findparty from "../../public/party2.png";
@@ -19,12 +19,13 @@ import BottomNav from "./Navbar";
 import { API } from "../config";
 
 export default function CreateParty2() {
-  const { fieldId } = useParams();
   const navigate = useNavigate();
+  const { fieldId } = useParams();
   const [query] = useSearchParams();
 
   // --------------------- STATE ---------------------
   const [fieldData, setFieldData] = useState(null);
+  const [userData, setUserData] = useState(null);
 
   const [mode] = useState("ล็อคตำแหน่ง");
   const [selectedDate, setSelectedDate] = useState(
@@ -104,7 +105,6 @@ export default function CreateParty2() {
       midfielder: "MF",
       defender: "DF",
     };
-
     return Object.entries(positions)
       .filter(([_, v]) => v !== "" && Number(v) > 0)
       .map(([k, v]) => ({ position: map[k], amount: Number(v) }));
@@ -132,6 +132,7 @@ export default function CreateParty2() {
   // --------------------- ส่งข้อมูลสร้างปาร์ตี้ ---------------------
   const handleCreate = async () => {
     try {
+      if (!userData) return alert("โหลดข้อมูลผู้ใช้ไม่สำเร็จ");
       if (!validate()) return;
 
       const token = localStorage.getItem("token");
@@ -155,6 +156,7 @@ export default function CreateParty2() {
       form.append("end_datetime", end.toISOString());
       form.append("price", Number(price));
       form.append("description", detail || "");
+      form.append("total_required_players", totalPlayers);
 
       form.append("total_required_players", totalPlayers);
 
@@ -163,12 +165,16 @@ export default function CreateParty2() {
       form.append("address", fieldData?.address || "");
       form.append("google_map", fieldData?.google_map || "");
 
+      // User Info
+      form.append("username", userData.username || "");
+      form.append("user_image", userData.profile_image || "");
+      form.append("position", convertMyPos(myPosition));
+
+      // Image
       if (image) form.append("image", image);
 
-      form.append(
-        "required_positions",
-        JSON.stringify(convertPositionsToRequired())
-      );
+      // Required positions
+      form.append("required_positions", JSON.stringify(convertPositions()));
 
       await axios.post(`${API}/api/create-post/${fieldId}`, form, {
         headers: { Authorization: `Bearer ${token}` },
@@ -179,6 +185,7 @@ export default function CreateParty2() {
 
       navigate(`/findandcreate/${fieldId}?date=${selectedDate}`);
     } catch (err) {
+      console.error("❌ ERROR:", err);
       setLoading(false);
       console.error("❌ ERROR:", err);
       alert("เกิดข้อผิดพลาด");
@@ -192,7 +199,9 @@ export default function CreateParty2() {
       {/* HEADER */}
       <div className="relative w-[24.5rem] h-[10rem] mb-2">
         <button
-          onClick={() => navigate("/FindCreateParty")}
+          onClick={() =>
+            navigate(`/findandcreate/${fieldId}?date=${selectedDate}`)
+          }
           className="absolute top-4 left-4 bg-white p-2 rounded-full shadow-md"
         >
           <FaArrowLeft className="text-green-600 text-lg" />
@@ -201,7 +210,7 @@ export default function CreateParty2() {
         <img src={findparty} className="w-full h-full object-cover" />
       </div>
 
-      {/* BODY */}
+      {/* Body */}
       <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4">
 
         <h2 className="text-black font-bold text-2xl">{fieldData?.field_name}</h2>
@@ -354,28 +363,32 @@ export default function CreateParty2() {
             title="ผู้รักษาประตู"
             img={GK}
             value={positions.goalkeeper}
-            onChange={(v) => handlePositionChange("goalkeeper", v)}
+            onChange={(v) =>
+              setPositions((prev) => ({ ...prev, goalkeeper: v }))
+            }
           />
 
           <PositionBox
             title="กองหน้า"
             img={FW}
             value={positions.forward}
-            onChange={(v) => handlePositionChange("forward", v)}
+            onChange={(v) => setPositions((prev) => ({ ...prev, forward: v }))}
           />
 
           <PositionBox
             title="กองกลาง"
             img={MF}
             value={positions.midfielder}
-            onChange={(v) => handlePositionChange("midfielder", v)}
+            onChange={(v) =>
+              setPositions((prev) => ({ ...prev, midfielder: v }))
+            }
           />
 
           <PositionBox
             title="กองหลัง"
             img={DF}
             value={positions.defender}
-            onChange={(v) => handlePositionChange("defender", v)}
+            onChange={(v) => setPositions((prev) => ({ ...prev, defender: v }))}
           />
         </div>
 
