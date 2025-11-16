@@ -5,8 +5,12 @@ import findparty from "../../public/party2.png";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+// IMPORT API CONFIG
+import { API } from "../config";
+
 export default function FindCreateParty() {
   const navigate = useNavigate();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [fields, setFields] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +36,7 @@ export default function FindCreateParty() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const fieldsData = (res.data.data || []).map((field) => ({
+        const data = (res.data.data || []).map((field) => ({
           ...field,
           facilities:
             typeof field.facilities === "string"
@@ -40,7 +44,7 @@ export default function FindCreateParty() {
               : field.facilities,
         }));
 
-        setFields(fieldsData);
+        setFields(data);
         setErrorMsg("");
 
       } catch (error) {
@@ -53,8 +57,6 @@ export default function FindCreateParty() {
         } else {
           setErrorMsg("เกิดข้อผิดพลาดในการดึงข้อมูล");
         }
-
-        setFields([]);
       } finally {
         setLoading(false);
       }
@@ -67,20 +69,19 @@ export default function FindCreateParty() {
     field.field_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ===========================
-  //  FACILITIES CONVERT
-  // ===========================
   const getFacilitiesList = (facilities) => {
     if (!facilities || typeof facilities !== "object") return [];
-    const facilityNames = {
+
+    const names = {
       parking: "ที่จอดรถ",
       restroom: "ห้องน้ำ",
       shop: "ร้านค้า",
       wifi: "Wi-Fi ฟรี",
     };
+
     return Object.keys(facilities)
       .filter((key) => facilities[key])
-      .map((key) => facilityNames[key] || key);
+      .map((key) => names[key] || key);
   };
 
   // ===========================
@@ -126,7 +127,7 @@ export default function FindCreateParty() {
             </button>
 
             <input
-              className="flex-1 px-2 py-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400"
+              className="flex-1 px-2 py-1 bg-transparent outline-none text-sm text-gray-700"
               placeholder="ค้นหาสนามบอล"
               type="text"
               value={searchTerm}
@@ -139,7 +140,7 @@ export default function FindCreateParty() {
       </div>
 
       {/* BODY */}
-      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4">
         <h2 className="text-black font-bold mb-4 text-lg">
           ค้นหาปาร์ตี้ / สร้างปาร์ตี้
         </h2>
@@ -154,95 +155,70 @@ export default function FindCreateParty() {
           </p>
         ) : (
           <div className="flex flex-col gap-4">
-            {filteredFields.map((field) => {
-              const imgUrl = getFieldImage(field.image);
+            {filteredFields.map((field) => (
+              <div
+                key={field._id}
+                className="bg-white shadow-md rounded-2xl p-4 flex flex-col"
+              >
+                <div className="flex">
+                  <img
+                    src={
+                      field?.image
+                        ? `${API}/${field.image.replace(/\\/g, "/")}`
+                        : findparty
+                    }
+                    className="w-[120px] h-[100px] rounded-xl object-cover"
+                  />
 
-              return (
-                <div
-                  key={field._id}
-                  className="bg-white shadow-md rounded-2xl p-4 flex flex-col"
-                >
-                  {/* FIELD ROW */}
-                  <div className="flex">
+                  <div className="ml-4 flex flex-col justify-between flex-1 overflow-hidden">
+                    <h3 className="text-lg font-bold text-gray-800 truncate">
+                      {field.field_name}
+                    </h3>
 
-                    {/* FIELD IMAGE (with fallback “ไม่มีรูป”) */}
-                    {imgUrl ? (
-                      <img
-                        src={imgUrl}
-                        className="w-[120px] h-[100px] object-cover rounded-xl bg-gray-100"
-                      />
-                    ) : (
-                      <div className="w-[120px] h-[100px] rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
-                        ไม่มีรูป
+                    <div
+                      onClick={() => window.open(field.google_map, "_blank")}
+                      className="flex items-center mt-1 text-gray-500 text-sm cursor-pointer hover:text-green-600 truncate"
+                    >
+                      <FaMapMarkerAlt className="text-green-500 mr-1" />
+                      <span className="underline">{field.address}</span>
+                    </div>
+
+                    {/* ⭐ PRICE + TIME ON SAME ROW */}
+                    <div className="mt-2 flex items-center gap-2">
+
+                      <p className="text-white bg-green-500 px-2 py-[2px] rounded-md text-[11px] w-fit">
+                        {field.price} บาท/ชม.
+                      </p>
+
+                      <div className="inline-flex items-center bg-gray-100 rounded-md px-2 py-[2px] text-[10px] w-fit">
+                        <FaClock className="mr-1 text-gray-500 text-[9px]" />
+                        <span>
+                          {field.open || "-"} - {field.close || "-"}
+                        </span>
                       </div>
-                    )}
 
-                    {/* DETAILS */}
-                    <div className="ml-4 flex flex-col justify-between flex-1 overflow-hidden">
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-800 truncate">
-                          {field.field_name}
-                        </h3>
+                    </div>
 
-                        <div
-                          onClick={() => window.open(field.google_map, "_blank")}
-                          className="flex items-center mt-1 text-gray-500 text-sm cursor-pointer hover:text-green-600 truncate"
+                    {/* FACILITIES */}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {getFacilitiesList(field.facilities).map((f, i) => (
+                        <span
+                          key={i}
+                          className="bg-blue-500 text-white text-[11px] px-2 py-[2px] rounded-md"
                         >
-                          <FaMapMarkerAlt className="text-green-500 mr-1" />
-                          <span className="truncate underline">
-                            {field.address}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="mt-2 overflow-hidden w-full">
-                        <div className="flex flex-row flex-nowrap items-center gap-2 w-full">
-                          <p className="text-white bg-green-500 font-semibold py-[2px] px-2 rounded-md text-[11px] shrink-0">
-                            {field.price} บาท/ชม.
-                          </p>
-
-                          <div className="flex items-center bg-gray-100 shadow-sm rounded-md px-[5px] py-[0.5px] text-[9.5px] font-semibold text-gray-700">
-                            <FaClock className="mr-1 text-gray-500 text-[8px]" />
-                            <span>
-                              {field.open} - {field.close}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Facilities */}
-                        <div className="flex flex-wrap items-center gap-2 mt-2">
-                          {getFacilitiesList(field.facilities)
-                            .sort((a, b) => {
-                              const order = [
-                                "ห้องน้ำ",
-                                "ที่จอดรถ",
-                                "ร้านค้า",
-                                "Wi-Fi ฟรี",
-                              ];
-                              return order.indexOf(a) - order.indexOf(b);
-                            })
-                            .map((fac, i) => (
-                              <span
-                                key={i}
-                                className="bg-blue-500 text-white font-medium px-2 py-[2px] rounded-md text-[11px]"
-                              >
-                                {fac}
-                              </span>
-                            ))}
-                        </div>
-                      </div>
+                          {f}
+                        </span>
+                      ))}
                     </div>
                   </div>
 
-                  {/* BUTTON */}
-                  <div className="flex justify-end px-4 py-3">
-                    <button
-                      onClick={() => navigate(`/findandcreate/${field._id}`)}
-                      className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-full text-sm transition"
-                    >
-                      ดูรายละเอียด →
-                    </button>
-                  </div>
+                <div className="flex justify-end mt-3">
+                  <button
+                    onClick={() => navigate(`/findandcreate/${field._id}`)}
+                    className="bg-green-500 text-white px-4 py-2 rounded-full text-sm"
+                  >
+                    ดูรายละเอียด →
+                  </button>
                 </div>
               );
             })}
