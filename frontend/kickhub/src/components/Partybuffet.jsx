@@ -19,10 +19,12 @@ export default function Partybuffet() {
   const [status, setStatus] = useState("waiting");
   const { id } = useParams();
 
+  const API = "http://192.168.1.26:3000";
+
   const fetchPost = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://192.168.1.26:3000/api/post/${id}`, {
+      const response = await fetch(`${API}/api/post/${id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -133,16 +135,13 @@ export default function Partybuffet() {
   const joinParty = async (postId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://192.168.1.26:3000/api/join-party/${postId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API}/api/join-party/${postId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const result = await response.json();
       if (result.status === "success") {
@@ -159,16 +158,13 @@ export default function Partybuffet() {
   const leaveParty = async (postId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://192.168.1.26:3000/api/leave-party/${postId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API}/api/leave-party/${postId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const result = await response.json();
       if (result.status === "success") {
@@ -185,16 +181,13 @@ export default function Partybuffet() {
   const deleteParty = async (postId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://192.168.1.26:3000/api/delete-post/${postId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API}/api/delete-post/${postId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const result = await response.json();
       console.log(result);
@@ -208,6 +201,9 @@ export default function Partybuffet() {
       console.error("❌ Error deleting party:", err);
     }
   };
+
+  const isFull =
+    postData?.participants?.length - 1 >= postData?.total_required_players;
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
@@ -230,7 +226,7 @@ export default function Partybuffet() {
       <div className="relative">
         <img
           src={
-            postData.image ? `http://localhost:3000/${postData.image}` : photo
+            postData.image ? `${API}/uploads/photos/${postData.image}` : photo
           }
           alt="สนาม"
           className="w-full h-48 object-cover"
@@ -242,7 +238,7 @@ export default function Partybuffet() {
         )}
         <div className="absolute top-3 right-3 bg-green-500 px-3 py-1 rounded-full text-white text-sm flex items-center shadow-md">
           <FaRegUser className="mr-2" />
-          {postData.participants.length}/{postData.total_required_players}
+          {postData.participants.length - 1}/{postData.total_required_players}
         </div>
       </div>
 
@@ -319,15 +315,15 @@ export default function Partybuffet() {
                 className="h-2 bg-green-500 rounded-full"
                 style={{
                   width: `${progress(
-                    postData.participants.length,
+                    postData.participants.length - 1,
                     postData.total_required_players
                   )}%`,
                 }}
               />
             </div>
             <p className="text-xs text-gray-500">
-              {postData.participants.length}/{postData.total_required_players}{" "}
-              คน
+              {postData.participants.length - 1}/
+              {postData.total_required_players} คน
             </p>
 
             {/* Description */}
@@ -372,9 +368,9 @@ export default function Partybuffet() {
                   key={p._id}
                   className="flex items-center bg-gray-50 rounded-lg p-3 shadow-sm hover:shadow-md transition"
                 >
-                  {p.avatar ? (
+                  {p.profile_photo ? (
                     <img
-                      src={p.avatar}
+                      src={`${API}/upload/photos/${p.profile_photo}`}
                       alt={p.name}
                       className="w-10 h-10 rounded-full object-cover mr-3"
                     />
@@ -412,6 +408,7 @@ export default function Partybuffet() {
           )}
           {!isOwner && (
             <button
+              disabled={isFull}
               className={`${
                 hasJoined ? "bg-red-500" : "bg-green-500"
               } text-white font-bold text-[1.2rem] px-4 py-2 w-full rounded-full`}

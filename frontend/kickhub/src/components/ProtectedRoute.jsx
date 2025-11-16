@@ -39,9 +39,9 @@ const ProtectedRoute = ({ children }) => {
   }
 
   // 🛡️ ไม่มี token และไม่ใช่ public path → redirect
-  // if (!token && !publicPaths.includes(location.pathname)) {
-  //   return <Navigate to="/login" replace state={{ from: location }} />;
-  // }
+  if (!token && !publicPaths.includes(location.pathname)) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
 
   // 🚫 มี token แล้วเข้า /login หรือ /signup → redirect ไปหน้าแรก
   if (token && publicPaths.includes(location.pathname)) {

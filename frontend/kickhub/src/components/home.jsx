@@ -163,7 +163,7 @@ export default function FindandCreate() {
 
   const checkStatus = (team) => {
     if (team.mode === "flexible") {
-      return team.participants.length >= team.total_required_players
+      return team.participants.length - 1 >= team.total_required_players
         ? "เต็ม"
         : "ไม่เต็ม";
     } else {
@@ -173,7 +173,7 @@ export default function FindandCreate() {
           0
         ) || 0;
 
-      return team.participants.length >= totalRequired ? "เต็ม" : "ไม่เต็ม";
+      return team.participants.length - 1 >= totalRequired ? "เต็ม" : "ไม่เต็ม";
     }
   };
 
@@ -309,9 +309,11 @@ export default function FindandCreate() {
                 </div>
                 <p className="text-gray-600 text-sm">
                   {team.mode === "flexible"
-                    ? `${team.participants.length}/${team.total_required_players}`
+                    ? `${team.participants.length - 1}/${
+                        team.total_required_players
+                      }`
                     : `${
-                        team.participants.length
+                        team.participants.length - 1
                       }/${team.required_positions?.reduce(
                         (sum, pos) => sum + Number(pos.amount),
                         0

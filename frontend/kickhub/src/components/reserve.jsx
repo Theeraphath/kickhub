@@ -42,6 +42,8 @@ export default function Reserve() {
   const location = useLocation();
   const item = location.state;
 
+  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
+
   console.log(item);
 
   const descriptionList = item.data.description
@@ -67,21 +69,18 @@ export default function Reserve() {
       const token = localStorage.getItem("token");
       console.log(token);
       console.log(fieldId, start_datetime, end_datetime, payment_amount);
-      const res = await fetch(
-        `http://192.168.1.26:3000/api/new-reservation/${fieldId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            start_datetime,
-            end_datetime,
-            payment_amount,
-          }),
-        }
-      );
+      const res = await fetch(`${apiUrl}/api/new-reservation/${fieldId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          start_datetime,
+          end_datetime,
+          payment_amount,
+        }),
+      });
       console.log;
 
       const result = await res.json();
@@ -121,11 +120,7 @@ export default function Reserve() {
     <div className="flex justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md bg-white shadow-md rounded-t-2xl overflow-hidden">
         <img
-          src={
-            field.image
-              ? `http://192.168.1.26:3000/uploads/photos/${field.image}`
-              : field
-          }
+          src={field.image ? `${API}/uploads/photos/${field.image}` : field}
           alt="สนามฟุตบอล"
           className="w-full h-48 object-cover"
         />

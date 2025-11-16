@@ -13,6 +13,8 @@ export default function Profile() {
   const [error, setError] = useState(null);
   const [parties, setParties] = useState([]);
 
+  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
+
   const getIdbyToken = () => {
     try {
       const token = localStorage.getItem("token");
@@ -34,7 +36,7 @@ export default function Profile() {
         return;
       }
 
-      const res = await fetch(`http://192.168.1.26:3000/api/user/${id}`, {
+      const res = await fetch(`${apiUrl}/api/user/${id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -78,7 +80,7 @@ export default function Profile() {
   const fetchParties = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://192.168.1.26:3000/api/posts/joiner", {
+      const res = await fetch(`${apiUrl}/api/posts/joiner`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -116,7 +118,7 @@ export default function Profile() {
             <div className="h-48 bg-gray-300 rounded-2xl overflow-hidden">
               {user?.profile_photo_cover ? (
                 <img
-                  src={`http://localhost:3000/uploads/photos/${user.profile_photo_cover}`}
+                  src={`${apiUrl}/uploads/photos/${user.profile_photo_cover}`}
                   alt="Cover"
                   className="w-full h-full object-cover"
                 />
@@ -132,7 +134,7 @@ export default function Profile() {
               <div className="flex flex-row items-center gap-3">
                 {user?.profile_photo ? (
                   <img
-                    src={`http://localhost:3000/uploads/photos/${user.profile_photo}`}
+                    src={`${apiUrl}/uploads/photos/${user.profile_photo}`}
                     alt="Profile"
                     className="w-28 h-28 rounded-full border-4 border-white object-cover"
                   />
@@ -181,7 +183,7 @@ export default function Profile() {
                 <img
                   src={
                     data.image
-                      ? `http://localhost:3000/uploads/photos/${data.image}`
+                      ? `${apiUrl}/uploads/photos/${data.image}`
                       : field
                   }
                   alt=""

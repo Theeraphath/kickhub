@@ -4,8 +4,6 @@ const authenticateToken = require("../middleware/authMiddleware");
 const authorizeOwner = require("../middleware/authorizeOwner");
 const upload = require("../middleware/uploadMiddleware");
 const { MongoClient } = require("mongodb");
-const Post = require("../models/Post");
-
 const {
   getUserById,
   updateUserProfile,
@@ -59,16 +57,14 @@ router.get("/user/profile", authenticateToken, async (req, res) => {
       status: "success",
       data: user,
     });
-
   } catch (error) {
     console.error("Error loading profile:", error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       status: "error",
-      message: "ไม่สามารถดึงข้อมูลผู้ใช้ได้" 
+      message: "ไม่สามารถดึงข้อมูลผู้ใช้ได้",
     });
   }
 });
-
 
 router.get("/user/:id", authenticateToken, async (req, res) => {
   try {
@@ -102,7 +98,6 @@ router.get("/user/profile", authenticateToken, async (req, res) => {
       message: "ดึงข้อมูลผู้ใช้สำเร็จ",
       data: user,
     });
-
   } catch (err) {
     console.error("❌ Error in /user/profile:", err);
     return res.status(500).json({
@@ -111,9 +106,6 @@ router.get("/user/profile", authenticateToken, async (req, res) => {
     });
   }
 });
-
-
-
 
 router.put(
   "/user/update/:id",
@@ -180,7 +172,6 @@ router.post(
     }
   }
 );
-
 
 router.get("/fields", authenticateToken, async (req, res) => {
   try {
@@ -380,21 +371,48 @@ router.put(
   }
 );
 
-
-
-router.delete("/delete-fields/:id", authenticateToken, authorizeOwner, async (req, res) => {
-  try {
-    const fieldId = req.params.id;
-    const existingField = await getFieldbyID(fieldId);
-    if (!existingField.success || !existingField.data) {
-      return res.status(404).json({ status: "error", message: "ไม่พบข้อมูลสนามที่ต้องการลบ" });
-    }
-    if (existingField.data.owner_id.toString() !== req.user._id) {
-      return res.status(403).json({ status: "error", message: "คุณไม่มีสิทธิ์ลบสนามนี้ (ไม่ใช่เจ้าของ)" });
-    }
-    const result = await deleteField(fieldId);
-    if (result.success) {
-      return res.status(200).json({ status: "success", message: "ลบข้อมูลสนามสำเร็จ", timestamp: new Date().toISOString() });
+router.delete(
+  "/delete-fields/:id",
+  authenticateToken,
+  authorizeOwner,
+  async (req, res) => {
+    try {
+      const fieldId = req.params.id;
+      const existingField = await getFieldbyID(fieldId);
+      if (!existingField.success || !existingField.data) {
+        return res
+          .status(404)
+          .json({ status: "error", message: "ไม่พบข้อมูลสนามที่ต้องการลบ" });
+      }
+      if (existingField.data.owner_id.toString() !== req.user._id) {
+        return res
+          .status(403)
+          .json({
+            status: "error",
+            message: "คุณไม่มีสิทธิ์ลบสนามนี้ (ไม่ใช่เจ้าของ)",
+          });
+      }
+      const result = await deleteField(fieldId);
+      if (result.success) {
+        return res
+          .status(200)
+          .json({
+            status: "success",
+            message: "ลบข้อมูลสนามสำเร็จ",
+            timestamp: new Date().toISOString(),
+          });
+      }
+      return res
+        .status(400)
+        .json({
+          status: "error",
+          message: result.error?.message || "ไม่สามารถลบข้อมูลสนามได้",
+        });
+    } catch (err) {
+      console.error("เกิดข้อผิดพลาดในการลบสนาม:", err);
+      return res
+        .status(500)
+        .json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
     }
   }
 );
@@ -569,12 +587,25 @@ router.put("/update-reservation/:id", authenticateToken, async (req, res) => {
   }
 });
 
-router.post("/create-post/:fieldId", authenticateToken, upload.single("image"), async (req, res) => {
-  try {
-    console.log("📌 CREATE POST Called");
-    console.log("Body:", req.body);
-    console.log("File:", req.file);
-    console.log("User:", req.user);
+router.post(
+  "/create-post/:id",
+  authenticateToken,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const field_id = req.params.id;
+      const user_id = req.user._id;
+
+      let postdata = {};
+
+      // -----------------------
+      // JSON MODE
+      // -----------------------
+      if (req.headers["content-type"]?.includes("application/json")) {
+        console.log("📌 JSON MODE ACTIVE");
+        postdata = req.body;
+        postdata.image = null; // JSON ไม่มีรูป
+      }
 
       // -----------------------
       // FORM-DATA MODE
@@ -590,54 +621,39 @@ router.post("/create-post/:fieldId", authenticateToken, upload.single("image"), 
         // แปลง JSON string → array
         if (postdata.required_positions) {
           try {
-            postdata.required_positions = JSON.parse(postdata.required_positions);
+            postdata.required_positions = JSON.parse(
+              postdata.required_positions
+            );
           } catch (err) {
             console.log("❌ required_positions parse error");
           }
         }
       }
 
-    const filename = req.file ? req.file.filename : null;
+      // ส่งให้ newPost
+      const result = await newPost(user_id, field_id, postdata);
 
-    const newPost = await Post.create({
-      party_name: req.body.party_name,
-      mode: req.body.mode,
-      description: req.body.description,
+      if (result.success) {
+        return res.status(201).json({
+          status: "success",
+          message: "สร้างโพสต์สำเร็จ",
+          data: result.data,
+        });
+      }
 
-      start_datetime: req.body.start_datetime,
-      end_datetime: req.body.end_datetime,
-
-      price: req.body.price,
-      total_required_players: req.body.total_required_players,
-
-      field_id: req.body.field_id,
-      field_name: req.body.field_name,
-      address: req.body.address,
-      google_map: req.body.google_map,
-
-      image: filename,
-
-      // ⭐ FIX: ใช้ค่า user จริง ๆ ที่มีใน token
-      user_id: req.user._id || req.user.id,
-      host_name: req.user.username || req.user.name || "Unknown",
-    });
-
-    return res.json({
-      status: "success",
-      data: newPost
-    });
-
-  } catch (err) {
-    console.log("❌ ERROR create-post MESSAGE:", err.message);
-    console.log("❌ ERROR STACK:", err.stack);
-    console.log("❌ ERROR OBJ:", err);
-    return res.status(500).json({ status: "error", message: err.message });
+      return res.status(400).json({
+        status: "error",
+        message: result.error?.message || "ไม่สามารถสร้างโพสต์ได้",
+      });
+    } catch (error) {
+      console.error("❌ create-post error:", error);
+      return res.status(500).json({
+        status: "error",
+        message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+      });
+    }
   }
-});
-
-
-
-
+);
 
 router.get("/posts", authenticateToken, async (req, res) => {
   try {
