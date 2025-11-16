@@ -1,11 +1,15 @@
 // =====================
-//  CreateParty.jsx (COMPLETE VERSION)
+//  CreateParty.jsx (COMPLETE VERSION WITH USER_ID + react-datepicker FIX)
 // =====================
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { FaArrowLeft } from "react-icons/fa";
+import { FiCalendar } from "react-icons/fi";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
+
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 import findparty from "../../public/party2.png";
 import Buffetpic from "../../public/buffetpic.png";
@@ -22,7 +26,7 @@ export default function CreateParty() {
   // STATE
   const [date, setDate] = useState(
     query.get("date") || new Date().toISOString().split("T")[0]
-  );
+  ); // stored as 'YYYY-MM-DD' string
   const [time, setTime] = useState("");
   const [hours, setHours] = useState("");
   const [price, setPrice] = useState("");
@@ -37,6 +41,9 @@ export default function CreateParty() {
   const [userData, setUserData] = useState(null);
 
   const [loading, setLoading] = useState(false);
+
+  // ref for datepicker to programmatically open
+  const datePickerRef = useRef(null);
 
   // ===========================
   // Load user profile
@@ -130,13 +137,22 @@ export default function CreateParty() {
       formData.append("price", Number(price));
       formData.append("total_required_players", Number(playerCount));
 
-      // Field
+      // ===========================
+      // Field Info
+      // ===========================
       formData.append("field_id", fieldId);
       formData.append("field_name", fieldData?.field_name || "");
       formData.append("address", fieldData?.address || "");
       formData.append("google_map", fieldData?.google_map || "");
 
-      // Image (upload only filename)
+      // ===========================
+      // ⭐⭐ USER INFO (สำคัญมาก) ⭐⭐
+      // ===========================
+      formData.append("user_id", userData._id);
+      formData.append("username", userData.username || "");
+      formData.append("user_image", userData.profile_image || "");
+
+      // Image
       if (image) formData.append("image", image);
 
       const res = await axios.post(
@@ -144,7 +160,7 @@ export default function CreateParty() {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: "Bearer " + token,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -191,18 +207,40 @@ export default function CreateParty() {
           {fieldData?.address || "-"}
         </p>
 
-        {/* Date */}
-        <div className="w-full bg-green-500 text-white rounded-xl px-4 py-3 mt-3 flex items-center gap-3">
-          <span>📅</span>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="bg-transparent text-white font-semibold text-sm w-full outline-none"
+        {/* DATE (REACT DATEPICKER POPUP) */}
+        <div className="w-full bg-green-500 text-white rounded-xl px-4 py-3 flex items-center gap-3 mb-4">
+          {/* Calendar icon */}
+          <FiCalendar
+            className="text-white text-xl cursor-pointer"
+            onClick={() => {
+              if (datePickerRef.current && typeof datePickerRef.current.setOpen === "function") {
+                datePickerRef.current.setOpen(true);
+              } else {
+                // fallback: focus the input inside datepicker
+                const el = document.querySelector('#popupCalendar input');
+                if (el) el.focus();
+              }
+            }}
+          />
+
+          <DatePicker
+            id="popupCalendar"
+            ref={datePickerRef}
+            selected={date ? new Date(date) : null}
+            onChange={(d) => {
+              if (!d) return;
+              const formatted = d.toISOString().split("T")[0]; // YYYY-MM-DD
+              setDate(formatted); // still string for backend compatibility
+            }}
+            dateFormat="yyyy-MM-dd"
+            className="bg-transparent text-white font-semibold text-sm outline-none w-full"
+            calendarClassName="rounded-xl shadow-lg border bg-white"
+            popperPlacement="bottom"
+            placeholderText="เลือกวันที่"
           />
         </div>
 
-        {/* Top Buttons */}
+        {/* Buttons */}
         <div className="flex gap-3 my-4">
           <button
             onClick={() => navigate(`/findandcreate/${fieldId}?date=${date}`)}
@@ -211,7 +249,10 @@ export default function CreateParty() {
             ค้นหาปาร์ตี้
           </button>
 
-          <button className="flex-1 bg-green-500 text-white py-2 rounded-xl font-bold">
+          <button
+            onClick={handleCreate}
+            className="flex-1 bg-green-500 text-white py-2 rounded-xl font-bold"
+          >
             สร้างปาร์ตี้
           </button>
         </div>
@@ -290,15 +331,14 @@ export default function CreateParty() {
         />
 
         {/* Image */}
-        <div className="mt-4">
-          <label className="font-semibold">รูปภาพปาร์ตี้</label>
-          <br />
+        <div className="mt-6">
+          <label className="font-semibold block mb-2">รูปภาพปก</label>
 
           <label
             htmlFor="imgInput"
-            className="bg-white border border-green-500 px-5 py-2 rounded-xl text-green-600 cursor-pointer"
+            className="bg-white border border-green-500 px-5 py-2 rounded-xl text-green-600 cursor-pointer inline-block hover:bg-green-50"
           >
-            เลือกรูป
+            เลือกรูปภาพ
           </label>
 
           <input
@@ -312,18 +352,20 @@ export default function CreateParty() {
           {previewUrl && (
             <img
               src={previewUrl}
-              className="w-full h-40 object-cover rounded-xl mt-3 border"
+              className="w-full h-40 object-cover rounded-xl mt-4 border"
             />
           )}
         </div>
 
-        {/* Submit */}
-        <button
-          onClick={handleCreate}
-          className="mt-5 bg-green-500 text-white w-full py-3 rounded-xl font-bold text-lg"
-        >
-          {loading ? "กำลังสร้าง..." : "สร้างปาร์ตี้"}
-        </button>
+        {/* Submit (duplicate button removed above; kept here just in case) */}
+        <div className="mt-4">
+          <button
+            onClick={handleCreate}
+            className="mt-5 bg-green-500 text-white w-full py-3 rounded-xl font-bold text-lg"
+          >
+            {loading ? "กำลังสร้าง..." : "สร้างปาร์ตี้"}
+          </button>
+        </div>
       </div>
 
       <BottomNav />
