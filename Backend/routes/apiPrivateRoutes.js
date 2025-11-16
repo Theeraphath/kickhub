@@ -26,6 +26,7 @@ const {
   getReservationbyID,
   getReservationbyFieldID,
   getReservationbyUserID,
+  getReservationsByOwnerID,
 } = require("../controllers/reservationController");
 
 const {
@@ -216,20 +217,16 @@ router.get("/fields/:id", authenticateToken, async (req, res) => {
     const result = await getFieldbyID(fieldId);
 
     if (result.success) {
-      return res
-        .status(200)
-        .json({
-          status: "success",
-          message: "ดึงข้อมูลสนามสำเร็จ",
-          data: result.data,
-        });
-    }
-    return res
-      .status(404)
-      .json({
-        status: "error",
-        message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ",
+      return res.status(200).json({
+        status: "success",
+        message: "ดึงข้อมูลสนามสำเร็จ",
+        data: result.data,
       });
+    }
+    return res.status(404).json({
+      status: "error",
+      message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ",
+    });
   } catch (err) {
     console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดในการดึงข้อมูลสนามด้วย ID:", err);
     return res
@@ -385,29 +382,23 @@ router.delete(
           .json({ status: "error", message: "ไม่พบข้อมูลสนามที่ต้องการลบ" });
       }
       if (existingField.data.owner_id.toString() !== req.user._id) {
-        return res
-          .status(403)
-          .json({
-            status: "error",
-            message: "คุณไม่มีสิทธิ์ลบสนามนี้ (ไม่ใช่เจ้าของ)",
-          });
+        return res.status(403).json({
+          status: "error",
+          message: "คุณไม่มีสิทธิ์ลบสนามนี้ (ไม่ใช่เจ้าของ)",
+        });
       }
       const result = await deleteField(fieldId);
       if (result.success) {
-        return res
-          .status(200)
-          .json({
-            status: "success",
-            message: "ลบข้อมูลสนามสำเร็จ",
-            timestamp: new Date().toISOString(),
-          });
-      }
-      return res
-        .status(400)
-        .json({
-          status: "error",
-          message: result.error?.message || "ไม่สามารถลบข้อมูลสนามได้",
+        return res.status(200).json({
+          status: "success",
+          message: "ลบข้อมูลสนามสำเร็จ",
+          timestamp: new Date().toISOString(),
         });
+      }
+      return res.status(400).json({
+        status: "error",
+        message: result.error?.message || "ไม่สามารถลบข้อมูลสนามได้",
+      });
     } catch (err) {
       console.error("เกิดข้อผิดพลาดในการลบสนาม:", err);
       return res
@@ -529,6 +520,49 @@ router.get("/user-reservations", authenticateToken, async (req, res) => {
     });
   }
 });
+
+router.get(
+  "/reservations/field/owner",
+  authenticateToken,
+  authorizeOwner,
+  async (req, res) => {
+    try {
+      if (!req.user || !req.user._id) {
+        return res.status(401).json({
+          status: "error",
+          message: "Unauthorized: ไม่พบข้อมูลผู้ใช้",
+        });
+      }
+
+      const ownerId = req.user._id;
+      console.log("Owner ID:", ownerId);
+
+      const result = await getReservationsByOwnerID(ownerId);
+
+      if (!result.success) {
+        return res.status(404).json({
+          status: "error",
+          message: result.error || "ไม่สามารถดึงข้อมูลการจองของเจ้าของสนามได้",
+        });
+      }
+
+      return res.status(200).json({
+        status: "success",
+        message: "ดึงข้อมูลการจองของเจ้าของสนามสำเร็จ",
+        data: result.data,
+        count: Array.isArray(result.data) ? result.data.length : 0,
+        hasData: Array.isArray(result.data) ? result.data.length > 0 : false,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error("Owner reservation error:", err);
+      return res.status(500).json({
+        status: "error",
+        message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+      });
+    }
+  }
+);
 
 router.get("/field-reservations/:id", authenticateToken, async (req, res) => {
   try {

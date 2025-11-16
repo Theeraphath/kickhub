@@ -10,7 +10,6 @@ import Login from "./components/Login";
 import Test1 from "./components/test";
 import Test2 from "./components/test2";
 import Home from "./components/home";
-import Party from "./components/party";
 import Reserve from "./components/reserve";
 import Promptpay from "./components/prompypay";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -27,6 +26,7 @@ import CountdownTimer from "./components/CountdownTimer";
 import Owner from "./components/OwnerFieldManager";
 import Profile from "./components/profile";
 import Profile2 from "./components/profile2";
+import ApproveReservaion from "./components/ApproveReservation";
 
 function AppRoutes() {
   const location = useLocation();
@@ -69,15 +69,15 @@ function AppRoutes() {
         <Route path="/test" element={<Test1 />} />
         <Route path="/profile/:id" element={<Profile />} />
         <Route path="/profile/edit/:id" element={<Profile2 />} />
-
         <Route
-          path="/party"
+          path="/ApproveReservation"
           element={
             <ProtectedRoute>
-              <Party />
+              <ApproveReservaion />
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/reserve/:id"
           element={

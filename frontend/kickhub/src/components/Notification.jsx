@@ -96,6 +96,14 @@ export default function Notifications() {
     data.field_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const sortedReservations = [...filteredReservations].sort(
+    (a, b) => new Date(a.start_datetime) - new Date(b.start_datetime)
+  );
+
+  const sortedParties = [...filteredParties].sort(
+    (a, b) => new Date(a.start_datetime) - new Date(b.start_datetime)
+  );
+
   return (
     <div className="flex flex-col items-center space-y-4 font-noto-thai bg-white min-h-screen pb-20">
       <img src={field} alt="" className="w-full h-55 object-cover" />
@@ -126,7 +134,7 @@ export default function Notifications() {
         )}
 
         <div className="space-y-4 cursor-pointer mb-4">
-          {filteredReservations.map((data) => (
+          {sortedReservations.map((data) => (
             <div
               key={data._id}
               className={`bg-white rounded-xl shadow-md p-4 grid grid-cols-2 cursor-pointer transition ${
@@ -222,7 +230,7 @@ export default function Notifications() {
         )}
 
         <div className="space-y-4 cursor-pointer mb-4">
-          {filteredParties.map((data) => (
+          {sortedParties.map((data) => (
             <div
               key={data._id}
               className="bg-white rounded-xl shadow-md p-4 grid grid-cols-2"
