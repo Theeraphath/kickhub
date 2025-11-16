@@ -216,25 +216,12 @@ router.get("/fields/:id", authenticateToken, async (req, res) => {
     const result = await getFieldbyID(fieldId);
 
     if (result.success) {
-      return res
-        .status(200)
-        .json({
-          status: "success",
-          message: "ดึงข้อมูลสนามสำเร็จ",
-          data: result.data,
-        });
+      return res.status(200).json({ status: "success", message: "ดึงข้อมูลสนามสำเร็จ", data: result.data });
     }
-    return res
-      .status(404)
-      .json({
-        status: "error",
-        message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ",
-      });
+    return res.status(404).json({ status: "error", message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ" });
   } catch (err) {
     console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดในการดึงข้อมูลสนามด้วย ID:", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 // fields available in time range
@@ -414,8 +401,12 @@ router.delete(
         .status(500)
         .json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
     }
+    return res.status(400).json({ status: "error", message: result.error?.message || "ไม่สามารถลบข้อมูลสนามได้" });
+  } catch (err) {
+    console.error("เกิดข้อผิดพลาดในการลบสนาม:", err);
+    return res.status(500).json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
-);
+});
 
 router.post("/new-reservation/:id", authenticateToken, async (req, res) => {
   try {
@@ -655,6 +646,8 @@ router.post(
   }
 );
 
+
+
 router.get("/posts", authenticateToken, async (req, res) => {
   try {
     const result = await getPostUpcoming();
@@ -775,6 +768,7 @@ router.get("/posts-field/:id", authenticateToken, async (req, res) => {
     });
   }
 });
+
 
 router.delete("/delete-post/:id", authenticateToken, async (req, res) => {
   try {
