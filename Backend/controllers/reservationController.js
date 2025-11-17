@@ -34,6 +34,27 @@ const getAllReservations = async () => {
   }
 };
 
+const getReservationsByOwnerID = async (id) => {
+  try {
+    const fields = await Field.find({ owner_id: id });
+
+    if (!fields.length) {
+      return { success: true, data: [] };
+    }
+
+    const fieldIds = fields.map((f) => f._id);
+
+    const reservations = await Reservation.find({
+      field_id: { $in: fieldIds },
+    }).populate("user_id", "name mobile_number");
+
+    return { success: true, data: reservations };
+  } catch (error) {
+    console.error("getReservationsByOwnerID error:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 const updateReservation = async (id, reservationData) => {
   try {
     const updatedReservation = await Reservation.findByIdAndUpdate(
@@ -83,4 +104,5 @@ module.exports = {
   getReservationbyID,
   getReservationbyFieldID,
   getReservationbyUserID,
+  getReservationsByOwnerID,
 };
