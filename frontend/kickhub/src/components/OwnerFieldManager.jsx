@@ -4,7 +4,7 @@ import { FaMapMarkerAlt, FaClock, FaInfoCircle } from "react-icons/fa";
 import styled from "styled-components";
 import OwnerField from "../../public/สนามของเรา.png";
 
-const API_BASE = "http://localhost:3000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://192.168.1.42:3000";
 
 /* ---------------------------
    Animation & UI CSS (injected)
@@ -420,7 +420,7 @@ export default function OwnerFieldManager() {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gray-50 pb-10">
+    <div className="flex flex-col items-center min-h-screen bg-gray-50 pb-10 font-noto-thai ">
       {/* header image */}
       <div className="relative w-[24.5rem] h-[10rem]">
         <img
