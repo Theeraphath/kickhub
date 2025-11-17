@@ -1,4 +1,3 @@
-
 // =============================
 // CreateParty2.jsx (LOCK MODE) — FIXED & COMPLETE VERSION
 // =============================
@@ -24,8 +23,6 @@ import BottomNav from "./Navbar";
 
 const API = import.meta.env.VITE_API_URL || "http://192.168.1.42:3000";
 // const API = "http://192.168.1.26:3000";
-
-
 
 export default function CreateParty2() {
   const navigate = useNavigate();
@@ -201,7 +198,8 @@ export default function CreateParty2() {
       form.append("user_id", userData._id); // ⭐ ต้องส่ง!
       form.append("username", userData.username || "");
       form.append("host_image", userData.profile_photo || "");
-      form.append("้host_position", convertMyPos(myPosition)); // ส่งตำแหน่งถูกแล้ว
+      form.append("host_position", convertMyPos(myPosition));
+
 
       // Image
       if (image) form.append("image", image);
@@ -449,56 +447,55 @@ export default function CreateParty2() {
         </button>
       </div>
 
-{showSuccessPopup && (
-  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-    <div className="w-80 bg-white/90 backdrop-blur-xl rounded-3xl p-6 text-center shadow-2xl animate-fadeScale border border-white/30">
-      
-      {/* Success Icon */}
-      <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pop">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="text-white"
-          width="44"
-          height="44"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M20 6 9 17l-5-5" />
-        </svg>
-      </div>
+      {showSuccessPopup && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="w-80 bg-white/90 backdrop-blur-xl rounded-3xl p-6 text-center shadow-2xl animate-fadeScale border border-white/30">
+            {/* Success Icon */}
+            <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pop">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-white"
+                width="44"
+                height="44"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </div>
 
-      <h2 className="text-2xl font-extrabold text-gray-800 mb-1">
-        สร้างปาร์ตี้สำเร็จ!
-      </h2>
+            <h2 className="text-2xl font-extrabold text-gray-800 mb-1">
+              สร้างปาร์ตี้สำเร็จ!
+            </h2>
 
-      <p className="text-gray-600 mb-5">
-        ทีมของคุณพร้อมแล้ว — ผู้เล่นสามารถเข้าร่วมได้เลย
-      </p>
+            <p className="text-gray-600 mb-5">
+              ทีมของคุณพร้อมแล้ว — ผู้เล่นสามารถเข้าร่วมได้เลย
+            </p>
 
-      <div className="flex gap-3">
-        <button
-          onClick={() => setShowSuccessPopup(false)}
-          className="flex-1 bg-white border border-gray-200 text-gray-800 py-2 rounded-xl font-medium"
-        >
-          ปิด
-        </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSuccessPopup(false)}
+                className="flex-1 bg-white border border-gray-200 text-gray-800 py-2 rounded-xl font-medium"
+              >
+                ปิด
+              </button>
 
-        <button
-          onClick={() =>
-            navigate(`/findandcreate/${fieldId}?date=${selectedDate}`)
-          }
-          className="flex-1 bg-green-500 text-white py-2 rounded-xl font-bold"
-        >
-          ไปที่ปาร์ตี้
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+              <button
+                onClick={() =>
+                  navigate(`/findandcreate/${fieldId}?date=${selectedDate}`)
+                }
+                className="flex-1 bg-green-500 text-white py-2 rounded-xl font-bold"
+              >
+                ไปที่ปาร์ตี้
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav />
     </div>
