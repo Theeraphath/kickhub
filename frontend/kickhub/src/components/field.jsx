@@ -55,18 +55,15 @@ export default function FindCreateParty() {
 
   const getFacilitiesList = (facilities) => {
     if (!facilities || typeof facilities !== "object") return [];
-
-    const labels = {
-      lights: "ไฟส่องสว่าง",
+    const facilityNames = {
       parking: "ที่จอดรถ",
       restroom: "ห้องน้ำ",
       shop: "ร้านค้า",
       wifi: "Wi-Fi ฟรี",
     };
-
     return Object.keys(facilities)
-      .filter((key) => facilities[key]) // ✅ เฉพาะที่เป็น true
-      .map((key) => labels[key] || key); // ✅ แปลงเป็นชื่อไทย
+      .filter((key) => facilities[key])
+      .map((key) => facilityNames[key] || key);
   };
 
   const handleSearch = ({ start_datetime, end_datetime }) => {
@@ -154,20 +151,24 @@ export default function FindCreateParty() {
 
                   <div className="flex flex-wrap gap-1 mt-2">
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {getFacilitiesList(field.facilities).length > 0 ? (
-                        getFacilitiesList(field.facilities).map((item, i) => (
+                      {getFacilitiesList(field.facilities)
+                        .sort((a, b) => {
+                          const order = [
+                            "ห้องน้ำ",
+                            "ที่จอดรถ",
+                            "ร้านค้า",
+                            "Wi-Fi ฟรี",
+                          ];
+                          return order.indexOf(a) - order.indexOf(b);
+                        })
+                        .map((fac, i) => (
                           <span
                             key={i}
-                            className="bg-blue-500 text-white text-xs px-2 py-1 rounded-md"
+                            className="bg-blue-500 text-white font-medium px-2 py-[2px] rounded-md text-[11px]"
                           >
-                            {item}
+                            {fac}
                           </span>
-                        ))
-                      ) : (
-                        <span className="text-gray-400 text-xs">
-                          ไม่มีข้อมูลเพิ่มเติม
-                        </span>
-                      )}
+                        ))}
                     </div>
                   </div>
                 </div>

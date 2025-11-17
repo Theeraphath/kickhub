@@ -5,6 +5,66 @@ const jwt = require("jsonwebtoken");
 const SECRET_KEY = process.env.SECRET_KEY;
 const { MongoClient } = require("mongodb");
 
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *    summary: Login user
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              email:
+ *                type: string
+ *              password:
+ *                type: string
+ *    responses:
+ *      200:
+ *        description: Login successful
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                message:
+ *                  type: string
+ *                token:
+ *                  type: string
+ *                role:
+ *                  type: string
+ *      500:
+ *        description: Internal server error
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                error:
+ *                  type: string
+ *                message:
+ *                  type: string
+ *                stack:
+ *                  type: string
+ *      401:
+ *        description: Unauthorized
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
+ *    tags:
+ *      - Login
+ *    security:
+ *      - bearerAuth: []
+ */
+
 router.post("/", async (req, res) => {
   const { email, password } = req.body;
   const client = new MongoClient("mongodb://localhost:27017");
