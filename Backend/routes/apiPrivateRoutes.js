@@ -1408,6 +1408,9 @@ router.post(
             console.log("❌ required_positions parse error");
           }
         }
+        if (postdata.host_position) {
+          postdata.host_position = postdata.host_position;
+        }
       }
 
       // ⭐ LOG postdata ที่จะส่งเข้า newPost
