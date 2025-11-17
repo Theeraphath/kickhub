@@ -22,6 +22,7 @@ const allowedDomains = [
   "http://localhost:5502",
   "http://localhost:5173",
   "http://192.168.1.42:5173",
+  "http://192.168.1.26:5173",
 ];
 
 const corsOptions = {

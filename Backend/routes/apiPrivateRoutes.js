@@ -211,6 +211,7 @@ const {
   getReservationbyID,
   getReservationbyFieldID,
   getReservationbyUserID,
+  getReservationsByOwnerID,
 } = require("../controllers/reservationController");
 
 const {

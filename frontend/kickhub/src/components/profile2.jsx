@@ -179,6 +179,7 @@ export default function Profile2() {
               <input
                 type="text"
                 name="name"
+                placeholder="ชื่อ"
                 value={formData.name}
                 onChange={handleInputChange}
                 className="border rounded-lg p-2"
@@ -187,6 +188,7 @@ export default function Profile2() {
               <input
                 type="email"
                 name="email"
+                placeholder="อีเมล"
                 value={formData.email}
                 onChange={handleInputChange}
                 className="border rounded-lg p-2"
@@ -195,6 +197,7 @@ export default function Profile2() {
               <input
                 type="tel"
                 name="phone"
+                placeholder="เบอร์โทรศัพท์"
                 value={formData.phone}
                 onChange={handleInputChange}
                 className="border rounded-lg p-2"
