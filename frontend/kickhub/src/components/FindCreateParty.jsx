@@ -12,7 +12,7 @@ export default function FindCreateParty() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const API = "http://192.168.1.42:3000";
+  const API = "http://172.20.10.4:3000";
   // const API = "http://192.168.1.26:3000";
 
   // ===========================
@@ -149,37 +149,9 @@ export default function FindCreateParty() {
         ) : errorMsg ? (
           <p className="text-center text-red-500 mt-10">{errorMsg}</p>
         ) : filteredFields.length === 0 ? (
-          <div className="flex flex-col items-center justify-center mt-10 fade-in">
-            {/* Neumorph Icon */}
-            <div
-              className="w-24 h-24 rounded-2xl flex items-center justify-center mb-4"
-              style={{
-                background: "linear-gradient(180deg,#F3F4F6,#E5E7EB)",
-                boxShadow:
-                  "-8px -8px 16px rgba(255,255,255,0.8), 8px 8px 16px rgba(0,0,0,0.08)",
-              }}
-            >
-              <span className="text-gray-500 text-5xl">⚽</span>
-            </div>
-
-            {/* Main Text */}
-            <p className="text-gray-700 font-semibold text-lg">
-              ไม่พบสนามที่ตรงกับคำค้นหา
-            </p>
-
-            {/* Sub Text */}
-            {/* <p className="text-gray-500 text-sm mt-1 mb-3 px-6 text-center">
-              หรืออาจจะไม่มีสนามเปิดบริการในตอนนี้
-            </p> */}
-
-            {/* Button */}
-            <button
-              onClick={() => setSearchTerm("")}
-              className="mt-2 bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-semibold shadow transition"
-            >
-              รีเซ็ตการค้นหา
-            </button>
-          </div>
+          <p className="text-center text-gray-500 mt-10">
+            ไม่พบสนามที่ตรงกับคำค้นหา
+          </p>
         ) : (
           <div className="flex flex-col gap-4">
             {filteredFields.map((field) => {

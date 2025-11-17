@@ -16,8 +16,7 @@ import Buffetpic from "../../public/buffetpic.png";
 import LP from "../../public/lockposition.png";
 import BottomNav from "./Navbar";
 
-const API = "http://192.168.1.42:3000";
-// const API = "http://192.168.1.26:3000";
+const API = "http://172.20.10.4:3000";
 
 export default function CreateParty() {
   const navigate = useNavigate();
