@@ -135,7 +135,7 @@ export default function PartyRole() {
     (p) => p.user_id === userId
   );
 
-  const displayedCounts = { ...(counts - 1) };
+  const displayedCounts = { ...counts };
 
   if (!alreadyJoined && reservedPos) {
     displayedCounts[reservedPos] = (displayedCounts[reservedPos] || 0) + 1;

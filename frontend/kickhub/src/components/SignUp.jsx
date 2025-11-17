@@ -156,6 +156,13 @@ export default function SignUp() {
               </span>
             </p>
 
+            <p className="text-black mt-3 text-[0.8rem] font-medium flex justify-center gap-1 font-noto-thai">
+              <span>ต้องการร่วมงานกับเราโปรดติดต่อ</span>
+              <span className="text-blue-600 cursor-pointer hover:underline">
+                teeraphat.sai@spumail.net
+              </span>
+            </p>
+
             {/* Social Login */}
             {/* <div className="flex flex-col gap-2 mt-3">
               <button

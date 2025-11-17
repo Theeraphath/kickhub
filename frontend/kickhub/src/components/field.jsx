@@ -54,16 +54,26 @@ export default function FindCreateParty() {
   };
 
   const getFacilitiesList = (facilities) => {
-    if (!facilities || typeof facilities !== "object") return [];
-    const facilityNames = {
-      parking: "ที่จอดรถ",
-      restroom: "ห้องน้ำ",
-      shop: "ร้านค้า",
-      wifi: "Wi-Fi ฟรี",
-    };
-    return Object.keys(facilities)
-      .filter((key) => facilities[key])
-      .map((key) => facilityNames[key] || key);
+    if (!facilities) return [];
+    try {
+      // ถ้าเป็น string → parse เป็น object
+      const parsed =
+        typeof facilities === "string" ? JSON.parse(facilities) : facilities;
+
+      const facilityNames = {
+        parking: "ที่จอดรถ",
+        restroom: "ห้องน้ำ",
+        shop: "ร้านค้า",
+        wifi: "Wi-Fi ฟรี",
+      };
+
+      return Object.keys(parsed)
+        .filter((key) => parsed[key])
+        .map((key) => facilityNames[key] || key);
+    } catch (err) {
+      console.error("Facilities parse error:", err);
+      return [];
+    }
   };
 
   const handleSearch = ({ start_datetime, end_datetime }) => {

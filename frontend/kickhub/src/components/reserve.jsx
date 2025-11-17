@@ -121,7 +121,7 @@ export default function Reserve() {
     <div className="flex justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md bg-white shadow-md rounded-t-2xl overflow-hidden">
         <img
-          src={field.image ? `${API}/uploads/photos/${field.image}` : field}
+          src={field.image ? `${apiUrl}/uploads/photos/${field.image}` : field}
           alt="สนามฟุตบอล"
           className="w-full h-48 object-cover"
         />
