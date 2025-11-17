@@ -39,26 +39,21 @@ export default function TimeSelector({ onSubmit }) {
           <select
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className=" text-black"
           >
             {[...Array(24)].map((_, hour) => {
               const timeString = hour.toString().padStart(2, "0") + ":00";
               return (
-                <option key={hour} value={timeString}>
+                <option key={hour} value={timeString} className="text-black">
                   {timeString}
                 </option>
               );
             })}
           </select>
-          <select
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            className=" text-black"
-          >
+          <select value={endTime} onChange={(e) => setEndTime(e.target.value)}>
             {[...Array(24)].map((_, hour) => {
               const timeString = hour.toString().padStart(2, "0") + ":00";
               return (
-                <option key={hour} value={timeString}>
+                <option key={hour} value={timeString} className="text-black">
                   {timeString}
                 </option>
               );

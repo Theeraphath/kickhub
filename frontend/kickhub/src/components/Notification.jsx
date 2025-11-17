@@ -253,7 +253,7 @@ export default function Notifications() {
                 <h1 className="font-bold text-lg">{data.field_name}</h1>
                 <p className="font-bold text-m">ปาร์ตี้: {data.party_name}</p>
                 <p className="text-sm text-[#22C55E]">
-                  {new Date(data.start_datetime).toLocaleDateString()} (
+                  {new Date(data.start_datetime).toLocaleDateString("th-TH")} (
                   {new Date(data.start_datetime).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",

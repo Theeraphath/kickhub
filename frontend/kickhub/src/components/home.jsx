@@ -18,20 +18,29 @@ export default function FindandCreate() {
   const [mode, setMode] = useState("flexible");
 
   const getFacilitiesList = (facilities) => {
-    if (!facilities || typeof facilities !== "object") return [];
-    const facilityNames = {
-      parking: "ที่จอดรถ",
-      restroom: "ห้องน้ำ",
-      shop: "ร้านค้า",
-      wifi: "Wi-Fi ฟรี",
-    };
-    return Object.keys(facilities)
-      .filter((key) => facilities[key])
-      .map((key) => facilityNames[key] || key);
+    if (!facilities) return [];
+    try {
+      // ถ้าเป็น string → parse เป็น object
+      const parsed =
+        typeof facilities === "string" ? JSON.parse(facilities) : facilities;
+
+      const facilityNames = {
+        parking: "ที่จอดรถ",
+        restroom: "ห้องน้ำ",
+        shop: "ร้านค้า",
+        wifi: "Wi-Fi ฟรี",
+      };
+
+      return Object.keys(parsed)
+        .filter((key) => parsed[key])
+        .map((key) => facilityNames[key] || key);
+    } catch (err) {
+      console.error("Facilities parse error:", err);
+      return [];
+    }
   };
 
-   const API = import.meta.env.VITE_API_URL || "http://192.168.1.34:3000";
-
+  const API = import.meta.env.VITE_API_URL || "http://192.168.1.34:3000";
 
   useEffect(() => {
     const id = getIdbyToken();
@@ -41,8 +50,6 @@ export default function FindandCreate() {
       setError("ไม่พบ ID ผู้ใช้ใน token");
     }
   }, []);
-
- 
 
   const getIdbyToken = () => {
     try {
@@ -241,9 +248,7 @@ export default function FindandCreate() {
               <div className="flex items-center gap-4">
                 <img
                   src={
-                    team.image
-                      ? `${API}/uploads/photos/${team.image}`
-                      : teamImg
+                    team.image ? `${API}/uploads/photos/${team.image}` : teamImg
                   }
                   alt={team.party_name}
                   className="w-20 h-20 object-cover rounded-xl"
