@@ -126,18 +126,26 @@ export default function PartyRole() {
   const userId = getUserIdFromToken(token);
 
   const counts =
-    postData?.participants?.reduce((acc, p) => {
-      acc[p.position] = (acc[p.position] || 0) + 1;
-      return acc;
-    }, {}) || {};
+    postData?.participants
+      ?.filter((p) => String(p.user_id) !== String(postData.user_id))
+      .reduce((acc, p) => {
+        acc[p.position] = (acc[p.position] || 0) + 1;
+        return acc;
+      }, {}) || {};
 
   const alreadyJoined = postData?.participants?.some(
-    (p) => p.user_id === userId
+    (p) =>
+      String(p.user_id) === String(userId) &&
+      String(p.user_id) !== String(postData.user_id)
   );
 
   const displayedCounts = { ...counts };
 
-  if (!alreadyJoined && reservedPos) {
+  if (
+    !alreadyJoined &&
+    reservedPos &&
+    String(userId) !== String(postData.user_id)
+  ) {
     displayedCounts[reservedPos] = (displayedCounts[reservedPos] || 0) + 1;
   }
 
@@ -405,10 +413,10 @@ export default function PartyRole() {
               ].map((pos) => {
                 const isReserved = reservedPos === pos.key;
                 const isLocked = reservedPos && !isReserved;
-                const disableCancel = status === "ended";
+                const disableCancel = isOwner || isLocked || status === "ended";
                 const disableReserve =
                   isOwner || isLocked || status === "ended";
-                const isFull = displayedCounts[pos.key] >= need[pos.key];
+                const isFull = (displayedCounts[pos.key] || 0) >= need[pos.key];
 
                 return (
                   <div
