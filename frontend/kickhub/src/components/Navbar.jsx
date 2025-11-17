@@ -6,6 +6,8 @@ import {
   FaUser,
   FaFutbol,
 } from "react-icons/fa";
+import { GiSoccerField } from "react-icons/gi";
+import { GoChecklist } from "react-icons/go";
 
 const BottomNav = () => {
   const location = useLocation();
@@ -16,18 +18,37 @@ const BottomNav = () => {
       return decodedToken._id;
     }
   };
-  const navItems = [
-    { name: "หน้าหลัก", icon: <FaHome />, path: "/home" },
-    { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/field" },
-    { name: "หาปาร์ตี", icon: <FaFutbol />, path: "/FindCreateParty" },
-    { name: "การแจ้งเตือน", icon: <FaBell />, path: "/notifications" },
-    {
-      name: "โปรไฟล์",
-      icon: <FaUser />,
-      id: getIdbyToken(),
-      path: `/profile/${getIdbyToken()}`,
-    },
-  ];
+  const getrolebyToken = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodedToken = JSON.parse(atob(token.split(".")[1]));
+      return decodedToken.role;
+    }
+  };
+
+  const getNavItems = (role) => {
+    const id = getIdbyToken();
+    if (role === "user") {
+      return [
+        { name: "หน้าหลัก", icon: <FaHome />, path: "/home" },
+        { name: "ค้นหาสนาม", icon: <FaMapMarkerAlt />, path: "/field" },
+        { name: "หาปาร์ตี", icon: <FaFutbol />, path: "/FindCreateParty" },
+        { name: "การแจ้งเตือน", icon: <FaBell />, path: "/notifications" },
+        { name: "โปรไฟล์", icon: <FaUser />, path: `/profile/${id}` },
+      ];
+    }
+    return [
+      { name: "จัดการสนาม", icon: <GiSoccerField />, path: "/owner" },
+      {
+        name: "อนุมัติการจอง",
+        icon: <GoChecklist />,
+        path: "/ApproveReservation",
+      },
+      { name: "โปรไฟล์", icon: <FaUser />, path: `/profile/${id}` },
+    ];
+  };
+
+  const navItems = getNavItems(getrolebyToken());
 
   return (
     <nav className="font-noto-thai fixed bottom-0 left-0 right-0 bg-white shadow-md border-t border-gray-200">

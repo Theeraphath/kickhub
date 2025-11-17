@@ -10,7 +10,6 @@ import Login from "./components/Login";
 import Test1 from "./components/test";
 import Test2 from "./components/test2";
 import Home from "./components/home";
-
 import Reserve from "./components/reserve";
 import Promptpay from "./components/prompypay";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -27,7 +26,8 @@ import CountdownTimer from "./components/CountdownTimer";
 import Owner from "./components/OwnerFieldManager";
 import Profile from "./components/profile";
 import Profile2 from "./components/profile2";
-
+import ApproveReservaion from "./components/ApproveReservation";
+import OAuthSuccess from "./components/OAuthSuccess";
 function AppRoutes() {
   const location = useLocation();
   const hideNavPaths = [
@@ -49,28 +49,163 @@ function AppRoutes() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signUp" element={<SignUp />} />
-        <Route path="/partybuffet/:id" element={<Partybuffet />} />
-        <Route path="/partyrole/:id" element={<PartyRole />} />
-        <Route path="/FindCreateParty" element={<FindCreateParty />} />
-        <Route path="/findandcreate/:fieldId" element={<FindandCreate />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <ProtectedRoute>
+              <Login />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/signUp"
+          element={
+            <ProtectedRoute>
+              <SignUp />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/partybuffet/:id"
+          element={
+            <ProtectedRoute>
+              <Partybuffet />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/partyrole/:id"
+          element={
+            <ProtectedRoute>
+              <PartyRole />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/FindCreateParty"
+          element={
+            <ProtectedRoute>
+              <FindCreateParty />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/findandcreate/:fieldId"
+          element={
+            <ProtectedRoute>
+              <FindandCreate />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/test/:id" element={<Test2 />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/historybuffet/:id" element={<Partybuffet />} />
-        <Route path="/historyrole/:id" element={<PartyRole />} />
-        <Route path="/create-party/:fieldId" element={<CreateParty />} />
-        <Route path="/create-party2/:fieldId" element={<CreateParty2 />} />
-        <Route path="/field" element={<Field />} />
-        <Route path="/countdown" element={<CountdownTimer />} />
-        <Route path="/owner" element={<Owner />} />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/historybuffet/:id"
+          element={
+            <ProtectedRoute>
+              <Partybuffet />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/historyrole/:id"
+          element={
+            <ProtectedRoute>
+              <PartyRole />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-party/:fieldId"
+          element={
+            <ProtectedRoute>
+              <CreateParty />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-party2/:fieldId"
+          element={
+            <ProtectedRoute>
+              <CreateParty2 />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/field"
+          element={
+            <ProtectedRoute>
+              <Field />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/countdown"
+          element={
+            <ProtectedRoute>
+              <CountdownTimer />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/owner"
+          element={
+            <ProtectedRoute>
+              <Owner />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/test" element={<Test1 />} />
-        <Route path="/profile/:id" element={<Profile />} />
-        <Route path="/profile/edit/:id" element={<Profile2 />} />
+        <Route
+          path="/profile/:id"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/edit/:id"
+          element={
+            <ProtectedRoute>
+              <Profile2 />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/oauth-success" element={<OAuthSuccess />} />
 
-   
+        <Route
+          path="/ApproveReservation"
+          element={
+            <ProtectedRoute>
+              <ApproveReservaion />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/reserve/:id"
           element={

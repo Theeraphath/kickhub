@@ -11,6 +11,8 @@ import Applelogo from "../../public/apple-black-logo-svgrepo-com.svg";
 import { IoIosRemoveCircle } from "react-icons/io";
 
 export default function Login() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const appleClientId = import.meta.env.VITE_APPLE_CLIENT_ID;
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [checkinput, setCheckinput] = useState(false);
@@ -69,6 +71,39 @@ export default function Login() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    /* Google Identity Service */
+    window.location.href = "http://localhost:3000/login/google/auth/google";
+  };
+
+  const handleAppleLogin = () => {
+    window.AppleID.auth.init({
+      clientId: appleClientId,
+      scope: "name email",
+      redirectURI: import.meta.env.VITE_APPLE_REDIRECT_URL,
+      usePopup: true,
+    });
+
+    window.AppleID.auth
+      .signIn()
+      .then(async (result) => {
+        const id_token = result.authorization.id_token;
+
+        const res = await fetch(`${apiUrl}/auth/apple`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id_token }),
+        });
+
+        const data = await res.json();
+        if (data.status === "ok") {
+          localStorage.setItem("token", data.token);
+          navigate(data.role === "owner" ? "/owner" : "/home");
+        }
+      })
+      .catch((err) => console.error(err));
+  };
+
   return (
     <motion.div
       className="flex items-center justify-center h-screen bg-gray-100 md:bg-green-800 overflow-hidden"
@@ -123,7 +158,7 @@ export default function Login() {
                 <input
                   type="text"
                   className="text-black text-[0.9rem] opacity-80 w-full outline-none bg-transparent"
-                  placeholder="Enter your Email || example: karn.yong"
+                  placeholder="Enter your Email"
                   name="email"
                   value={inputs.email}
                   onChange={handleChange}
@@ -141,7 +176,7 @@ export default function Login() {
                 <input
                   type={showPassword ? "text" : "password"}
                   className="text-black text-[0.9rem] opacity-80 w-full outline-none bg-transparent"
-                  placeholder="Enter your Password || example: melivecode"
+                  placeholder="Enter your Password"
                   name="password"
                   value={inputs.password}
                   onChange={handleChange}
@@ -354,13 +389,13 @@ export default function Login() {
             </p>
 
             {/* Social Login */}
-            <div className="flex flex-col items-center mt-2 gap-2">
+            {/* <div className="flex flex-col items-center mt-2 gap-2">
               <p className="text-gray-600 text-[0.8rem]">Or sign in with</p>
 
               <div className="flex gap-3 w-full">
-                {/* Google */}
                 <motion.button
                   type="button"
+                  onClick={handleGoogleLogin}
                   className="flex items-center gap-2 text-[0.8rem] w-full justify-center py-2 px-4 rounded-full border border-gray-300 hover:bg-gray-100 cursor-pointer transition"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -369,9 +404,9 @@ export default function Login() {
                   <span className="text-black font-medium">Google</span>
                 </motion.button>
 
-                {/* Apple */}
                 <motion.button
                   type="button"
+                  onClick={handleAppleLogin}
                   className="flex items-center gap-2 text-[0.8rem] w-full justify-center py-2 px-4 rounded-full border border-gray-300 hover:bg-gray-100 cursor-pointer transition"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -380,7 +415,7 @@ export default function Login() {
                   <span className="text-black font-medium">Apple</span>
                 </motion.button>
               </div>
-            </div>
+            </div> */}
           </form>
         </motion.div>
       </motion.div>
