@@ -6,7 +6,8 @@ const path = require("path");
 const port = 3000;
 
 const app = express();
-
+// Swagger
+const { swaggerUi, swaggerSpec } = require("./swagger");
 require("./database"); // Import the database connection
 require("dotenv").config();
 const apiPrivateRoutes = require("./routes/apiPrivateRoutes");
@@ -15,6 +16,7 @@ const apiAuthRoutes = require("./routes/apiAuthRoutes");
 const apiGoogleRoutes = require("./routes/authGoogle");
 
 const allowedDomains = [
+  "http://localhost:3000",
   "http://localhost:5500",
   "http://localhost:5501",
   "http://localhost:5502",
@@ -22,24 +24,22 @@ const allowedDomains = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) {
-      return callback(new Error(`Origin not allowed by CORS`), false);
-    }
+    if (!origin) return callback(null, true);
     if (allowedDomains.includes(origin)) {
       return callback(null, true);
     } else {
       callback(new Error(`Origin ${origin} not allowed by CORS`), false);
     }
   },
-  methods: [`GET`, `POST`],
+  methods: [`GET`, `POST`, `PUT`, `DELETE`],
   credentials: true,
   allowedHeaders: [`Content-Type`, `Authorization`],
 };
 
-// app.use(cors(corsOptions));
-// app.use(express.json());
-app.use(bodyParser.json());
-app.use(cors());
+app.use(cors(corsOptions));
+app.use(express.json());
+// app.use(bodyParser.json());
+// app.use(cors());
 
 app.use((err, req, res, next) => {
   if (err.message === "Origin not allowed by CORS") {
@@ -56,6 +56,7 @@ app.use(
   express.static(path.join(__dirname, "uploads/photos"))
 );
 
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api", apiPrivateRoutes);
 app.use("/register", apiRegisterRoutes);
 app.use("/login", apiAuthRoutes);

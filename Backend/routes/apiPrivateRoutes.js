@@ -1,5 +1,190 @@
 const express = require("express");
 const router = express.Router();
+
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *         role:
+ *           type: string
+ *         profile_photo:
+ *           type: string
+ *         profile_photo_cover:
+ *           type: string
+ *         mobile_number:
+ *           type: string
+ *         status:
+ *           type: string
+ *         last_login:
+ *           type: Date
+ *     Field:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         owner_id:
+ *           type: string
+ *         field_name:
+ *           type: string
+ *         field_type:
+ *           type: string
+ *         mobile_number:
+ *           type: string
+ *         address:
+ *           type: string
+ *         price:
+ *           type: number
+ *         open:
+ *           type: string
+ *         close:
+ *           type: string
+ *         facilities:
+ *           type: object
+ *         image:
+ *           type: string
+ *         description:
+ *           type: string
+ *         is_active:
+ *           type: boolean
+ *         google_map:
+ *           type: string
+ *     Reservation:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         field_id:
+ *           type: string
+ *         user_id:
+ *           type: string
+ *         mobile_number:
+ *           type: string
+ *         start_datetime:
+ *           type: Date
+ *         end_datetime:
+ *           type: Date
+ *         payment_amount:
+ *           type: number
+ *         payment_status:
+ *           type: string
+ *         status:
+ *           type: string
+ *     Post:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: 665a4f0e2b6f1b0012345678
+ *         party_name:
+ *           type: string
+ *           example: "Football Night Party"
+ *         mode:
+ *           type: string
+ *           enum: [fixed, flexible]
+ *           example: "fixed"
+ *         field_id:
+ *           type: string
+ *           description: MongoDB ObjectId of the field
+ *           example: "665a4f0e2b6f1b0012345679"
+ *         field_name:
+ *           type: string
+ *           example: "Main Stadium"
+ *         address:
+ *           type: string
+ *           example: "Bangkok, Thailand"
+ *         user_id:
+ *           type: string
+ *           description: MongoDB ObjectId of the user who created the post
+ *           example: "665a4f0e2b6f1b0012345680"
+ *         host_name:
+ *           type: string
+ *           example: "Saral"
+ *         host_image:
+ *           type: string
+ *           example: "https://example.com/images/host.png"
+ *         description:
+ *           type: string
+ *           example: "Friendly football match with buffet style"
+ *         image:
+ *           type: string
+ *           example: "https://example.com/images/party.png"
+ *         start_datetime:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-11-18T18:00:00Z"
+ *         end_datetime:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-11-18T20:00:00Z"
+ *         required_positions:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               position:
+ *                 type: string
+ *                 enum: [GK, FW, DF, MF]
+ *                 example: "GK"
+ *               amount:
+ *                 type: integer
+ *                 example: 2
+ *         total_required_players:
+ *           type: integer
+ *           example: 10
+ *         participants:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *                 example: "665a4f0e2b6f1b0012345681"
+ *               name:
+ *                 type: string
+ *                 example: "Player A"
+ *               profile_image:
+ *                 type: string
+ *                 example: "https://example.com/images/playerA.png"
+ *               position:
+ *                 type: string
+ *                 enum: [GK, FW, DF, MF, null]
+ *                 example: "FW"
+ *               status:
+ *                 type: string
+ *                 example: "Joined"
+ *               joined_at:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2025-11-18T02:00:00Z"
+ *         price:
+ *           type: number
+ *           example: 500
+ *         google_map:
+ *           type: string
+ *           example: "https://maps.google.com/?q=13.7563,100.5018"
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-11-17T12:00:00Z"
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-11-17T12:30:00Z"
+ */
 const authenticateToken = require("../middleware/authMiddleware");
 const authorizeOwner = require("../middleware/authorizeOwner");
 const upload = require("../middleware/uploadMiddleware");
@@ -37,18 +222,40 @@ const {
   getPostbyID,
   joinParty,
   leaveParty,
-  getAllPosts,
   getPostUpcoming,
   getPostUpcomingbyFieldID,
 } = require("../controllers/postController");
 
-router.get("/test", authenticateToken, (req, res) => {
-  res.json({
-    message: "This is private data accessible only from allowed origins.",
-    data: [1, 2, 3, 4, 5],
-  });
-});
+///// User /////
 
+/**
+ * @swagger
+ * /user/profile:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get current user's profile
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get("/user/profile", authenticateToken, async (req, res) => {
   try {
     const userId = req.user._id;
@@ -67,6 +274,36 @@ router.get("/user/profile", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /user/{id}:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get user by id
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Server error
+ */
 router.get("/user/:id", authenticateToken, async (req, res) => {
   try {
     const userId = req.params.id;
@@ -81,6 +318,32 @@ router.get("/user/:id", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /user/profile:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get current user's profile (detailed)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Not found
+ */
 router.get("/user/profile", authenticateToken, async (req, res) => {
   try {
     const userId = req.user._id;
@@ -108,6 +371,39 @@ router.get("/user/profile", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /user/update/{id}:
+ *   put:
+ *     tags:
+ *       - User
+ *     summary: Update a user's profile (multipart/form-data)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profile_photo:
+ *                 type: string
+ *                 format: binary
+ *               profile_photo_cover:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ *       400:
+ *         description: Bad request
+ */
 router.put(
   "/user/update/:id",
   authenticateToken,
@@ -118,8 +414,62 @@ router.put(
   updateUserProfile
 );
 
+/**
+ * @swagger
+ * /user/change-password/{id}:
+ *   put:
+ *     tags:
+ *       - User
+ *     summary: Change user password
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password changed
+ *       400:
+ *         description: Bad request
+ */
 router.put("/user/change-password/:id", authenticateToken, changePassword);
 
+/**
+ * @swagger
+ * /user:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get all users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ */
 router.get("/user", authenticateToken, async (req, res) => {
   const client = new MongoClient("mongodb://localhost:27017");
   try {
@@ -136,6 +486,38 @@ router.get("/user", authenticateToken, async (req, res) => {
   }
 });
 
+/////////////////////////////////////////
+/////////// Field /////////
+/**
+ * @swagger
+ * /add-fields:
+ *   post:
+ *     tags:
+ *       - Field
+ *     summary: Add a new field (owner only)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               location:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Field created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Field'
+ */
 router.post(
   "/add-fields",
   authenticateToken,
@@ -174,6 +556,28 @@ router.post(
   }
 );
 
+/**
+ * @swagger
+ * /fields:
+ *   get:
+ *     tags:
+ *       - Field
+ *     summary: Get all fields
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Field'
+ */
 router.get("/fields", authenticateToken, async (req, res) => {
   try {
     const result = await getAllFields();
@@ -211,6 +615,31 @@ router.get("/fields", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /fields/{id}:
+ *   get:
+ *     tags:
+ *       - Field
+ *     summary: Get field by id
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Field found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Field'
+ *       404:
+ *         description: Field not found
+ */
 router.get("/fields/:id", authenticateToken, async (req, res) => {
   try {
     const fieldId = req.params.id;
@@ -229,10 +658,41 @@ router.get("/fields/:id", authenticateToken, async (req, res) => {
     });
   } catch (err) {
     console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดในการดึงข้อมูลสนามด้วย ID:", err);
-    return res.status(500).json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res
+      .status(500)
+      .json({ status: "error", message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
-// fields available in time range
+
+/**
+ * @swagger
+ * /available-fields:
+ *   get:
+ *     tags:
+ *       - Field
+ *     summary: Get fields available in a time range
+ *     parameters:
+ *       - in: query
+ *         name: start_time
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: end_time
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Available fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Field'
+ */
 router.get("/available-fields", async (req, res) => {
   try {
     const startTime = req.query.start_time;
@@ -263,6 +723,28 @@ router.get("/available-fields", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /owner-fields:
+ *   get:
+ *     tags:
+ *       - Field
+ *     summary: Get fields owned by authenticated owner
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Owner fields list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Field'
+ */
 router.get(
   "/owner-fields",
   authenticateToken,
@@ -306,6 +788,36 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /update-fields/{id}:
+ *   put:
+ *     tags:
+ *       - Field
+ *     summary: Update a field (owner only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Field updated
+ */
 router.put(
   "/update-fields/:id",
   authenticateToken,
@@ -366,6 +878,25 @@ router.put(
   }
 );
 
+/**
+ * @swagger
+ * /delete-fields/{id}:
+ *   delete:
+ *     tags:
+ *       - Field
+ *     summary: Delete a field (owner only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Field deleted
+ */
 router.delete(
   "/delete-fields/:id",
   authenticateToken,
@@ -374,7 +905,7 @@ router.delete(
     try {
       const fieldId = req.params.id;
       const existingField = await getFieldbyID(fieldId);
-      if (!existingField.success||  !existingField.data) {
+      if (!existingField.success || !existingField.data) {
         return res
           .status(404)
           .json({ status: "error", message: "ไม่พบข้อมูลสนามที่ต้องการลบ" });
@@ -406,6 +937,44 @@ router.delete(
   }
 );
 
+/////////////////////////////////////////
+/////// reservation ////////////////////
+
+/**
+ * @swagger
+ * /new-reservation/{id}:
+ *   post:
+ *     tags:
+ *       - reservation
+ *     summary: Create a new reservation for a field
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Field id
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               start_time:
+ *                 type: string
+ *               end_time:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Reservation created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Reservation'
+ */
 router.post("/new-reservation/:id", authenticateToken, async (req, res) => {
   try {
     const fieldId = req.params.id;
@@ -437,6 +1006,28 @@ router.post("/new-reservation/:id", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /reservations:
+ *   get:
+ *     tags:
+ *       - reservation
+ *     summary: Get all reservations
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of reservations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Reservation'
+ */
 router.get("/reservations", authenticateToken, async (req, res) => {
   try {
     const result = await getAllReservations();
@@ -464,6 +1055,29 @@ router.get("/reservations", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /reservations/{id}:
+ *   get:
+ *     tags:
+ *       - reservation
+ *     summary: Get reservation by id
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Reservation found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Reservation'
+ */
 router.get("/reservations/:id", authenticateToken, async (req, res) => {
   try {
     const reservationId = req.params.id;
@@ -491,6 +1105,28 @@ router.get("/reservations/:id", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /user-reservations:
+ *   get:
+ *     tags:
+ *       - reservation
+ *     summary: Get reservations for authenticated user
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User reservations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Reservation'
+ */
 router.get("/user-reservations", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user._id;
@@ -519,6 +1155,19 @@ router.get("/user-reservations", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /reservations/field/owner:
+ *   get:
+ *     tags:
+ *       - reservation
+ *     summary: Get reservations for fields owned by authenticated owner
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Owner reservations
+ */
 router.get(
   "/reservations/field/owner",
   authenticateToken,
@@ -562,6 +1211,25 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /field-reservations/{id}:
+ *   get:
+ *     tags:
+ *       - reservation
+ *     summary: Get reservations for a specific field
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Field reservations
+ */
 router.get("/field-reservations/:id", authenticateToken, async (req, res) => {
   try {
     const fieldId = req.params.id;
@@ -590,6 +1258,30 @@ router.get("/field-reservations/:id", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /update-reservation/{id}:
+ *   put:
+ *     tags:
+ *       - reservation
+ *     summary: Update reservation by id
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Reservation updated
+ */
 router.put("/update-reservation/:id", authenticateToken, async (req, res) => {
   try {
     const reservationId = req.params.id;
@@ -619,6 +1311,46 @@ router.put("/update-reservation/:id", authenticateToken, async (req, res) => {
   }
 });
 
+/////////////////////////////////////////
+///////// POST //////////////////////////
+
+/**
+ * @swagger
+ * /create-post/{id}:
+ *   post:
+ *     tags:
+ *       - POST
+ *     summary: Create a post for a field
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Field id
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Post created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Post'
+ */
 router.post(
   "/create-post/:id",
   authenticateToken,
@@ -695,7 +1427,6 @@ router.post(
         status: "error",
         message: result.error?.message || "ไม่สามารถสร้างโพสต์ได้",
       });
-
     } catch (error) {
       console.error("❌ create-post error:", error);
       return res.status(500).json({
@@ -706,9 +1437,28 @@ router.post(
   }
 );
 
-
-
-
+/**
+ * @swagger
+ * /posts:
+ *   get:
+ *     tags:
+ *       - POST
+ *     summary: Get upcoming posts
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Post'
+ */
 router.get("/posts", authenticateToken, async (req, res) => {
   try {
     const result = await getPostUpcoming();
@@ -736,6 +1486,19 @@ router.get("/posts", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /posts/joiner:
+ *   get:
+ *     tags:
+ *       - POST
+ *     summary: Get posts the authenticated user has joined
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Joined posts list
+ */
 router.get("/posts/joiner", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user._id;
@@ -764,6 +1527,25 @@ router.get("/posts/joiner", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /post/{id}:
+ *   get:
+ *     tags:
+ *       - POST
+ *     summary: Get a post by id
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Post found
+ */
 router.get("/post/:id", authenticateToken, async (req, res) => {
   try {
     const post_id = req.params.id;
@@ -791,6 +1573,29 @@ router.get("/post/:id", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /posts-field/{id}:
+ *   get:
+ *     tags:
+ *       - POST
+ *     summary: Get posts for a specific field on a specific date
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Posts for field
+ */
 router.get("/posts-field/:id", authenticateToken, async (req, res) => {
   try {
     const fieldId = req.params.id;
@@ -830,7 +1635,25 @@ router.get("/posts-field/:id", authenticateToken, async (req, res) => {
   }
 });
 
-
+/**
+ * @swagger
+ * /delete-post/{id}:
+ *   delete:
+ *     tags:
+ *       - POST
+ *     summary: Delete a post (owner only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Post deleted
+ */
 router.delete("/delete-post/:id", authenticateToken, async (req, res) => {
   try {
     const post_id = req.params.id;
@@ -873,6 +1696,30 @@ router.delete("/delete-post/:id", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /update-post/{id}:
+ *   put:
+ *     tags:
+ *       - POST
+ *     summary: Update a post (owner only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Post updated
+ */
 router.put("/update-post/:id", authenticateToken, async (req, res) => {
   try {
     const post_id = req.params.id;
@@ -920,6 +1767,33 @@ router.put("/update-post/:id", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /join-party/{id}:
+ *   put:
+ *     tags:
+ *       - POST
+ *     summary: Join a post/team
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               position:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Joined successfully
+ */
 router.put("/join-party/:id", authenticateToken, async (req, res) => {
   try {
     const post_id = req.params.id;
@@ -950,6 +1824,25 @@ router.put("/join-party/:id", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /leave-party/{id}:
+ *   put:
+ *     tags:
+ *       - POST
+ *     summary: Leave a post/team
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Left successfully
+ */
 router.put("/leave-party/:id", authenticateToken, async (req, res) => {
   try {
     const post_id = req.params.id;
