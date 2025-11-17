@@ -14,7 +14,7 @@ export default function FindCreateParty() {
   const [selectedTime, setSelectedTime] = useState(null);
 
   // const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
-  const apiUrl = import.meta.env.VITE_API_URL || "http://172.20.10.4:3000";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.42:3000";
 
   const fetchAvailableFields = async (start_datetime, end_datetime) => {
     setLoading(true);
