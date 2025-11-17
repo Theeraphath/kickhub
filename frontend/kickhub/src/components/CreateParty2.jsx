@@ -1,3 +1,4 @@
+
 // =============================
 // CreateParty2.jsx (LOCK MODE) — FIXED & COMPLETE VERSION
 // =============================
@@ -21,7 +22,7 @@ import DF from "../../public/กองหลัง.png";
 
 import BottomNav from "./Navbar";
 
-const API = "http://192.168.1.42:3000";
+const API = import.meta.env.VITE_API_URL || "http://192.168.1.42:3000";
 // const API = "http://192.168.1.26:3000";
 
 
@@ -200,7 +201,7 @@ export default function CreateParty2() {
       form.append("user_id", userData._id); // ⭐ ต้องส่ง!
       form.append("username", userData.username || "");
       form.append("host_image", userData.profile_photo || "");
-      form.append("position", convertMyPos(myPosition)); // ส่งตำแหน่งถูกแล้ว
+      form.append("้host_position", convertMyPos(myPosition)); // ส่งตำแหน่งถูกแล้ว
 
       // Image
       if (image) form.append("image", image);

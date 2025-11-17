@@ -16,7 +16,7 @@ import Buffetpic from "../../public/buffetpic.png";
 import LP from "../../public/lockposition.png";
 import BottomNav from "./Navbar";
 
-const API = "http://192.168.1.42:3000";
+const API = import.meta.env.VITE_API_URL || "http://192.168.1.34:3000";
 // const API = "http://192.168.1.26:3000";
 
 export default function CreateParty() {

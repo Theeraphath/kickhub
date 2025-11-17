@@ -211,7 +211,6 @@ const {
   getReservationbyID,
   getReservationbyFieldID,
   getReservationbyUserID,
-  getReservationsByOwnerID,
 } = require("../controllers/reservationController");
 
 const {
@@ -646,16 +645,9 @@ router.get("/fields/:id", authenticateToken, async (req, res) => {
     const result = await getFieldbyID(fieldId);
 
     if (result.success) {
-      return res.status(200).json({
-        status: "success",
-        message: "ดึงข้อมูลสนามสำเร็จ",
-        data: result.data,
-      });
+      return res.status(200).json({ status: "success", message: "ดึงข้อมูลสนามสำเร็จ", data: result.data });
     }
-    return res.status(404).json({
-      status: "error",
-      message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ",
-    });
+    return res.status(404).json({ status: "error", message: result.error?.message || "ไม่พบข้อมูลสนามที่ระบุ" });
   } catch (err) {
     console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดในการดึงข้อมูลสนามด้วย ID:", err);
     return res
@@ -911,23 +903,29 @@ router.delete(
           .json({ status: "error", message: "ไม่พบข้อมูลสนามที่ต้องการลบ" });
       }
       if (existingField.data.owner_id.toString() !== req.user._id) {
-        return res.status(403).json({
-          status: "error",
-          message: "คุณไม่มีสิทธิ์ลบสนามนี้ (ไม่ใช่เจ้าของ)",
-        });
+        return res
+          .status(403)
+          .json({
+            status: "error",
+            message: "คุณไม่มีสิทธิ์ลบสนามนี้ (ไม่ใช่เจ้าของ)",
+          });
       }
       const result = await deleteField(fieldId);
       if (result.success) {
-        return res.status(200).json({
-          status: "success",
-          message: "ลบข้อมูลสนามสำเร็จ",
-          timestamp: new Date().toISOString(),
-        });
+        return res
+          .status(200)
+          .json({
+            status: "success",
+            message: "ลบข้อมูลสนามสำเร็จ",
+            timestamp: new Date().toISOString(),
+          });
       }
-      return res.status(400).json({
-        status: "error",
-        message: result.error?.message || "ไม่สามารถลบข้อมูลสนามได้",
-      });
+      return res
+        .status(400)
+        .json({
+          status: "error",
+          message: result.error?.message|| "ไม่สามารถลบข้อมูลสนามได้",
+        });
     } catch (err) {
       console.error("เกิดข้อผิดพลาดในการลบสนาม:", err);
       return res
