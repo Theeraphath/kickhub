@@ -22,7 +22,10 @@ import DF from "../../public/กองหลัง.png";
 
 import BottomNav from "./Navbar";
 
-const API = "http://172.20.10.4:3000";
+const API = import.meta.env.VITE_API_URL || "http://192.168.1.42:3000";
+// const API = "http://192.168.1.26:3000";
+
+
 
 export default function CreateParty2() {
   const navigate = useNavigate();

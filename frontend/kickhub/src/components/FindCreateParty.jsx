@@ -12,7 +12,7 @@ export default function FindCreateParty() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const API = "http://172.20.10.4:3000";
+  const API = import.meta.env.VITE_API_URL || "http://192.168.1.42:3000";
   // const API = "http://192.168.1.26:3000";
 
   // ===========================
@@ -103,7 +103,7 @@ export default function FindCreateParty() {
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center font-noto-thai">
       {/* HEADER */}
       <div className="relative w-[24.5rem] h-[10rem]">
         <div className="absolute top-5 left-36 z-10">
