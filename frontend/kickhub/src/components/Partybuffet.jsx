@@ -19,7 +19,7 @@ export default function Partybuffet() {
   const [status, setStatus] = useState("waiting");
   const { id } = useParams();
 
-  const API = "http://192.168.1.42:3000";
+  const API = import.meta.env.VITE_API_URL || "http://192.168.1.42:3000";
   // const API = "http://192.168.1.26:3000";
 
   const fetchPost = async (id) => {

@@ -6,7 +6,7 @@ export default function ApproveReservation() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.34:3000";
   const token = localStorage.getItem("token");
 
   const headers = {
@@ -100,7 +100,7 @@ export default function ApproveReservation() {
     );
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gray-100 pb-10">
+    <div className="flex flex-col items-center min-h-screen bg-gray-100 pb-10 font-noto-thai">
       {/* Header Image */}
       <div className="relative w-[24.5rem] h-[10rem] shadow-lg">
         <img
