@@ -18,7 +18,12 @@ export default function Login() {
   const [inputs, setInputs] = useState({ email: "", password: "" });
 
   // const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.26:3000";
-  const apiUrl = import.meta.env.VITE_API_URL || "http://172.20.10.4:3000";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://192.168.1.42:3000";
+  // const apiUrl = import.meta.env.VITE_API_URL;
+  // console.log("API URL =", apiUrl);
+
+
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;

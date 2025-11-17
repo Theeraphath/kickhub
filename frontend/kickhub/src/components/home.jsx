@@ -47,7 +47,7 @@ export default function FindandCreate() {
         return;
       }
 
-      const res = await fetch(`http://192.168.1.26:3000/api/user/${id}`, {
+      const res = await fetch(`http://192.168.1.42:3000/api/user/${id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -77,7 +77,7 @@ export default function FindandCreate() {
   const getparty = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://192.168.1.26:3000/api/posts", {
+      const res = await fetch("http://192.168.1.42:3000/api/posts", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -106,7 +106,7 @@ export default function FindandCreate() {
       if (!token) {
         throw new Error("กรุณาเข้าสู่ระบบก่อนใช้งาน");
       }
-      const res = await fetch("http://192.168.1.26:3000/api/fields", {
+      const res = await fetch("http://192.168.1.42:3000/api/fields", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -240,7 +240,7 @@ export default function FindandCreate() {
                 <img
                   src={
                     team.image
-                      ? `http://192.168.1.26:3000/uploads/photos/${team.image}`
+                      ? `http://192.168.1.42:3000/uploads/photos/${team.image}`
                       : teamImg
                   }
                   alt={team.party_name}
@@ -344,7 +344,7 @@ export default function FindandCreate() {
                   <img
                     src={
                       field.image
-                        ? `http://192.168.1.26:3000/uploads/photos/${field.image}`
+                        ? `http://192.168.1.42:3000/uploads/photos/${field.image}`
                         : teamImg
                     }
                     alt={field.field_name}

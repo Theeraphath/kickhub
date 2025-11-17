@@ -6,6 +6,127 @@ import OwnerField from "../../public/สนามของเรา.png";
 
 const API_BASE = "http://localhost:3000";
 
+/* ---------------------------
+   Animation & UI CSS (injected)
+   --------------------------- */
+const animations = `
+/* fade-in */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn .24s ease-out; }
+
+/* pop-up (scale) */
+@keyframes popUp {
+  0% { transform: scale(.7); opacity: 0; }
+  60% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-up { animation: popUp .34s cubic-bezier(.22,1,.36,1); }
+
+/* shake for input error */
+@keyframes shakeX {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.shake { animation: shakeX 0.22s linear; }
+
+/* Neumorphism popup (container-local) */
+.neu-popup {
+  background: linear-gradient(180deg,#F3F4F6,#ECECEC);
+  box-shadow:
+    -8px -8px 18px rgba(255,255,255,0.85),
+    8px 8px 18px rgba(0,0,0,0.08);
+  border-radius: 18px;
+  padding: 20px 32px;
+  width: min(84%, 360px);
+  max-width: 360px;
+  text-align: center;
+
+  /* เปลี่ยนเป็น fixed เพื่ออยู่กลางจอจริง ๆ */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  z-index: 999;
+  overflow: hidden;
+}
+
+
+/* check icon */
+.neu-check {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  margin: 6px auto 10px auto;
+  background: linear-gradient(135deg, #8ef6c0, #34d399);
+  color: #fff;
+  font-weight: 700;
+  font-size: 30px;
+  box-shadow:
+    inset -4px -4px 8px rgba(255,255,255,0.6),
+    inset 4px 4px 8px rgba(0,0,0,0.12),
+    0 6px 18px rgba(52,211,153,0.12);
+  transform: translateY(0);
+  animation: popUp .38s cubic-bezier(.22,1,.36,1);
+}
+
+/* subtle shine */
+.neu-popup .shine {
+  position: absolute;
+  top: -40%;
+  left: -120%;
+  width: 60%;
+  height: 220%;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.5) 45%, rgba(255,255,255,0.6) 55%, transparent 100%);
+  transform: rotate(-20deg);
+  opacity: 0.9;
+  animation: shineMove 1.1s cubic-bezier(.2,.8,.2,1) forwards;
+  pointer-events: none;
+}
+@keyframes shineMove {
+  0% { left: -120%; }
+  100% { left: 160%; }
+}
+
+/* subtle text */
+.neu-popup p {
+  margin: 0;
+  color: #064e3b;
+}
+
+/* small helper for error text */
+.error-text {
+  color: #dc2626;
+}
+
+/* small shadow utility */
+.shadow-soft {
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+}
+
+/* ensure container relative (to position popup inside) */
+.inner-container-relative { position: relative; }
+`;
+
+/* inject style once */
+if (
+  typeof document !== "undefined" &&
+  !document.getElementById("ownerfield-animations")
+) {
+  const styleSheet = document.createElement("style");
+  styleSheet.id = "ownerfield-animations";
+  styleSheet.innerText = animations;
+  document.head.appendChild(styleSheet);
+}
+
 export default function OwnerFieldManager() {
   const [fields, setFields] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -14,6 +135,9 @@ export default function OwnerFieldManager() {
   const [detailField, setDetailField] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
   const fileInputRef = useRef(null);
+  const [promptPayError, setPromptPayError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -26,7 +150,6 @@ export default function OwnerFieldManager() {
     promptPay: "",
     amenities: [],
     description: "",
-    // image can be File (new upload) OR string (existing filename/path)
     image: null,
   });
 
@@ -101,6 +224,7 @@ export default function OwnerFieldManager() {
       "wifi free": false,
     });
     if (fileInputRef.current) fileInputRef.current.value = null;
+    setPromptPayError("");
   };
 
   const handleAmenityToggle = (item) => {
@@ -116,12 +240,25 @@ export default function OwnerFieldManager() {
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // new file chosen -> replace preview (File object)
     setFormData((prev) => ({ ...prev, image: file }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // basic validation for promptPay before submit (UI-level)
+    if (!formData.promptPay) {
+      setPromptPayError("กรุณากรอกหมายเลขพร้อมเพย์");
+      return;
+    }
+    if (!/^\d+$/.test(formData.promptPay)) {
+      setPromptPayError("กรุณากรอกเฉพาะตัวเลขเท่านั้น");
+      return;
+    }
+    if (formData.promptPay.length < 9) {
+      setPromptPayError("กรุณากรอกหมายเลขพร้อมเพย์ให้ครบ (9–10 หลัก)");
+      return;
+    }
 
     const facilitiesMap = {
       ห้องน้ำ: "restroom",
@@ -148,18 +285,12 @@ export default function OwnerFieldManager() {
     form.append("is_active", true);
     form.append("facilities", JSON.stringify(facilitiesObject));
 
-    // IMPORTANT: if user selected new File -> send it as `image`
-    // otherwise send `old_image` so backend can keep the old filename
     if (formData.image instanceof File) {
       form.append("image", formData.image);
     } else if (formData.image) {
-      // existing image filename/path (string or object)
-      // we send as old_image so backend won't remove it
-      // backend should check old_image when no new file uploaded
       if (typeof formData.image === "string") {
         form.append("old_image", formData.image);
       } else if (typeof formData.image === "object") {
-        // if backend stored object, try to extract filename/path
         if (formData.image.filename)
           form.append("old_image", formData.image.filename);
         else if (formData.image.path)
@@ -181,9 +312,19 @@ export default function OwnerFieldManager() {
 
       const result = await res.json();
       if (result.status === "success" || result.message?.includes("สำเร็จ")) {
+        // show success message based on mode (capture before reset)
+        setSuccessMessage(
+          isEditing ? "แก้ไขข้อมูลสนามสำเร็จ!" : "เพิ่มสนามสำเร็จ!"
+        );
         await fetchFields();
         resetForm();
         setShowForm(false);
+
+        // show popup inside container
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 1800);
+
+        return;
       } else {
         console.error("save field error:", result);
         alert("เกิดข้อผิดพลาดในการบันทึกสนาม");
@@ -225,7 +366,6 @@ export default function OwnerFieldManager() {
       promptPay: field.mobile_number || "",
       amenities: amenitiesArray,
       description: field.description || "",
-      // keep existing image filename/path/object so we don't lose it
       image: field.image || null,
     });
 
@@ -266,24 +406,16 @@ export default function OwnerFieldManager() {
 
   const formatTime = (t) => (t ? t : "-");
 
-  // robust getImageUrl - supports:
-  // - null -> null
-  // - "filename.jpg" -> /uploads/photos/filename.jpg
-  // - "uploads/photos/xxx.jpg" -> /uploads/photos/xxx.jpg (use as-is)
-  // - { filename, path } object -> use path if available else filename
   const getImageUrl = (img) => {
     if (!img) return null;
-
     if (typeof img === "object") {
       if (img.path) return `${API_BASE}/${img.path}`;
       if (img.filename) return `${API_BASE}/uploads/photos/${img.filename}`;
     }
-
     if (typeof img === "string") {
       if (img.startsWith("uploads/")) return `${API_BASE}/${img}`;
       return `${API_BASE}/uploads/photos/${img}`;
     }
-
     return null;
   };
 
@@ -298,7 +430,8 @@ export default function OwnerFieldManager() {
         />
       </div>
 
-      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
+      {/* container where popup will appear (positioned relative) */}
+      <div className="relative bg-[#F2F2F7] rounded-t-3xl w-[24.5rem] p-5 -mt-4 flex-1 overflow-y-auto max-h-[calc(100vh-10rem)] inner-container-relative">
         {/* header & add button */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-bold text-gray-800">
@@ -317,7 +450,7 @@ export default function OwnerFieldManager() {
 
         {/* form */}
         {showForm && (
-          <form onSubmit={handleSubmit} className="space-y-3 mt-3">
+          <form onSubmit={handleSubmit} className="space-y-3 mt-3 fade-in">
             <input
               type="text"
               placeholder="ชื่อสนาม"
@@ -393,31 +526,61 @@ export default function OwnerFieldManager() {
               <option value="หญ้าเทียม">หญ้าเทียม</option>
               <option value="หญ้าแท้">หญ้าแท้</option>
             </select>
-            <input
-              type="text"
-              placeholder="หมายเลขพร้อมเพย์"
-              value={formData.promptPay}
-              onChange={(e) =>
-                setFormData({ ...formData, promptPay: e.target.value })
-              }
-              className="w-full border rounded-lg p-2"
-            />
+
+            {/* PromptPay with validation + shake + error text */}
+            <div>
+              <label className="text-gray-700 font-medium mb-1 block ">
+                หมายเลขพร้อมเพย์
+              </label>
+
+              <input
+                type="text"
+                placeholder="เช่น 0612345678"
+                value={formData.promptPay}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // allow only digits
+                  if (!/^\d*$/.test(value)) {
+                    setPromptPayError("กรุณากรอกเฉพาะตัวเลขเท่านั้น");
+                    return;
+                  }
+                  // limit length
+                  if (value.length > 10) {
+                    setPromptPayError("หมายเลขพร้อมเพย์ต้องไม่เกิน 10 หลัก");
+                    return;
+                  }
+                  setPromptPayError("");
+                  setFormData({ ...formData, promptPay: value });
+                }}
+                className={`w-full border rounded-lg p-2 transition-all duration-150 ${
+                  promptPayError
+                    ? "border-red-500 shadow-sm shake"
+                    : "border-black-300"
+                }`}
+              />
+
+              {promptPayError && (
+                <p className="text-red-500 text-sm mt-1 error-text fade-in">
+                  {promptPayError}
+                </p>
+              )}
+            </div>
 
             {/* amenities */}
             <div>
               <p className="text-gray-700 font-medium mb-2">
                 สิ่งอำนวยความสะดวก
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 ho">
                 {amenitiesList.map((item) => (
                   <button
                     type="button"
                     key={item}
                     onClick={() => handleAmenityToggle(item)}
-                    className={`px-3 py-1 rounded-full border text-sm ${
+                    className={`px-3 py-1 rounded-full border text-sm  ${
                       amenitiesState[item]
-                        ? "bg-emerald-500 text-white border-emerald-500"
-                        : "border-gray-300 text-gray-600"
+                        ? "bg-emerald-500 text-white border-emerald-500 hover:bg-white hover:text-emerald-500"
+                        : "border-gray-300 text-gray-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500"
                     }`}
                   >
                     {item}
@@ -443,8 +606,6 @@ export default function OwnerFieldManager() {
               <StyledWrapper>
                 <label className="custum-file-upload relative" htmlFor="file">
                   {formData.image ? (
-                    // if image is File => use URL.createObjectURL
-                    // if image is string/path/object => use getImageUrl
                     typeof formData.image === "object" &&
                     !(formData.image instanceof File) ? (
                       <img
@@ -484,7 +645,7 @@ export default function OwnerFieldManager() {
             <div className="flex gap-3 mt-4 pb-6">
               <button
                 type="submit"
-                className="flex-1 bg-emerald-500 text-white py-2 rounded-lg font-semibold"
+                className="flex-1 bg-emerald-500 text-white py-2 rounded-lg font-semibold shadow-soft"
               >
                 {isEditing ? "บันทึกการแก้ไข" : "เพิ่มสนาม"}
               </button>
@@ -503,26 +664,57 @@ export default function OwnerFieldManager() {
         )}
 
         {/* fields list */}
-        {fields.length > 0 && !showForm && (
-          <div className="mt-4 space-y-4">
-            {fields.map((f) => (
-              <div
-                key={f._id}
-                className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
-              >
-                <div className="w-full h-36 bg-gray-100">
-                  {f.image ? (
-                    <img
-                      src={getImageUrl(f.image)}
-                      alt={f.field_name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                      ไม่มีรูป
-                    </div>
-                  )}
-                </div>
+    {/* Empty State — ไม่มีสนาม */}
+{!showForm && fields.length === 0 && (
+  <div className="flex flex-col items-center justify-center mt-10 fade-in">
+    <div
+      className="w-24 h-24 rounded-2xl bg-gray-200 shadow-inner flex items-center justify-center mb-4"
+      style={{
+        boxShadow:
+          "-6px -6px 12px rgba(255,255,255,0.8), 6px 6px 12px rgba(0,0,0,0.1)",
+      }}
+    >
+      <span className="text-gray-500 text-5xl">⚽</span>
+    </div>
+
+    <p className="text-gray-700 font-semibold text-lg">ยังไม่มีสนามของคุณ</p>
+    <p className="text-gray-500 text-sm mt-1 mb-4">
+      เพิ่มสนามแรกของคุณเพื่อเริ่มต้นใช้งาน
+    </p>
+
+    <button
+      onClick={() => {
+        resetForm();
+        setShowForm(true);
+      }}
+      className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2 rounded-lg font-semibold shadow-soft mt-2"
+    >
+      + เพิ่มสนามแรกของคุณ
+    </button>
+  </div>
+)}
+
+{/* Fields List — มีสนาม */}
+{fields.length > 0 && !showForm && (
+  <div className="mt-4 space-y-4">
+    {fields.map((f) => (
+      <div
+        key={f._id}
+        className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
+      >
+        <div className="w-full h-36 bg-gray-100">
+          {f.image ? (
+            <img
+              src={getImageUrl(f.image)}
+              alt={f.field_name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+              ไม่มีรูป
+            </div>
+          )}
+        </div>
 
                 <div className="p-4">
                   <div className="flex justify-between items-start">
@@ -699,6 +891,23 @@ export default function OwnerFieldManager() {
                   ยกเลิก
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* -------------------------
+            Neumorphism Success Popup
+            (placed INSIDE the container)
+           ------------------------- */}
+        {showSuccess && (
+          <div className="fixed inset-0 bg-black/25 backdrop-blur-sm z-[998] flex items-center justify-center">
+            <div className="neu-popup pop-up">
+              <div className="shine"></div>
+              <div className="neu-check">✓</div>
+              <p className="font-semibold text-base">
+                {successMessage ||
+                  (isEditing ? "แก้ไขข้อมูลสนามสำเร็จ!" : "เพิ่มสนามสำเร็จ!")}
+              </p>
             </div>
           </div>
         )}
